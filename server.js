@@ -316,7 +316,7 @@ setInterval(() => {
 }, 1000);
 
 io.on('connection', sock => {
-  sock.emit('meta', { v: 3, animes: ANIMES, chars: CH.map(c => [c[0], c[2], fs.existsSync(path.join(__dirname, 'public', 'img', slugOf(c[0]) + '.jpg')) ? slugOf(c[0]) : '']) });
+  sock.emit('meta', { v: 3, animes: ANIMES, chars: CH.map(c => [c[0], c[2], fs.existsSync(path.join(__dirname, slugOf(c[0]) + '.jpg')) ? slugOf(c[0]) : '']) });
   const find = () => Object.values(rooms).find(r => r.players.some(p => p.sid === sock.id));
   const me = r => r && r.players.find(p => p.sid === sock.id);
   const err = m => sock.emit('err', m);
@@ -357,7 +357,7 @@ io.on('connection', sock => {
       picks.push(c); seen.add(c[2]);
     });
     r.players.forEach((q, i) => {
-      q.full = picks[i]; q.ch = { n: picks[i][0], a: picks[i][2], i: (slug => fs.existsSync(path.join(__dirname, 'public', 'img', slug + '.jpg')) ? slug : '')(picks[i][0].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')) };
+      q.full = picks[i]; q.ch = { n: picks[i][0], a: picks[i][2], i: (slug => fs.existsSync(path.join(__dirname, slug + '.jpg')) ? slug : '')(picks[i][0].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')) };
       q.cards = [];
       q.hints = []; q.res = null; q.ready = false; q.asks = 0; q.used = 0; q.t = 0;
     });
