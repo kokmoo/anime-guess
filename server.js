@@ -1,7 +1,7 @@
 const express = require('express'), http = require('http'), { Server } = require('socket.io');
 const fs = require('fs'), path = require('path');
 const app = express(), srv = http.createServer(app), io = new Server(srv);
-app.use(express.static(__dirname));
+app.use('/img', express.static(__dirname));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 // [name, aliases, anime, era, world, ability, side, role]
 const CH = [
