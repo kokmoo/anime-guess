@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ANIME GUESS</title>
+<script>document.documentElement.dataset.theme=localStorage.theme||'light';if(localStorage.calm==='1')document.documentElement.setAttribute('data-calm','')</script>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#14142b;--line:#14142b;--sh:#14142b;--blue:#2d5bff;--sun:#ffd23f;--pink:#ff4d8d;--bg:#eef1ff;--w:#fff;--soft:#dfe6ff;--dot:#c9d2ff;--hint:#eaffe9}
+:root[data-theme=dark]{--ink:#eceeff;--line:#7f86ff;--sh:#000;--bg:#10102a;--w:#1b1b3c;--soft:#2a2a55;--dot:#23234a;--hint:#173826}
+:root[data-calm] *{animation:none!important;transition:none!important}
+*{box-sizing:border-box}
+body{margin:0;font-family:Kanit,sans-serif;color:var(--ink);min-height:100vh;background:var(--bg) radial-gradient(circle,var(--dot) 2px,transparent 2.5px) 0 0/22px 22px}
+main{max-width:560px;margin:0 auto;padding:6px 16px 60px}
+.top{max-width:560px;margin:0 auto;padding:12px 16px 0;display:flex;justify-content:space-between;align-items:center}
+.logo{font-weight:800;font-size:18px}.logo b{background:var(--sun);border:2px solid var(--line);padding:0 6px}
+.gear{width:44px;height:44px;margin:0;padding:0;font-size:20px}
+h1{font-size:46px;font-weight:800;margin:18px 0 4px;letter-spacing:-1px;transform:rotate(-2deg);animation:wob 3s ease-in-out infinite}
+h1 span{background:var(--sun);padding:0 8px;border:3px solid var(--line);box-shadow:4px 4px 0 var(--sh);display:inline-block}
+@keyframes wob{50%{transform:rotate(1deg) scale(1.03)}}
+h2{margin:0 0 8px;font-size:20px}
+.box{background:var(--w);border:3px solid var(--line);box-shadow:5px 5px 0 var(--sh);padding:14px;margin:14px 0}
+button{font:inherit;font-weight:600;border:3px solid var(--line);background:var(--sun);padding:10px 16px;box-shadow:3px 3px 0 var(--sh);cursor:pointer;width:100%;margin:6px 0;transition:transform .08s}
+button:hover{transform:translate(-1px,-1px)}button:active{transform:translate(3px,3px);box-shadow:none}
+button.b{background:var(--blue);color:#fff}button.g{background:var(--w)}button.r{background:var(--pink);color:#fff}button:disabled{opacity:.4}
+input,select{font:inherit;width:100%;padding:10px;border:3px solid var(--line);margin:4px 0 10px;background:var(--w);color:var(--ink)}
+label.c{display:inline-flex;gap:6px;align-items:center;margin:3px 10px 3px 0}label.c input{width:auto;margin:0}
+.row{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.code{font-size:40px;font-weight:800;letter-spacing:6px;text-align:center;background:var(--sun);border:3px dashed var(--ink);padding:6px}
+.timer{font-size:60px;font-weight:800;text-align:center;line-height:1}.timer.low{color:var(--pink);animation:shk .4s infinite}
+@keyframes shk{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.pl{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:2px solid var(--bg)}.pl .gr{flex:1}
+.pl:last-child{border:0}.pl.turn{background:var(--sun);margin:0 -8px;padding:8px}
+.av{width:36px;height:36px;border-radius:50%;border:3px solid var(--line);display:inline-flex;align-items:center;justify-content:center;font-weight:800;flex:none}
+.q{font-weight:800;font-size:22px;color:var(--pink)}
+.card{display:inline-block;border:3px solid var(--line);background:var(--blue);color:#fff;padding:8px 12px;margin:4px 4px 0 0;font-weight:600;cursor:pointer;box-shadow:3px 3px 0 var(--sh);transition:transform .15s}
+.card:hover{transform:rotate(-3deg) translateY(-3px)}
+.hint{background:var(--hint);border-left:6px solid #1fa84f;padding:6px 10px;margin:6px 0;animation:pop .4s}
+.win{color:#1fa84f;font-weight:800}.lose{color:var(--pink);font-weight:800}
+.mine{background:var(--sun)!important;animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.02)}}
+.ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(20,20,43,.7);z-index:9;padding:16px}
+#toast>div{background:var(--sun);border:4px solid var(--line);box-shadow:8px 8px 0 var(--sh);padding:26px 30px;font-size:26px;font-weight:800;text-align:center;animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.2) rotate(-12deg);opacity:0}}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+.rev{animation:pop .6s both}
+.big{font-size:110px;text-align:center;font-weight:800;animation:pop .4s}
+main.wide{max-width:1000px}body.w .top{max-width:1000px}main,.top{position:relative;z-index:1}
+#bg{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}#bg span{position:absolute;opacity:.22;animation:drift ease-in-out infinite}
+@keyframes drift{50%{transform:translateY(-40px) rotate(20deg)}}
+.home{display:grid;gap:24px;align-items:start}@media(min-width:860px){.home{grid-template-columns:1.1fr .9fr;align-items:center;margin-top:30px}}
+.sub{font-size:18px;line-height:1.6}.demo{display:flex;gap:10px;margin:18px 0}
+.dc{flex:1;background:var(--w);border:3px solid var(--line);box-shadow:4px 4px 0 var(--sh);padding:10px;text-align:center;animation:flt 3s ease-in-out infinite}
+.dc:nth-child(2){animation-delay:.4s}.dc.me{background:var(--sun);animation-delay:.8s}.dp{font-size:13px}
+@keyframes flt{50%{transform:translateY(-8px) rotate(1deg)}}
+.chips span{display:inline-block;background:var(--w);border:2px solid var(--line);padding:2px 10px;margin:3px 4px 3px 0;font-size:14px}
+.steps{margin:0;padding-left:22px;line-height:1.9}.steps li::marker{font-weight:800;color:var(--blue)}
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.tile{background:var(--w);border:3px solid var(--line);padding:8px;text-align:center}.tile.turn{background:var(--sun)}
+.tile b{display:block;font-size:18px}.tn{font-size:14px;margin:6px 0 2px}
+.ph{width:100%;aspect-ratio:1;object-fit:cover;border:3px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:52px;font-weight:800;background:var(--soft);cursor:zoom-in}
+.ph.q{color:var(--pink);cursor:default;background:repeating-linear-gradient(45deg,#fff,#fff 8px,#ffe1ec 8px,#ffe1ec 16px)}
+.card.off{opacity:.45;filter:grayscale(.6)}
+button{color:#14142b}button.g{color:var(--ink)}button.b,button.r{color:#fff}
+.logo b,h1 span,.code,.tile.turn,.pl.turn,.mine,.dc.me,#toast>div,.av,.box[style*="--sun"]{color:#14142b}
+.lg{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin:8px 0 14px}.lt{text-align:center}
+.lt img,.ph0{width:100%;aspect-ratio:1;object-fit:cover;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;background:var(--soft)}
+.lt small{display:block;font-size:11px;line-height:1.2;margin-top:2px}summary{cursor:pointer;padding:6px 0;font-size:17px}
+.bub{position:fixed;left:50%;transform:translateX(-50%);z-index:15;padding:10px 18px;font-weight:800;font-size:20px;border:3px solid var(--line);box-shadow:4px 4px 0 var(--sh);color:#14142b;animation:pop .4s}
+.bub.yes{background:#9dffb5}.bub.no{background:#ffb3c7}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}}
+.enter>*{animation:rise .45s both}.enter>*:nth-child(2){animation-delay:.07s}.enter>*:nth-child(3){animation-delay:.14s}.enter>*:nth-child(4){animation-delay:.21s}.enter>*:nth-child(5){animation-delay:.28s}.enter>*:nth-child(n+6){animation-delay:.35s}
+@keyframes squish{40%{transform:scale(.94,.9)}70%{transform:scale(1.04,1.06)}}.squish{animation:squish .28s}
+@keyframes glow{50%{box-shadow:3px 3px 0 var(--sh),0 0 18px var(--blue)}}.hot{animation:glow 1.4s infinite}
+.tile{transition:transform .15s}.tile:hover{transform:translateY(-4px) rotate(-1deg)}
+.lt img{transition:transform .15s}.lt:hover img{transform:scale(1.12) rotate(2deg)}
+</style></head><body>
+<div class="top"><div class="logo"><b>ANIME</b> GUESS</div><button class="gear g" onclick="openSet()" aria-label="ตั้งค่า">⚙️</button></div>
+<div id="bg"></div><main id="app"></main>
+<div class="ov" id="toast"><div id="tt"></div></div>
+<div class="ov" id="set"><div class="box" style="width:100%;max-width:420px" id="sc"></div></div>
+<div class="ov" id="lib" style="z-index:25;align-items:flex-start;overflow:auto"><div class="box" style="width:100%;max-width:640px;margin:20px auto" id="lc"></div></div>
+<div class="ov" id="dlg" style="z-index:30"><div class="box" style="width:100%;max-width:380px;animation:pop .35s cubic-bezier(.2,1.6,.4,1)" id="dc"></div></div>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิดตัวอักษร'],era:['📅','ใบ้ยุค'],ability:['⚡','ความสามารถ'],side:['🏴','ฝ่าย'],role:['⭐','บทบาท']};
+const s=io(),$=id=>document.getElementById(id);
+const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
+const VER=3;let st=null,animes=[],chars=[],libQ='',name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0';
+const pre=new URLSearchParams(location.search).get('room')||'';
+const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
+const av=n=>`<span class="av" style="background:hsl(${[...n].reduce((a,c)=>a+c.charCodeAt(0),0)*47%360} 85% 65%)">${esc([...n][0]||'?')}</span>`;
+// ---- sound (synthesized, no files) ----
+let ac;
+function tone(f,d=.12,type='square',v=.07,t=0){if(!sound)return;try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();const o=ac.createOscillator(),g=ac.createGain(),n=ac.currentTime+t;o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,n);g.gain.exponentialRampToValueAtTime(.001,n+d);o.connect(g);g.connect(ac.destination);o.start(n);o.stop(n+d)}catch(e){}}
+const seq=(a,type,d,v)=>a.forEach((f,i)=>tone(f,d,type,v,i*.1));
+const slide=(a,b,d=.2,type='sawtooth',v=.07,t=0)=>{if(!sound)return;try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();const o=ac.createOscillator(),g=ac.createGain(),n=ac.currentTime+t;o.type=type;o.frequency.setValueAtTime(a,n);o.frequency.exponentialRampToValueAtTime(b,n+d);g.gain.setValueAtTime(v,n);g.gain.exponentialRampToValueAtTime(.001,n+d);o.connect(g);g.connect(ac.destination);o.start(n);o.stop(n+d)}catch(e){}};
+const R=a=>a[Math.floor(Math.random()*a.length)];
+const CS={world:()=>{slide(200,800,.35,'sine',.1);seq([523,659,784],'triangle',.2,.08)},letter:()=>seq([1319,1568,1319,1760],'square',.08,.05),era:()=>{tone(262,.5,'sine',.12);tone(392,.5,'sine',.1,.12);tone(523,.6,'sine',.08,.24)},ability:()=>{slide(150,1200,.3,'sawtooth',.07);tone(1500,.15,'square',.05,.3)},side:()=>{tone(330,.15,'triangle',.1);tone(247,.15,'triangle',.1,.15);tone(330,.3,'triangle',.1,.3)},role:()=>seq([784,988,1175,1568],'triangle',.2,.09)};
+const SFX={click:()=>tone(R([560,620,700,780]),.06),tick:c=>tone(500+(10-(c||5))*70,.06,'square',.05),beep:()=>tone(520,.15,'triangle',.1),go:()=>seq([392,523,659,784,1047],'sawtooth',.2,.07),card:t=>(CS[t]||CS.world)(),hint:()=>seq([1047,1319,1568],'sine',.25,.09),ready:()=>seq([659,988],'triangle',.15,.1),leave:()=>slide(600,150,.35,'triangle',.09),err:()=>{tone(150,.2,'sawtooth',.09);tone(120,.25,'sawtooth',.09,.15)},final:()=>[0,1,2].forEach(i=>{tone(880,.12,'square',.07,i*.25);tone(660,.12,'square',.07,i*.25+.12)}),win:()=>seq([523,659,784,1047,1319],'triangle',.22,.12),lose:()=>seq([392,330,262,196],'sawtooth',.28,.08),reveal:()=>{slide(R([200,260,330]),R([700,900,1100]),.3,'triangle',.09);tone(R([880,988,1175]),.2,'triangle',.08,.2)},join:()=>seq([740,988],'triangle',.12,.09),yes:()=>seq([880,1175],'triangle',.1,.09),no:()=>slide(420,180,.22,'sawtooth',.07)};
+document.addEventListener('click',e=>{const t=e.target.closest('button,.card');if(t){SFX.click();t.classList.remove('squish');void t.offsetWidth;t.classList.add('squish')}});
+function confetti(){for(let i=0;i<50;i++){const d=document.createElement('i');d.textContent=['🎉','✨','⭐','🎊'][i%4];d.style.cssText=`position:fixed;top:-30px;left:${Math.random()*100}vw;font-size:${18+Math.random()*18}px;z-index:20;pointer-events:none;animation:fall ${2+Math.random()*2}s linear forwards`;document.body.appendChild(d);setTimeout(()=>d.remove(),4500)}}
+// ---- network ----
+s.on('meta',m=>{animes=m.animes;chars=m.chars||[];if(m.v!==VER)warn();if(sessionStorage.room)s.emit('join',{code:sessionStorage.room,name,pid})});
+s.on('state',x=>{
+ const k=JSON.stringify({...x,left:0}),same=st&&k===lastKey,o=st;lastKey=k;st=x;t0=Date.now();sessionStorage.room=x.code;
+ if(same)return;
+ if(o){
+  const a=o.players.find(p=>p.pid===x.you),b=x.players.find(p=>p.pid===x.you);
+  if(a&&b&&!a.res&&b.res){if(b.res==='win'){SFX.win();confetti()}else SFX.lose()}
+  if(o.players.length<x.players.length)SFX.join();else if(o.players.length>x.players.length)SFX.leave();
+  if(x.phase==='brief'&&o.phase==='brief'&&x.players.filter(p=>p.ready).length>o.players.filter(p=>p.ready).length)SFX.ready();
+  if(x.hints.length>o.hints.length)setTimeout(SFX.hint,900);
+  if(o.phase!==x.phase){
+   if(x.phase==='play')SFX.go();if(x.phase==='final')SFX.final();
+   if(x.phase==='over'){confetti();x.players.forEach((_,i)=>setTimeout(SFX.reveal,i*500))}
+  }
+  if(x.turn===x.you&&o.turn!==x.you){SFX.beep();navigator.vibrate&&navigator.vibrate(150)}
+ }
+ render()});
+s.on('err',m=>{if(!st)sessionStorage.removeItem('room');SFX.err();say(m)});
+s.on('toast',({name,type,hint})=>{SFX.card(type);$('tt').innerHTML=`<div style="font-size:60px">${CARDS[type][0]}</div>${esc(name)}<br>ใช้การ์ด “${CARDS[type][1]}”<div style="font-size:18px;font-weight:600;margin-top:12px;background:#fff;color:#14142b;border:3px solid var(--line);padding:8px 12px">💡 ${esc(hint||'')}</div>`;showToast(3800)});
+setInterval(()=>{if(!st||!st.left)return;const l=Math.max(0,st.left-(Date.now()-t0)),e=$('tm');
+ if(e&&st.phase!=='countdown'){e.textContent=mmss(l);e.className='timer'+(l<=10000?' low':'')}
+ if(st.phase==='play'&&l>0&&l<=10000){const c=Math.ceil(l/1000);if(c!==lastSec){lastSec=c;SFX.tick(c)}}},250);
+let _res;
+function dlg(html,btns){return new Promise(r=>{_res=r;$('dc').innerHTML=`<div style="font-size:18px;margin-bottom:10px;line-height:1.5">${html}</div>`+btns.map((b,i)=>`<button class="${b[1]}" onclick="dlgDone(${i})">${b[0]}</button>`).join('');$('dlg').style.display='flex'})}
+function dlgDone(i){$('dlg').style.display='none';_res(i)}
+const say=m=>dlg(esc(m).replace(/\n/g,'<br>'),[['ตกลง','b']]);
+const ask=(h,ok='ยืนยัน',cls='b')=>dlg(h,[[ok,cls],['ยกเลิก','g']]).then(i=>i===0);
+function howto(){say('1) ทุกคนสุ่มได้ตัวละครแต่มองไม่เห็นของตัวเอง\n2) ถามคำถามผ่าน Discord เพื่อนตอบได้แค่ ใช่/ไม่\n3) ถึงตาคุณใช้การ์ดขอคำใบ้ได้ 1 ใบต่อตา (ทุกคนเห็นคำใบ้ที่ได้)\n4) พิมพ์ชื่อตัวละครเมื่อมั่นใจ ตอบได้ครั้งเดียว ผิดคือแพ้\n5) หมดเวลาแล้วมีโอกาสตอบครั้งสุดท้าย')}
+function tile(p){const you=p.pid===st.you,c=p.ch,hid=you&&!p.res;
+ const img=hid?'<div class="ph q">???</div>':(c.i?`<img class="ph" src="/img/${c.i}.jpg" alt="" data-i="${c.i}" data-n="${esc(c.n)}" onclick="zoom(this)">`:`<div class="ph">${esc([...c.n][0])}</div>`);
+ return `<div class="tile ${p.pid===st.turn?'turn':''}">${img}<div class="tn">${av(p.name)} ${you?'คุณ':esc(p.name)} ${p.res==='win'?'✅':p.res==='lose'?'❌':''}</div>${hid?'':`<b>${esc(c.n)}</b><small>${esc(c.a)}</small>`}</div>`}
+function zoom(e){dlg(`<img src="/img/${e.dataset.i}.jpg" style="width:100%;border:3px solid var(--line)"><div style="text-align:center;font-weight:800;margin-top:8px">${esc(e.dataset.n)}</div>`,[['ปิด','b']])}
+function useCard(c){if(!st.canCard)return say(st.turn===st.you?'ตานี้คุณใช้การ์ดไปแล้ว ใช้ได้ 1 ใบต่อตา':'ต้องถึงตาของคุณก่อนถึงจะใช้การ์ดได้');act('useCard',c)}
+function joinRoom(){if(getName())act('join',{code:$('cd').value.trim(),name,pid})}
+function rename(v){name=v.trim()||name;localStorage.name=name;act('rename',name)}
+function sendGuess(){const v=$('gs').value.trim();if(!v)return;ask(`ตอบว่า <b>${esc(v)}</b> ?<br><small>ตอบได้ครั้งเดียว ผิดแล้วแพ้ทันที</small>`,'ยืนยันคำตอบ').then(ok=>ok&&act('guess',v))}
+s.on('react',({name,ans})=>{SFX[ans]();const d=document.createElement('div');d.className='bub '+ans;d.textContent=(ans==='yes'?'✅ ใช่':'❌ ไม่')+' · '+name;d.style.top=(70+document.querySelectorAll('.bub').length*54)+'px';document.body.appendChild(d);setTimeout(()=>d.remove(),2600)});
+s.on('kicked',()=>{st=null;lastKey='';sessionStorage.removeItem('room');mode='home';render();say('คุณถูกเจ้าของห้องเชิญออกจากห้อง')});
+function kick(p){ask('เตะผู้เล่นคนนี้ออกจากห้อง?','เตะออก','r').then(ok=>ok&&act('kick',p))}
+function openLib(){closeSet();libQ='';$('lc').innerHTML=`<div class="row"><h2>📚 ตัวละครในเกม (${chars.length})</h2><button class="g" style="width:auto" onclick="closeLib()">ปิด ✕</button></div><input id="lq" placeholder="ค้นหาชื่อตัวละคร หรือชื่อเรื่อง" oninput="libQ=this.value;drawLib()"><div id="lr"></div>`;$('lib').style.display='flex';drawLib()}
+function closeLib(){$('lib').style.display='none'}
+function drawLib(){const q=libQ.trim().toLowerCase(),by={};chars.forEach(c=>{if(!q||c[0].toLowerCase().includes(q)||c[1].toLowerCase().includes(q))(by[c[1]]=by[c[1]]||[]).push(c)});
+ $('lr').innerHTML=Object.keys(by).sort().map(a=>`<details ${q?'open':''}><summary><b>${esc(a)}</b> (${by[a].length})</summary><div class="lg">${by[a].map(c=>`<div class="lt">${c[2]?`<img loading="lazy" src="/img/${c[2]}.jpg" alt="">`:'<div class="ph0">?</div>'}<small>${esc(c[0])}</small></div>`).join('')}</div></details>`).join('')||'<p>ไม่พบตัวละคร</p>'}
+function setTheme(t){document.documentElement.dataset.theme=t;localStorage.theme=t;openSet()}
+function setCalm(on){if(on)document.documentElement.setAttribute('data-calm','');else document.documentElement.removeAttribute('data-calm');localStorage.calm=on?1:0}
+function warn(){if($('wn'))return;const d=document.createElement('div');d.id='wn';d.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:40;background:#ff4d8d;color:#fff;font-weight:600;padding:10px 14px;text-align:center';d.textContent='⚠️ เซิร์ฟเวอร์เป็นเวอร์ชันเก่า บางฟีเจอร์จะไม่ทำงาน — แทนที่ server.js แล้วรีสตาร์ท (Ctrl+C แล้ว npm start)';document.body.appendChild(d)}
+let tt0;function showToast(ms){$('toast').style.display='flex';clearTimeout(tt0);tt0=setTimeout(()=>$('toast').style.display='none',ms)}
+s.on('solved',({pid,name,win,first,ch})=>{SFX.reveal();if(win&&pid!==(st&&st.you))confetti();
+ $('tt').innerHTML=`<div style="font-size:54px">${win?'🎉':'😵'}</div>${esc(name)} ${win?(first?'ทายถูกเป็นคนแรก!':'ทายถูก!'):'ทายผิด!'}${ch.i?`<img src="/img/${ch.i}.jpg" alt="" style="width:min(240px,60vw);display:block;margin:12px auto;border:4px solid var(--line)">`:''}<div style="font-size:24px">${esc(ch.n)}</div><small>${esc(ch.a)}</small>`;showToast(4200)});
+let lastScreen='';
+function screenFx(){const k=st?st.phase:mode;if(k===lastScreen)return;lastScreen=k;const A=$('app');A.classList.add('enter');setTimeout(()=>A.classList.remove('enter'),900)}
+const act=(e,d)=>s.emit(e,d);
+function getName(){name=$('nm').value.trim();if(!name){say('ใส่ชื่อก่อน');return false}localStorage.name=name;return true}
+function copy(u){const f=()=>dlg(`คัดลอกลิงก์นี้ส่งให้เพื่อน<input id="cl" readonly value="${esc(u)}" onfocus="this.select()" style="margin-top:8px">`,[['ปิด','b']]);(navigator.clipboard?navigator.clipboard.writeText(u).then(()=>say('คัดลอกลิงก์แล้ว')):Promise.reject()).catch(f)}
+async function leave(){if(!await ask('ออกจากห้องนี้?','ออกจากห้อง','r'))return;act('leave');st=null;lastKey='';sessionStorage.removeItem('room');mode='home';closeSet();render()}
+function openSet(){const dk=document.documentElement.dataset.theme==='dark';$('sc').innerHTML=`<h2>ตั้งค่า</h2>
+ <b>ธีม</b><div class="row"><button class="${dk?'g':'b'}" onclick="setTheme('light')">☀️ สว่าง</button><button class="${dk?'b':'g'}" onclick="setTheme('dark')">🌙 มืด</button></div>
+ <label class="c"><input type="checkbox" ${sound?'checked':''} onchange="sound=this.checked;localStorage.snd=sound?1:0;if(sound)SFX.click()"> เปิดเสียงเอฟเฟกต์</label><br>
+ <label class="c"><input type="checkbox" ${localStorage.calm==='1'?'checked':''} onchange="setCalm(this.checked)"> ลดการเคลื่อนไหว/แอนิเมชัน</label>
+ <button class="g" onclick="openLib()">📚 ตัวละครในเกม (ดูว่ามีใครบ้าง)</button>
+ <button class="g" onclick="howto()">🎮 วิธีเล่น</button>
+ ${st?`<button class="g" onclick="copy(location.origin+'/?room='+st.code)">🔗 คัดลอกลิงก์เชิญเพื่อน</button><button class="r" onclick="leave()">🚪 ออกจากห้อง</button>`:''}
+ <button class="b" onclick="closeSet()">ปิด</button>`;$('set').style.display='flex'}
+function closeSet(){$('set').style.display='none'}
+function render(){const a=document.activeElement,id=a&&a.id,v=a&&a.value;draw();screenFx();if(id){const n=$(id);if(n&&n.tagName==='INPUT'&&v!==undefined){n.value=v;n.focus();try{n.setSelectionRange(v.length,v.length)}catch(e){}}}}
+function draw(){
+ const A=$('app');const wide=!st&&mode==='home';A.className=wide?'wide':'';document.body.classList.toggle('w',wide);
+ if(!st){
+  if(mode==='home')A.innerHTML=`<div class="home"><div><h1><span>ANIME</span> GUESS</h1>
+  <p class="sub">เกมทายตัวละครอนิเมะกับเพื่อนผ่าน Discord<br>เห็นตัวละครของเพื่อนทุกคน…ยกเว้นของตัวเอง 🙈</p>
+  <div class="demo"><div class="dc"><div class="dp">🧑 A</div><b>Naruto</b></div><div class="dc"><div class="dp">🧑 B</div><b>Gojo</b></div><div class="dc me"><div class="dp">🫵 คุณ</div><b class="q">???</b></div></div>
+  <div class="chips"><span>📺 ${animes.length||11} เรื่อง</span><span>🃏 การ์ดคำใบ้ 6 แบบ</span><span>⏱️ 8-20 นาที</span><span>👥 2-10 คน</span></div></div>
+  <div><div class="box"><b>ชื่อผู้เล่น</b><input id="nm" maxlength="16" value="${esc(name)}" placeholder="พิมพ์ชื่อของคุณ">
+  <button onclick="if(getName()){mode='create';render()}">🏠 สร้างห้อง</button>
+  <input id="cd" placeholder="รหัสห้อง เช่น A7K9P" value="${esc(pre)}" style="text-transform:uppercase">
+  <button class="b" onclick="joinRoom()">🔑 เข้าร่วมห้อง</button><button class="g" onclick="openLib()">📚 ตัวละครในเกม</button></div>
+  <div class="box"><h2>เล่นยังไง?</h2><ol class="steps"><li>สร้างห้อง แล้วส่งรหัสให้เพื่อน</li><li>ทุกคนสุ่มได้ตัวละคร เห็นแค่ของเพื่อน</li><li>ถามเพื่อนผ่าน Discord ตอบได้แค่ ใช่/ไม่</li><li>ถึงตาคุณใช้การ์ดขอคำใบ้ได้ 1 ใบ</li><li>ทายชื่อตัวละครให้ถูกก่อนหมดเวลา!</li></ol></div></div></div>`;
+  else A.innerHTML=`<h2>ตั้งค่าห้อง</h2><div class="box">
+  เวลาเกม (นาที)<select id="tm0"><option>8</option><option selected>10</option><option>15</option><option>20</option></select>
+  จำนวนผู้เล่นสูงสุด<input id="mx" type="number" min="2" max="10" value="4">
+  <b>หมวดอนิเมะ</b><br><label class="c"><input type="checkbox" id="all" checked> ALL ANIME</label><br>
+  ${animes.map(a=>`<label class="c"><input type="checkbox" class="an" value="${esc(a)}"> ${esc(a)} (${chars.filter(c=>c[1]===a).length})</label>`).join('')}<br><br>
+  <label class="c"><input type="checkbox" id="cs" checked> เปิดการ์ดพิเศษ</label>
+  จำนวนการ์ดต่อคน<input id="cc" type="number" min="1" max="5" value="2">
+  <button class="b" onclick="mk()">CREATE ROOM</button><button class="g" onclick="mode='home';render()">← กลับ</button></div>`;
+  return}
+ const me=st.players.find(p=>p.pid===st.you),ph=st.phase;
+ const list=f=>st.players.map(f).join('');
+ const pic=(c,z=44)=>!c.i?'':`<img src="/img/${c.i}.jpg" width="${z}" height="${z}" alt="" style="object-fit:cover;border:3px solid var(--line);vertical-align:middle;margin-right:8px" onerror="this.remove()">`;
+ if(ph==='lobby')A.innerHTML=`<h2>ห้องรอเพื่อน</h2><div class="code">${st.code}</div>
+  <button class="g" onclick="copy(location.origin+'/?room='+st.code)">🔗 คัดลอกลิงก์เชิญเพื่อน</button>
+  <div class="box">${list(p=>`<div class="pl">${av(p.name)}<span class="gr">${esc(p.name)}${p.pid===st.you?' (คุณ)':''}</span>${p.pid===st.you&&st.owner?'👑':''}${p.wins?`<small>🏆${p.wins}</small>`:''}${st.owner&&p.pid!==st.you?`<button class="r" style="width:auto;margin:0;padding:2px 10px" onclick="kick('${p.pid}')">เตะ</button>`:''}</div>`)}
+  ชื่อของคุณ<input id="rn" maxlength="16" value="${esc(me.name)}" onchange="rename(this.value)"></div>
+  <div class="box">⏱️ ${st.set.time} นาที · 📚 ${st.set.animes==='ALL'?'ALL ANIME':esc(st.set.animes.join(', '))} · 🃏 ${st.set.cards?st.set.cardCount+' ใบ/คน':'ปิด'} · 👥 สูงสุด ${st.set.max}</div>
+  ${st.owner?'<button class="b hot" onclick="act(\'start\')">▶ START</button>':'<p style="text-align:center">รอเจ้าของห้องกดเริ่ม…</p>'}
+  <button class="g" onclick="leave()">← ออกจากห้อง</button>`;
+ else if(ph==='brief')A.innerHTML=`<h2>พร้อมหรือยัง?</h2><div class="box">ตัวละครของคุณถูกสุ่มแล้ว แต่คุณจะมองไม่เห็น<br>ถามคำถามผ่าน Discord ตอบได้แค่ ใช่ / ไม่<br>พิมพ์ชื่อตัวละครเมื่อมั่นใจ ตอบได้ครั้งเดียว ผิดคือแพ้</div>
+  <div class="box">${list(p=>`<div class="pl">${av(p.name)}<span class="gr">${esc(p.name)}</span><span>${p.ready?'✅':'⏳'}</span></div>`)}</div>
+  <button class="b hot" ${me.ready?'disabled':''} onclick="act('ready')">READY ✓</button>`;
+ else if(ph==='countdown'){A.innerHTML=`<div class="big" id="cdn" style="margin-top:25vh">…</div>`;cd()}
+ else if(ph==='play'||ph==='final'){
+  const mine=me.res,tp=st.players.find(p=>p.pid===st.turn);
+  A.innerHTML=`${ph==='final'?'<h2 style="text-align:center;color:var(--pink)">⏰ หมดเวลา! โอกาสตอบครั้งสุดท้าย</h2>':''}
+  <div class="timer" id="tm">${mmss(st.left)}</div>
+  ${ph==='play'&&tp?`<div class="box ${st.turn===st.you?'mine':''}" style="background:var(--sun)">ถึงตาของ: <b>${st.turn===st.you?'คุณ! ถามเพื่อนได้เลย':esc(tp.name)}</b>${st.turn===st.you?'<button class="b" onclick="act(\'endTurn\')">ถามเสร็จแล้ว → ตาถัดไป</button>':''}</div>`:''}
+  ${ph==='play'&&tp&&st.turn!==st.you?`<div class="box"><b>ตอบคำถามของ ${esc(tp.name)}</b><div class="row"><button class="b" onclick="act('react','yes')">✅ ใช่</button><button class="r" onclick="act('react','no')">❌ ไม่</button></div></div>`:''}
+  <div class="box"><h2>ตัวละครของเพื่อน</h2><div class="tiles">${list(tile)}</div><small>แตะรูปเพื่อขยาย</small></div>
+  <div class="box"><h2>การ์ดของคุณ</h2>${st.cards.length?st.cards.map(c=>`<span class="card ${st.canCard?'':'off'}" onclick="useCard('${c}')">${CARDS[c][0]} ${CARDS[c][1]}</span>`).join('')+`<br><small>${st.canCard?'ถึงตาคุณแล้ว ใช้ได้ 1 ใบ':'ใช้การ์ดได้เมื่อถึงตาคุณ (1 ใบต่อตา)'}</small>`:'<small>ไม่มีการ์ดแล้ว</small>'}
+  ${st.hints.map(h=>`<div class="hint">💡 ${esc(h)}</div>`).join('')}</div>
+  ${mine?`<div class="box ${mine}">${mine==='win'?'🎉 คุณทายถูก!':'😵 คุณทายผิด'}</div>`:`<div class="box"><b>ตอบเลย (ครั้งเดียว)</b><input id="gs" placeholder="ชื่อตัวละครของคุณ" autocomplete="off" onkeydown="if(event.key==='Enter')sendGuess()"><button class="b" onclick="sendGuess()">ส่งคำตอบ</button></div>`}`;
+ }else{
+  const w=[...st.players].sort((a,b)=>(a.res==='win'?0:1)-(b.res==='win'?0:1)||a.t-b.t),mx=k=>[...st.players].sort((a,b)=>b[k]-a[k])[0],fast=w.find(p=>p.res==='win');
+  A.innerHTML=`<h1 style="font-size:36px">🏆 GAME OVER</h1><h2>🎭 CHARACTER REVEAL</h2>
+  ${w.map((p,i)=>`<div class="box rev" style="animation-delay:${i*.5}s"><div class="row"><span>${av(p.name)} <b>${esc(p.name)}</b></span><span class="${p.res}">${p.res==='win'?'ชนะ':'แพ้'}</span></div><div style="text-align:center">↓<br>${pic(p.ch,200)}<br><span style="font-size:22px;font-weight:800">${esc(p.ch.n)}</span> <small>${esc(p.ch.a)}</small></div></div>`).join('')}
+  <div class="box">🧠 ถามมากสุด: ${esc(mx('asks').name)}<br>⚡ เดาเร็วสุด: ${fast?esc(fast.name)+' ('+mmss(fast.t)+')':'-'}<br>🎒 ใช้การ์ดรวม: ${st.players.reduce((a,p)=>a+p.used,0)} ใบ<br>🏆 ชนะสะสมในห้อง: ${st.players.map(p=>esc(p.name)+' '+p.wins).join(' · ')}</div>
+  ${st.owner?'<button class="b" onclick="act(\'again\')">🔄 PLAY AGAIN</button>':'<p style="text-align:center">รอเจ้าของห้องเริ่มรอบใหม่…</p>'}
+  <button class="g" onclick="leave()">🚪 ออกจากห้อง</button>`;
+ }
+}
+let lastN=0;
+function cd(){const e=$('cdn');if(!e)return;const l=st.left-(Date.now()-t0);if(l<=0){e.textContent='GO!';return}const n=Math.ceil(l/1000);if(e.textContent!==String(n)){e.textContent=n;e.style.animation='none';e.offsetWidth;e.style.animation='';SFX.beep()}requestAnimationFrame(cd)}
+function mk(){if(!name)return say('ใส่ชื่อก่อน');act('create',{name,pid,set:{time:$('tm0').value,max:$('mx').value,cards:$('cs').checked,cardCount:$('cc').value,animes:$('all').checked?'ALL':[...document.querySelectorAll('.an:checked')].map(x=>x.value)}})}
+(function(){const b=$('bg');['🍥','🏴‍☠️','⚡','🔥','⭐','🗡️','🎭','🃏','💥','🌸','👊','🎴'].forEach((e,i)=>{const s=document.createElement('span');s.textContent=e;s.style.cssText=`left:${(i*83+7)%96}%;top:${(i*47+11)%88}%;font-size:${26+(i%4)*10}px;animation-delay:${-i*1.3}s;animation-duration:${9+(i%5)*2}s`;b.appendChild(s)})})();
+render();
+</script></body></html>
