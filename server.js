@@ -1,11 +1,11 @@
 const express = require('express'), http = require('http'), { Server } = require('socket.io');
 const fs = require('fs'), path = require('path');
 const app = express(), srv = http.createServer(app), io = new Server(srv);
-app.use('/img', express.static(__dirname));
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.use(express.static('public'));
+
 // [name, aliases, anime, era, world, ability, side, role]
 const CH = [
-   ['Naruto Uzumaki','นารูโตะ','Naruto','2000s','โลกนินจาที่มีหมู่บ้านซ่อนเร้นหลายแห่ง','โคลนเงาและพลังจักระ','ฝ่ายพระเอก','ตัวเอก'],
+  ['Naruto Uzumaki','นารูโตะ','Naruto','2000s','โลกนินจาที่มีหมู่บ้านซ่อนเร้นหลายแห่ง','โคลนเงาและพลังจักระ','ฝ่ายพระเอก','ตัวเอก'],
   ['Sasuke Uchiha','ซาสึเกะ','Naruto','2000s','โลกนินจาที่มีหมู่บ้านซ่อนเร้นหลายแห่ง','ไฟและสายฟ้า พร้อมดวงตาพิเศษ','ฝ่ายพระเอก','ตัวละครสำคัญ'],
   ['Kakashi Hatake','คาคาชิ','Naruto','2000s','โลกนินจาที่มีหมู่บ้านซ่อนเร้นหลายแห่ง','คัดลอกท่าด้วยดวงตา สายฟ้า','ฝ่ายพระเอก','ตัวรอง'],
   ['Monkey D. Luffy','ลูฟี่','One Piece','1990s','โลกทะเลกว้างที่เต็มไปด้วยโจรสลัดและเกาะแปลก','ร่างกายยืดหยุ่นเหมือนยาง','ฝ่ายพระเอก','ตัวเอก'],
@@ -37,7 +37,7 @@ const CH = [
   ['Kurapika','คุราปิก้า|kurapica','Hunter x Hunter','2010s','','ใช้โซ่พลังพิเศษ','ฝ่ายพระเอก','ตัวละครสำคัญ'],
   ['Reo Mikage','เรโอะ|เรโอ|mikage reo','Blue Lock','2020s','','ทักษะฟุตบอลที่ปรับตัวเลียนแบบได้เก่ง','ฝ่ายพระเอก','ตัวละครสำคัญ'],
   ['Seishiro Nagi','นากิ|นางิ|nagi seishiro','Blue Lock','2020s','','ทักษะฟุตบอลจากพรสวรรค์ควบคุมลูกเฉียบ','ฝ่ายพระเอก','ตัวละครสำคัญ'],
-  ['Barou Shoei','บาโร่|บาโร|shoei barou','Blue Lock','2020s','','ทักษะฟุตบอลแบบจ้าวสนามที่มั่นใจตัวเองสุดๆ','กลุ่มอื่น','ตัวละครสำคัญ'],
+  ['Ryusei Shidou','ชิโดว์|ริวเซย์|shidou','Blue Lock','2020s','','ทักษะฟุตบอลแบบจ้าวสนามที่มั่นใจตัวเองสุดๆ','กลุ่มอื่น','ตัวละครสำคัญ'],
   ['Rin Itoshi','ริน|อิโตชิ ริน|itoshi rin','Blue Lock','2020s','','ทักษะฟุตบอลระดับอัจฉริยะ','กลุ่มอื่น','ตัวละครสำคัญ'],
   ['Meguru Bachira','บาจิระ|บาชิระ|bachira meguru','Blue Lock','2020s','','ทักษะเลี้ยงบอลอิสระ ราวกับมีสัตว์ประหลาดในตัว','ฝ่ายพระเอก','ตัวละครสำคัญ'],
   ["Choji Akimichi", "โชจิ", "Naruto", "2000s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "ฝ่ายพระเอก", "ตัวรอง"],
@@ -286,7 +286,7 @@ const CH = [
   ["Koshi Sugawara", "ซูกาวาระ", "Haikyuu", "2010s", "", "ทักษะกีฬาเป็นจุดเด่น", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
   ["Soi Fon", "โซยฟง", "Bleach", "2000s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
   ["Nelliel tu Odelschwanck", "เนลลิเอล|nel", "Bleach", "2000s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
-  ["Rimuru Tempest", "ริมุรุ|rimuru", "That Time I Got Reincarnated as a Slime", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวเอก"],
+  ["Yo Hiori", "ฮิโอริ|โยะ|hiori yo|hiori", "Blue Lock", "2020s", "", "ทักษะกีฬาเป็นจุดเด่น", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
   ["Gilgamesh", "กิลกาเมช", "Fate Series", "2000s", "", "ใช้อาวุธเป็นหลัก", "ตัวร้าย", "ตัวละครสำคัญ"],
   ["Rei Furuya", "ฟุรุยะ|amuro|อามุโระ", "Detective Conan", "1990s", "", "ใช้สติปัญญาวางแผน", "กลุ่มอื่น", "ตัวละครสำคัญ"],
   ["Gin", "จิน", "Detective Conan", "1990s", "", "ใช้อาวุธเป็นหลัก", "ตัวร้าย", "ตัวละครสำคัญ"],
@@ -309,7 +309,7 @@ const CH = [
   ["Bruno Bucciarati", "บรูโน่|บุชชิลาติ", "JoJo's Bizarre Adventure", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
   ["Guido Mista", "มิสต้า", "JoJo's Bizarre Adventure", "2010s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
   ["Dimple", "ดิมเพิล", "Mob Psycho 100", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
-  ["Violet Evergarden", "ไวโอเล็ต", "Violet Evergarden", "2010s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวเอก"],
+  ["Charlotte Roselei", "ชาร์ล็อต|ชาร์ล็อต โรเซเลย์|charlotte", "Black Clover", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
   ["Diavolo", "เดียโวโล", "JoJo's Bizarre Adventure", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ตัวร้าย", "ตัวละครสำคัญ"],
   ["Iggy", "อิกกี้", "JoJo's Bizarre Adventure", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวรอง"],
   ["Shuna", "ชูนะ", "That Time I Got Reincarnated as a Slime", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
@@ -323,7 +323,7 @@ const CH = [
   ["Rei Ayanami", "เรย์|อายานามิ", "Neon Genesis Evangelion", "1990s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
   ["Giorno Giovanna", "จอร์โน่|จิโอโน่", "JoJo's Bizarre Adventure", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวเอก"],
   ["Jean Pierre Polnareff", "โพลนาเรฟ|polnareff", "JoJo's Bizarre Adventure", "2010s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
-  ["Benimaru", "เบนิมารุ", "That Time I Got Reincarnated as a Slime", "2010s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Reid Astrea", "เรด|reid", "Re:Zero", "2010s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
   ["Caesar Zeppeli", "ซีซาร์", "JoJo's Bizarre Adventure", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
   ["Asuka Langley Soryu", "อาสึกะ|asuka", "Neon Genesis Evangelion", "1990s", "", "ใช้สติปัญญาวางแผน", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
   ["Gyro Zeppeli", "ไจโร", "JoJo's Bizarre Adventure", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
@@ -407,21 +407,196 @@ const CH = [
   ["Mitsuha Miyamizu", "มิตสึฮะ", "Your Name", "2010s", "", "ใช้สติปัญญาวางแผน", "ฝ่ายพระเอก", "ตัวเอก"],
   ["Lucy", "ลูซี่", "Cyberpunk: Edgerunners", "2020s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
   ["Dragonite", "ไคริว", "Pokemon", "1990s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "กลุ่มอื่น", "ตัวละครสำคัญ"],
-  ["Puck", "พัค", "Re:Zero", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"]
+  ["Puck", "พัค", "Re:Zero", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["The Hand", "เดอะแฮนด์", "JoJo's Bizarre Adventure", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Hades", "ฮาเดส", "Record of Ragnarok", "2020s", "", "ใช้พลังพิเศษเฉพาะตัว", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Qin Shi Huang", "ฉินซีฮ่องเต้", "Record of Ragnarok", "2020s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Sasaki Kojiro", "ซาซากิ โคจิโร่|kojiro", "Record of Ragnarok", "2020s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Liliana Masquerade", "ลิเลียน่า", "Re:Zero", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "กลุ่มอื่น", "ตัวรอง"],
+  ["Sex Pistols", "เซ็กซ์พิสทอลส์", "JoJo's Bizarre Adventure", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวรอง"],
+  ["Mars", "มาร์ส", "Black Clover", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Souei", "โซเอย์", "That Time I Got Reincarnated as a Slime", "2010s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Heaven's Door", "เฮฟเวนส์ดอร์", "JoJo's Bizarre Adventure", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Crazy Diamond", "เครซี่ไดมอนด์", "JoJo's Bizarre Adventure", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Clayman", "เคลย์แมน", "That Time I Got Reincarnated as a Slime", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Buddha", "พระพุทธเจ้า|พุทธ", "Record of Ragnarok", "2020s", "", "ใช้พลังพิเศษเฉพาะตัว", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Shiva", "พระศิวะ|ศิวะ", "Record of Ragnarok", "2020s", "", "ใช้พลังพิเศษเฉพาะตัว", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Lye Batenkaitos", "ไล", "Re:Zero", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ตัวร้าย", "ตัวรอง"],
+  ["Veldora Tempest", "เวลดอร่า|veldora", "That Time I Got Reincarnated as a Slime", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Apollo", "อพอลโล", "Record of Ragnarok", "2020s", "", "ใช้อาวุธเป็นหลัก", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Vanessa Enoteca", "วาเนสซ่า", "Black Clover", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Mahoraga", "มาโฮราก้า", "Jujutsu Kaisen", "2020s", "", "ใช้พลังพิเศษเฉพาะตัว", "กลุ่มอื่น", "ตัวรอง"],
+  ["Odin", "โอดิน", "Record of Ragnarok", "2020s", "", "ใช้อาวุธเป็นหลัก", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Shigekiyo Yangu", "ชิเงจิ|shigechi", "JoJo's Bizarre Adventure", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "กลุ่มอื่น", "ตัวรอง"],
+  ["Poseidon", "โพไซดอน", "Record of Ragnarok", "2020s", "", "ใช้อาวุธเป็นหลัก", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Foo Fighters", "ฟูไฟท์เตอร์ส|ff", "JoJo's Bizarre Adventure", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Beelzebub", "เบลเซบับ", "Record of Ragnarok", "2020s", "", "ใช้พลังพิเศษเฉพาะตัว", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Hinata Sakaguchi", "ฮินาตะ", "That Time I Got Reincarnated as a Slime", "2010s", "", "ใช้อาวุธเป็นหลัก", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Otto Suwen", "อ็อตโต้", "Re:Zero", "2010s", "", "ใช้สติปัญญาวางแผน", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Wilhelm van Astrea", "วิลเฮล์ม", "Re:Zero", "2010s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Zeus", "ซุส", "Record of Ragnarok", "2020s", "", "ใช้พลังพิเศษเฉพาะตัว", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Narciso Anasui", "นาร์ซิโซ", "JoJo's Bizarre Adventure", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Stone Free", "สโตนฟรี", "JoJo's Bizarre Adventure", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Risotto Nero", "ริโซตโต้", "JoJo's Bizarre Adventure", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Mikitaka Hazekura", "ฮาเซคุระ", "JoJo's Bizarre Adventure", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "กลุ่มอื่น", "ตัวรอง"],
+  ["Nikola Tesla", "เทสลา|tesla", "Record of Ragnarok", "2020s", "", "ใช้สติปัญญาวางแผน", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Secre Swallowtail", "เซเคร", "Black Clover", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Weather Report", "เวเธอร์รีพอร์ต", "JoJo's Bizarre Adventure", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Mereoleona Vermillion", "เมเรโอเลโอน่า", "Black Clover", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Turbo Granny (Cat)", "ยายเทอร์โบ", "Dandadan", "2020s", "", "ใช้พลังพิเศษเฉพาะตัว", "กลุ่มอื่น", "ตัวรอง"],
+  ["Thor", "ธอร์", "Record of Ragnarok", "2020s", "", "ใช้อาวุธเป็นหลัก", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Enrico Pucci", "พุชชี่", "JoJo's Bizarre Adventure", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Zerofuku", "ซีโร่ฟุกุ", "Record of Ragnarok", "2020s", "", "ใช้พลังพิเศษเฉพาะตัว", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Killer Queen", "คิลเลอร์ควีน", "JoJo's Bizarre Adventure", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Diablo", "ดิอาโบล", "That Time I Got Reincarnated as a Slime", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Hermes", "เฮอร์มีส", "Record of Ragnarok", "2020s", "", "ใช้อาวุธเป็นหลัก", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Hierophant Green", "ไฮเอโรแฟนท์กรีน", "JoJo's Bizarre Adventure", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Magna Swing", "แมกนา", "Black Clover", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Frederica Baumann", "เฟรเดอริก้า", "Re:Zero", "2010s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Loki", "โลกิ", "Record of Ragnarok", "2020s", "", "ใช้พลังพิเศษเฉพาะตัว", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Typhon", "ไทฟอน", "Re:Zero", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Gobta", "โกบูตะ", "That Time I Got Reincarnated as a Slime", "2010s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวรอง"],
+  ["Petelgeuse Romanee-Conti", "เพเทลจิอุส", "Re:Zero", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["William Vangeance", "วิลเลียม", "Black Clover", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Rill Boismortier", "ริล", "Black Clover", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Roswaal L. Mathers", "รอสวาล|roswaal", "Re:Zero", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Watchdog Man", "มนุษย์หมาป่า", "One Punch Man", "2010s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Marugori", "มารุโกริ|beefcake", "One Punch Man", "2010s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Momo Ayase", "โมโมะ", "Dandadan", "2020s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวเอก"],
+  ["Jiji", "จิจิ", "Dandadan", "2020s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Okarun", "โอคารุน", "Dandadan", "2020s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวเอก"],
+  ["Serpo Alien", "เซอร์โป้", "Dandadan", "2020s", "", "ใช้พลังพิเศษเฉพาะตัว", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Speed-o'-Sound Sonic", "โซนิค|sonic", "One Punch Man", "2010s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Drive Knight", "ไดรฟ์ไนท์", "One Punch Man", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Sweet Mask", "หน้ากากหวาน", "One Punch Man", "2010s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Boros", "โบรอส", "One Punch Man", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Kinta Sakata", "คินตะ", "Dandadan", "2020s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Suiryu", "ซุยริว", "One Punch Man", "2010s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["King", "คิง", "One Punch Man", "2010s", "", "ใช้สติปัญญาวางแผน", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Pig God", "พิกก็อด", "One Punch Man", "2010s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "ตัวร้าย", "ตัวรอง"],
+  ["Seiko Ayase", "เซโกะ", "Dandadan", "2020s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Metal Bat", "เมทัลแบท", "One Punch Man", "2010s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Child Emperor", "จักรพรรดิเด็ก", "One Punch Man", "2010s", "", "ใช้สติปัญญาวางแผน", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Zombieman", "ซอมบี้แมน", "One Punch Man", "2010s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Serpoian", "เซอร์โปเอียน", "Dandadan", "2020s", "", "ใช้พลังพิเศษเฉพาะตัว", "ตัวร้าย", "ตัวรอง"],
+  ["Garou", "กาโร่", "One Punch Man", "2010s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Smile Man", "สไมล์แมน", "One Punch Man", "2010s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวรอง"],
+  ["Turbo Granny", "ยายเทอร์โบ", "Dandadan", "2020s", "", "ใช้พลังพิเศษเฉพาะตัว", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Pina", "พีน่า", "Beastars", "2010s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Nasiens", "นาเซียนส์", "Seven Deadly Sins", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Guila", "กีร่า", "Seven Deadly Sins", "2010s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Howzer", "เฮาเซอร์", "Seven Deadly Sins", "2010s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Rebecca", "รีเบคก้า", "Cyberpunk: Edgerunners", "2020s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Shinsuke Takasugi", "ทาคาซุงิ", "Gintama", "2000s", "", "ใช้อาวุธเป็นหลัก", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Zeldris", "เซลดริส", "Seven Deadly Sins", "2010s", "", "ใช้อาวุธเป็นหลัก", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Lancelot", "แลนเซลอต", "Seven Deadly Sins", "2010s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Gloria Martinez", "กลอเรีย", "Cyberpunk: Edgerunners", "2020s", "", "ใช้สติปัญญาวางแผน", "กลุ่มอื่น", "ตัวรอง"],
+  ["Percival", "เพอร์ซิวัล", "Seven Deadly Sins", "2010s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Puck (Berserk)", "พัค", "Berserk", "1990s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวรอง"],
+  ["Dorio", "โดริโอ", "Cyberpunk: Edgerunners", "2020s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Franky Franklin", "แฟรงกี้ แฟรงคลิน", "Spy x Family", "2020s", "", "ใช้สติปัญญาวางแผน", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Yuri Briar", "ยูริ", "Spy x Family", "2020s", "", "ใช้อาวุธเป็นหลัก", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Gilthunder", "กิลธันเดอร์", "Seven Deadly Sins", "2010s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Slader", "สเลเดอร์", "Seven Deadly Sins", "2010s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Sadaharu", "ซาดาฮารุ", "Gintama", "2000s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "ฝ่ายพระเอก", "ตัวรอง"],
+  ["Oneii", "พี่สาว", "Gokyoudai Monogatari", "1990s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "ฝ่ายพระเอก", "ตัวเอก"],
+  ["Marin Kitagawa", "มาริน", "My Dress-Up Darling", "2020s", "", "ใช้สติปัญญาวางแผน", "ฝ่ายพระเอก", "ตัวเอก"],
+  ["Izumi Miyamura", "มิยามุระ", "Horimiya", "2020s", "", "ใช้สติปัญญาวางแผน", "ฝ่ายพระเอก", "ตัวเอก"],
+  ["Maine", "เมน", "Cyberpunk: Edgerunners", "2020s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Gawain", "กาเวน", "Seven Deadly Sins", "2010s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Nanashi", "นานาชิ", "Seven Deadly Sins", "2010s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Tristan Liones", "ทริสตัน", "Seven Deadly Sins", "2010s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Melascula", "เมลาสคิวล่า", "Seven Deadly Sins", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Faraday", "ฟาราเดย์", "Cyberpunk: Edgerunners", "2020s", "", "ใช้สติปัญญาวางแผน", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Jericho", "เจริโก้", "Seven Deadly Sins", "2010s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Gohin", "โกฮิน", "Beastars", "2010s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Tadaomi Karasuma", "คาราซึมะ", "Assassination Classroom", "2010s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Arthur Pendragon", "อาเธอร์", "Seven Deadly Sins", "2010s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["David Martinez", "เดวิด", "Cyberpunk: Edgerunners", "2020s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "ฝ่ายพระเอก", "ตัวเอก"],
+  ["Lu Shaotang", "", "Sakamoto Days", "2020s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Taro Sakamoto", "ซากาโมโตะ|sakamoto", "Sakamoto Days", "2020s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "ฝ่ายพระเอก", "ตัวเอก"],
+  ["Shin Asakura", "ชิน อาซากุระ", "Sakamoto Days", "2020s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Yoichi Nagumo", "นากุโมะ", "Sakamoto Days", "2020s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Hibiki Ohkawa", "", "Blue Lock", "2020s", "", "ทักษะกีฬาเป็นจุดเด่น", "กลุ่มอื่น", "ตัวรอง"],
+  ["Jinpachi Ego", "เอโก้|ego", "Blue Lock", "2020s", "", "ใช้สติปัญญาวางแผน", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Barou Shoei", "บาโร่|บาโร", "Blue Lock", "2020s", "", "ทักษะกีฬาเป็นจุดเด่น", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Noel Noa", "โนอา|noa", "Blue Lock", "2020s", "", "ทักษะกีฬาเป็นจุดเด่น", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Gin Gagamaru", "กากามารุ", "Blue Lock", "2020s", "", "ทักษะกีฬาเป็นจุดเด่น", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Kenyu Yukimiya", "ยูกิมิยะ", "Blue Lock", "2020s", "", "ทักษะกีฬาเป็นจุดเด่น", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Oliver Aiku", "ไอคุ", "Blue Lock", "2020s", "", "ทักษะกีฬาเป็นจุดเด่น", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Alexis Ness", "เนส", "Blue Lock", "2020s", "", "ทักษะกีฬาเป็นจุดเด่น", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Sae Itoshi", "ซาเอะ|itoshi sae", "Blue Lock", "2020s", "", "ทักษะกีฬาเป็นจุดเด่น", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Niko Ikki", "นิโกะ|ikki niko", "Blue Lock", "2020s", "", "ทักษะกีฬาเป็นจุดเด่น", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Gurimu Igarashi", "อิการาชิ", "Blue Lock", "2020s", "", "ทักษะกีฬาเป็นจุดเด่น", "ฝ่ายพระเอก", "ตัวรอง"],
+  ["Teppei Neru", "เนรุ", "Blue Lock", "2020s", "", "ทักษะกีฬาเป็นจุดเด่น", "ฝ่ายพระเอก", "ตัวรอง"],
+  ["Julian Loki", "โลกิ", "Blue Lock", "2020s", "", "ทักษะกีฬาเป็นจุดเด่น", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Jyubei Aryu", "อาริว", "Blue Lock", "2020s", "", "ทักษะกีฬาเป็นจุดเด่น", "ฝ่ายพระเอก", "ตัวรอง"],
+  ["Jingo Raichi", "ไรจิ", "Blue Lock", "2020s", "", "ทักษะกีฬาเป็นจุดเด่น", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Ryosuke Kira", "คิระ", "Blue Lock", "2020s", "", "ทักษะกีฬาเป็นจุดเด่น", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Eita Otoya", "โอโตยะ", "Blue Lock", "2020s", "", "ทักษะกีฬาเป็นจุดเด่น", "ฝ่ายพระเอก", "ตัวรอง"],
+  ["Pablo Cavazos", "ปาโบล", "Blue Lock", "2020s", "", "ทักษะกีฬาเป็นจุดเด่น", "กลุ่มอื่น", "ตัวรอง"],
+  ["Go Gun-hee", "กอนฮี", "Solo Leveling", "2020s", "", "ใช้สติปัญญาวางแผน", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Kang Taeshik", "คังแทชิก", "Solo Leveling", "2020s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Min Byung-gyu", "มินบยองกู", "Solo Leveling", "2020s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Hwang Dong-soo", "ฮวางดงซู", "Solo Leveling", "2020s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Yoo Jin-ho", "ยูจินโฮ", "Solo Leveling", "2020s", "", "ใช้สติปัญญาวางแผน", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Baek Yoon-ho", "แบคยุนโฮ", "Solo Leveling", "2020s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Anos Voldigoad", "อาโนส", "The Misfit of Demon King Academy", "2020s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวเอก"],
+  ["Keishin Ukai", "อุไค", "Haikyuu", "2010s", "", "ทักษะกีฬาเป็นจุดเด่น", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Takanobu Aone", "อาโอเนะ", "Haikyuu", "2010s", "", "ทักษะกีฬาเป็นจุดเด่น", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Asahi Azumane", "อาซาฮี", "Haikyuu", "2010s", "", "ทักษะกีฬาเป็นจุดเด่น", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Kourai Hoshiumi", "โฮชิอุมิ", "Haikyuu", "2010s", "", "ทักษะกีฬาเป็นจุดเด่น", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Lev Haiba", "เลฟ", "Haikyuu", "2010s", "", "ทักษะกีฬาเป็นจุดเด่น", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Kansuke Yamato", "ยามาโตะ", "Detective Conan", "1990s", "", "ใช้สติปัญญาวางแผน", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Sonoko Suzuki", "โซโนโกะ", "Detective Conan", "1990s", "", "ใช้สติปัญญาวางแผน", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Hearts", "ฮาร์ท", "Dragon Ball", "1980s", "", "ใช้พลังพิเศษเฉพาะตัว", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Belmod", "เบลมอด", "Dragon Ball", "1980s", "", "ใช้พลังพิเศษเฉพาะตัว", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Cid Kagenou", "ซีด|ซิด", "The Eminence in Shadow", "2020s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวเอก"],
+  ["Futaba Yoshioka", "ฟุตาบะ", "Ao Haru Ride", "2010s", "", "ใช้สติปัญญาวางแผน", "ฝ่ายพระเอก", "ตัวเอก"],
+  ["Kouichi Sakakibara", "ซากากิบาระ", "Another", "2010s", "", "ใช้สติปัญญาวางแผน", "ฝ่ายพระเอก", "ตัวเอก"],
+  ["Izumi Akazawa", "อาคาซาวะ", "Another", "2010s", "", "ใช้สติปัญญาวางแผน", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Yukari Sakuragi", "ซากุระกิ", "Another", "2010s", "", "ใช้สติปัญญาวางแผน", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Daisuke Kambe", "คันเบะ", "The Millionaire Detective - Balance: UNLIMITED", "2020s", "", "ใช้สติปัญญาวางแผน", "ฝ่ายพระเอก", "ตัวเอก"],
+  ["Gin (Hotarubi no Mori e)", "กิน", "Hotarubi no Mori e", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวเอก"],
+  ["Wang Ling", "หวังหลิง", "The Daily Life of the Immortal King", "2020s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวเอก"],
+  ["Shota Kazehaya", "คาเซฮายะ", "Kimi ni Todoke", "2000s", "", "ใช้สติปัญญาวางแผน", "ฝ่ายพระเอก", "ตัวเอก"],
+  ["Licht Bach", "ลิกท์", "Plunderer", "2020s", "", "ใช้อาวุธเป็นหลัก", "ฝ่ายพระเอก", "ตัวเอก"],
+  ["Richard I Lionheart", "ริชาร์ด", "Fate Series", "2000s", "", "ใช้อาวุธเป็นหลัก", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Roy Alphard", "รอย", "Re:Zero", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Rui Arneb", "รุย", "Re:Zero", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Garfiel Tinsel", "การ์ฟิล", "Re:Zero", "2010s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Mimi Pearlbaton", "มิมิ", "Re:Zero", "2010s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Daphne", "ดาฟเน่", "Re:Zero", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Luck Voltia", "ลัค", "Black Clover", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Henry Legolant", "เฮนรี่", "Black Clover", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Finral Roulacase", "ฟินรัล", "Black Clover", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["The World", "เดอะเวิลด์", "JoJo's Bizarre Adventure", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Okuyasu Nijimura", "โอคุยาสุ", "JoJo's Bizarre Adventure", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Adam", "อดัม", "Record of Ragnarok", "2020s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "ฝ่ายพระเอก", "ตัวละครสำคัญ"],
+  ["Riz", "ริซ", "Beastars", "2010s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "กลุ่มอื่น", "ตัวรอง"],
+  ["Tareo","เด็กชายคางตูด|ball-chinned kid|ball chinned kid|ทาเรโอะ","One Punch Man","2010s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "ฝ่ายพระเอก", "ตัวรอง"],
+  ["Tarou", "ทาโร่", "Dandadan", "2020s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "กลุ่มอื่น", "ตัวรอง"],
+  ["Eren (Titan)", "เอเรน ไททัน|เอเรนไททัน|เอเรน(ไททัน)|eren titan|attack titan|ไททันจู่โจม", "Attack on Titan", "2010s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "กลุ่มอื่น", "ตัวเอก"],
+  ["Colossal Titan", "ไททันมหึมา|colossus titan|ไททันยักษ์", "Attack on Titan", "2010s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Armored Titan", "ไททันเกราะ", "Attack on Titan", "2010s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Female Titan", "ไททันเพศหญิง|ไททันหญิง", "Attack on Titan", "2010s", "", "ใช้ความแข็งแกร่งทางร่างกาย", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["War Hammer Titan", "ไททันค้อนสงคราม|warhammer titan|ไททันค้อน", "Attack on Titan", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "กลุ่มอื่น", "ตัวละครสำคัญ"],
+  ["Beast Titan", "ไททันสัตว์ป่า|ไททันสัตว์", "Attack on Titan", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ตัวร้าย", "ตัวละครสำคัญ"],
+  ["Gon Freecss", "กอน|กอน ฟรีคส์|gon", "Hunter x Hunter", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวเอก"]
 ];
-
 const ANIMES = [...new Set(CH.map(c => c[2]))];
 const slugOf = n => n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const CARDS = ['world','letter','era','ability','side','role'];
-const WORLD = {'Naruto':'โลกที่ผู้คนฝึกวิชาต่อสู้แบบลับๆ','One Piece':'โลกที่ส่วนใหญ่เป็นทะเลและเกาะ','Jujutsu Kaisen':'โลกปัจจุบันที่มีสิ่งเหนือธรรมชาติซ่อนอยู่','Demon Slayer':'โลกยุคเก่าที่มีสิ่งลึกลับออกหากินตอนกลางคืน','Bleach':'โลกที่มีทั้งคนเป็นและวิญญาณอยู่ร่วมกัน','My Hero Academia':'โลกยุคใหม่ที่คนส่วนใหญ่มีความสามารถแปลกๆ','Dragon Ball Z':'โลกที่มีนักสู้แกร่งและของวิเศษให้ตามหา','Attack on Titan':'โลกที่ผู้คนอยู่อย่างหวาดกลัวภัยคุกคาม','Death Note':'โลกปัจจุบันที่มีของแปลกบางอย่างโผล่เข้ามา','Fullmetal Alchemist':'โลกที่วิทยาศาสตร์กับสิ่งลึกลับปนกัน','Re:Zero':'โลกแฟนตาซีที่มีคนข้ามมาจากอีกโลกหนึ่ง','Tokyo Ghoul':'โลกปัจจุบันที่มีสิ่งมีชีวิตแฝงตัวอยู่ในเมือง','Code Geass':'โลกที่มหาอำนาจแย่งชิงดินแดนกัน','Hunter x Hunter':'โลกกว้างที่มีนักล่าและการผจญภัยหลายรูปแบบ','Blue Lock':'โลกปัจจุบันที่การแข่งขันกีฬาดุเดือดมาก','Seven Deadly Sins':'โลกแฟนตาซียุคกลางที่มีอาณาจักรและอัศวินศักดิ์สิทธิ์','Berserk':'โลกยุคกลางมืดมนที่มีสิ่งชั่วร้ายแฝงตัวอยู่','Haikyuu':'โลกปัจจุบันที่ทีมกีฬาแข่งขันกันเข้มข้น','Chainsaw Man':'โลกปัจจุบันที่มีปีศาจปะปนกับมนุษย์','Crayon Shin-chan':'โลกชีวิตประจำวันของครอบครัวและเพื่อนบ้าน','Detective Conan':'โลกปัจจุบันที่มีคดีปริศนาเกิดขึ้นเสมอ','Solo Leveling':'โลกที่มีประตูมิติและนักล่าที่ต่อสู้กับมอนสเตอร์'};
+const WORLD = {'Naruto':'โลกที่ผู้คนฝึกวิชาต่อสู้แบบลับๆ','One Piece':'โลกที่ส่วนใหญ่เป็นทะเลและเกาะ','Jujutsu Kaisen':'โลกปัจจุบันที่มีสิ่งเหนือธรรมชาติซ่อนอยู่','Demon Slayer':'โลกยุคเก่าที่มีสิ่งลึกลับออกหากินตอนกลางคืน','Bleach':'โลกที่มีทั้งคนเป็นและวิญญาณอยู่ร่วมกัน','My Hero Academia':'โลกยุคใหม่ที่คนส่วนใหญ่มีความสามารถแปลกๆ','Dragon Ball':'โลกที่มีนักสู้แกร่งและของวิเศษให้ตามหา','Attack on Titan':'โลกที่ผู้คนอยู่อย่างหวาดกลัวภัยคุกคาม','Death Note':'โลกปัจจุบันที่มีของแปลกบางอย่างโผล่เข้ามา','Fullmetal Alchemist':'โลกที่วิทยาศาสตร์กับสิ่งลึกลับปนกัน','Re:Zero':'โลกแฟนตาซีที่มีคนข้ามมาจากอีกโลกหนึ่ง','Tokyo Ghoul':'โลกปัจจุบันที่มีสิ่งมีชีวิตแฝงตัวอยู่ในเมือง','Code Geass':'โลกที่มหาอำนาจแย่งชิงดินแดนกัน','Hunter x Hunter':'โลกกว้างที่มีนักล่าและการผจญภัยหลายรูปแบบ','Blue Lock':'โลกปัจจุบันที่การแข่งขันกีฬาดุเดือดมาก','Seven Deadly Sins':'โลกแฟนตาซียุคกลางที่มีอาณาจักรและอัศวินศักดิ์สิทธิ์','Berserk':'โลกยุคกลางมืดมนที่มีสิ่งชั่วร้ายแฝงตัวอยู่','Haikyuu':'โลกปัจจุบันที่ทีมกีฬาแข่งขันกันเข้มข้น','Chainsaw Man':'โลกปัจจุบันที่มีปีศาจปะปนกับมนุษย์','Crayon Shin-chan':'โลกชีวิตประจำวันของครอบครัวและเพื่อนบ้าน','Detective Conan':'โลกปัจจุบันที่มีคดีปริศนาเกิดขึ้นเสมอ','Fate Series':'โลกปัจจุบันที่มีผู้วิเศษเรียกวิญญาณวีรบุรุษมาต่อสู้','The Way of the Househusband':'โลกชีวิตประจำวันที่อดีตผู้มีอิทธิพลหันมาทำงานบ้าน','Kimi ni Todoke':'โลกโรงเรียนที่เต็มไปด้วยมิตรภาพและความรักวัยรุ่น','Another':'โลกโรงเรียนที่มีเรื่องลึกลับและคำสาปซ่อนอยู่','That Time I Got Reincarnated as a Slime':'โลกแฟนตาซีที่มีอาณาจักรของเผ่าอสูรหลายเผ่า','Tokyo Revengers':'โลกปัจจุบันที่มีแก๊งเด็กแว้นต่อสู้กัน','JoJo\'s Bizarre Adventure':'โลกที่ผู้คนมีพลังพิเศษแบบวิญญาณคู่กาย','Mob Psycho 100':'โลกปัจจุบันที่มีผู้มีพลังจิตและวิญญาณ','Black Clover':'โลกเวทมนตร์ที่ทุกคนมีพลังเวทของตัวเอง','Violet Evergarden':'โลกยุคหลังสงครามที่ผู้คนเขียนจดหมายถึงกัน','Neon Genesis Evangelion':'โลกอนาคตที่มนุษย์ต่อสู้กับสิ่งมีชีวิตปริศนา','One Punch Man':'โลกที่มีฮีโร่อาชีพและสัตว์ประหลาดโผล่มาบ่อย','The Disastrous Life of Saiki K.':'โลกโรงเรียนสุดป่วนที่มีเด็กพลังจิตซ่อนตัวอยู่','Kaiju No. 8':'โลกที่ต้องรับมือกับสัตว์ประหลาดยักษ์','Fairy Tail':'โลกแฟนตาซีที่มีกิลด์นักเวทรับภารกิจ','Spy x Family':'โลกยุคสงครามเย็นที่ครอบครัวปลอมซ่อนความลับ','The Quintessential Quintuplets':'โลกโรงเรียนที่ติวเตอร์ดูแลพี่น้องฝาแฝด','The Apothecary Diaries':'โลกยุคโบราณในวังหลวง','Chi\'s Sweet Home':'โลกชีวิตประจำวันของครอบครัวกับสัตว์เลี้ยง','Beastars':'โลกที่สัตว์กินเนื้อกับกินพืชอยู่ร่วมกัน','Sword Art Online':'โลกเกมเสมือนจริงที่ออกไม่ได้','Dororo':'โลกยุคสงครามเก่าที่เต็มไปด้วยปีศาจ','Miss Kobayashi\'s Dragon Maid':'โลกปัจจุบันที่มีมังกรมาอาศัยกับมนุษย์','Your Name':'โลกปัจจุบันที่มีปรากฏการณ์แปลกเกี่ยวกับความฝัน','A Silent Voice':'โลกโรงเรียนที่มีเรื่องการกลั่นแกล้งและการให้อภัย','Gintama':'โลกญี่ปุ่นยุคเก่าที่มีมนุษย์ต่างดาวปะปน','Assassination Classroom':'โลกโรงเรียนที่มีครูประหลาดและนักเรียนนักฆ่า','Himouto! Umaru-chan':'โลกชีวิตประจำวันของสาวสองบุคลิก','Overlord':'โลกแฟนตาซีในเกมออนไลน์ที่กลายเป็นความจริง','Danganronpa':'โลกโรงเรียนปิดตายที่ต้องเอาชีวิตรอด','Doraemon':'โลกชีวิตประจำวันที่มีของวิเศษจากอนาคต','Pokemon':'โลกที่ผู้คนจับและฝึกสัตว์วิเศษ','Spirited Away':'โลกที่มีเทพและวิญญาณมาอาบน้ำ','Yo-kai Watch':'โลกปัจจุบันที่มีภูตผีมาป่วน','Hamtaro':'โลกชีวิตประจำวันของสัตว์เลี้ยงตัวเล็ก','Howl\'s Moving Castle':'โลกแฟนตาซีที่มีปราสาทเดินได้','My Neighbor Totoro':'โลกชนบทที่มีวิญญาณป่า','Keroro Gunso':'โลกปัจจุบันที่มีมนุษย์ต่างดาวมาอาศัย','Cyberpunk: Edgerunners':'โลกอนาคตมืดมนที่มีเทคโนโลยีดัดแปลงร่างกาย','Record of Ragnarok':'โลกที่เทพกับมนุษย์ต่อสู้กันตัวต่อตัวเพื่อชะตาของมนุษยชาติ','Sakamoto Days':'โลกปัจจุบันที่อดีตนักฆ่าในตำนานใช้ชีวิตเป็นเจ้าของร้านค้า','The Misfit of Demon King Academy':'โลกแฟนตาซีที่ราชาปีศาจกลับมาเกิดใหม่ในยุคที่พลังอ่อนลง','The Eminence in Shadow':'โลกแฟนตาซีที่มีผู้ทรงอิทธิพลอยู่เบื้องหลังเงามืด','Ao Haru Ride':'โลกโรงเรียนที่มีความรักวัยรุ่นและการพบกันอีกครั้ง','The Millionaire Detective - Balance: UNLIMITED':'โลกปัจจุบันที่นักสืบมหาเศรษฐีใช้เงินไขคดี','Hotarubi no Mori e':'โลกชนบทที่มีป่าลึกลับและวิญญาณซ่อนอยู่','The Daily Life of the Immortal King':'โลกกำลังภายในที่ผู้ฝึกตนใช้ชีวิตประจำวันอย่างสบายๆ','Plunderer':'โลกแฟนตาซีที่นักล่าสมบัติแข่งกันหาของวิเศษ','Dandadan':'โลกปัจจุบันที่ปีศาจกับมนุษย์ต่างดาวโผล่มาปะทะกัน','My Dress-Up Darling':'โลกโรงเรียนที่งานคอสเพลย์เป็นศูนย์กลางเรื่องราว','Horimiya':'โลกโรงเรียนที่เพื่อนร่วมชั้นมีด้านที่ซ่อนอยู่','Gokyoudai Monogatari':'โลกชีวิตประจำวันของพี่น้องห้าคน','Solo Leveling':'โลกที่มีประตูมิติและนักล่าที่ต่อสู้กับมอนสเตอร์'};
 const vAbility = c => /ฟุตบอล|กีฬา/.test(c[5]) ? 'ถนัดทักษะกีฬาและการแข่งขัน' : /ดาบ|อาวุธ|ลูกตุ้ม/.test(c[5]) ? 'ถนัดการใช้อาวุธ' : /สมุด|สติปัญญา|สืบสวน/.test(c[5]) ? 'ใช้สมองมากกว่ากำลัง' : /ยืด|แปลงร่าง|ร่างกาย|กาย/.test(c[5]) ? 'มีความสามารถทางร่างกายที่ไม่ธรรมดา' : 'ใช้พลังพิเศษที่ไม่ใช่แค่หมัดกับดาบ';
+const QUESTION = { world: 'โลกหรือสถานที่ในเรื่องของฉันเป็นยังไง?', letter: 'ชื่อของฉันขึ้นต้นด้วยตัวอักษรอะไร?', era: 'เรื่องของฉันออกฉายครั้งแรกเมื่อไหร่?', ability: 'ฉันเก่งหรือโดดเด่นเรื่องอะไร?', side: 'ฉันอยู่ฝ่ายไหนในเรื่อง?', role: 'ฉันมีบทบาทอะไรในเรื่อง?' };
 const hint = (t, c) => ({
   world: `โลกในเรื่อง: ${WORLD[c[2]] || 'ไม่ใช่โลกธรรมดา'}`, letter: `ชื่อตัวละครขึ้นต้นด้วย ${c[0][0].toUpperCase()}`,
   era: `อนิเมะเรื่องนี้ฉายครั้งแรก${parseInt(c[3]) < 2000 ? 'ก่อน' : 'หลัง'}ปี 2000`,
   ability: `ความสามารถ: ${vAbility(c)}`, side: `ฝ่าย: ${c[6]}`, role: `บทบาท: ${c[7]}`
 })[t];
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
-const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4)]);
+const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
 const pick = a => a[Math.floor(Math.random() * a.length)];
 
@@ -433,7 +608,7 @@ function view(r, p) {
     left: t ? Math.max(0, t - Date.now()) : 0,
     turn: r.phase === 'play' ? r.players[r.turn].pid : null,
     canCard: r.phase === 'play' && r.players[r.turn].pid === p.pid && !r.cardUsed,
-    cards: p.cards, hints: p.hints, res: p.res,
+    cards: p.cards, qlog: p.qlog || [], qa: r.phase === 'play' && r.qa ? { asker: r.qa.asker, askerName: r.qa.askerName, card: r.qa.card, q: r.qa.q, answers: r.qa.entry.answers, guide: r.qa.asker === p.pid ? null : r.qa.guide } : null, res: p.res,
     players: r.players.map(q => ({
       pid: q.pid, name: q.name, ready: q.ready, res: q.res, cards: q.cards.length, wins: q.wins || 0,
       asks: over ? q.asks : 0, used: over ? q.used : 0, t: over ? q.t : 0,
@@ -444,7 +619,7 @@ function view(r, p) {
 const send = r => r.players.forEach(p => p.sid && io.to(p.sid).emit('state', view(r, p)));
 const unresolved = r => r.players.filter(p => !p.res);
 const nextTurn = r => {
-  r.cardUsed = false;
+  r.cardUsed = false; r.qa = null;
   for (let i = 1; i <= r.players.length; i++) {
     const k = (r.turn + i) % r.players.length;
     if (!r.players[k].res) return (r.turn = k);
@@ -468,7 +643,7 @@ setInterval(() => {
 }, 1000);
 
 io.on('connection', sock => {
-  sock.emit('meta', { v: 3, animes: ANIMES, chars: CH.map(c => [c[0], c[2], fs.existsSync(path.join(__dirname, slugOf(c[0]) + '.jpg')) ? slugOf(c[0]) : '']) });
+  sock.emit('meta', { v: 4, animes: ANIMES, chars: CH.map(c => [c[0], c[2], fs.existsSync(path.join(__dirname, 'public', 'img', slugOf(c[0]) + '.jpg')) ? slugOf(c[0]) : '', c[1]]) });
   const find = () => Object.values(rooms).find(r => r.players.some(p => p.sid === sock.id));
   const me = r => r && r.players.find(p => p.sid === sock.id);
   const err = m => sock.emit('err', m);
@@ -479,10 +654,10 @@ io.on('connection', sock => {
     const animes = set.animes === 'ALL' ? 'ALL' : (set.animes || []).filter(a => ANIMES.includes(a));
     if (animes !== 'ALL' && animes.length === 0) return err('เลือกอนิเมะอย่างน้อย 1 เรื่อง');
     const r = rooms[code] = {
-      code, owner: pid, phase: 'lobby', turn: 0, players: [],
-      set: { time, max: Math.min(10, Math.max(2, +set.max || 4)), animes, cards: !!set.cards, cardCount: Math.min(5, Math.max(1, +set.cardCount || 2)) }
+      code, owner: pid, phase: 'lobby', turn: 0, players: [], chat: [], qa: null,
+      set: { time, max: Math.min(10, Math.max(2, +set.max || 4)), animes, mode: set.mode === 'hard' ? 'hard' : 'easy', cards: !!set.cards, cardCount: Math.min(5, Math.max(1, +set.cardCount || 2)) }
     };
-    r.players.push({ pid, name: String(name || '').trim().slice(0, 16) || 'Player ' + (r.players.length + 1), sid: sock.id, cards: [], hints: [], asks: 0, used: 0 });
+    r.players.push({ pid, name: String(name || '').trim().slice(0, 16) || 'Player ' + (r.players.length + 1), sid: sock.id, cards: [], hints: [], qlog: [], asks: 0, used: 0 });
     send(r);
   });
 
@@ -493,7 +668,7 @@ io.on('connection', sock => {
     if (old) { old.sid = sock.id; if (name && String(name).trim()) old.name = String(name).trim().slice(0, 16); return send(r); }
     if (r.phase !== 'lobby') return err('เกมเริ่มไปแล้ว');
     if (r.players.length >= r.set.max) return err('ห้องเต็มแล้ว');
-    r.players.push({ pid, name: String(name || '').trim().slice(0, 16) || 'Player ' + (r.players.length + 1), sid: sock.id, cards: [], hints: [], asks: 0, used: 0 });
+    r.players.push({ pid, name: String(name || '').trim().slice(0, 16) || 'Player ' + (r.players.length + 1), sid: sock.id, cards: [], hints: [], qlog: [], asks: 0, used: 0 });
     send(r);
   });
 
@@ -509,9 +684,9 @@ io.on('connection', sock => {
       picks.push(c); seen.add(c[2]);
     });
     r.players.forEach((q, i) => {
-      q.full = picks[i]; q.ch = { n: picks[i][0], a: picks[i][2], i: (slug => fs.existsSync(path.join(__dirname, slug + '.jpg')) ? slug : '')(picks[i][0].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')) };
+      q.full = picks[i]; q.ch = { n: picks[i][0], a: picks[i][2], i: (slug => fs.existsSync(path.join(__dirname, 'public', 'img', slug + '.jpg')) ? slug : '')(picks[i][0].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')) };
       q.cards = [];
-      q.hints = []; q.res = null; q.ready = false; q.asks = 0; q.used = 0; q.t = 0;
+      q.hints = []; q.qlog = []; q.res = null; q.ready = false; q.asks = 0; q.used = 0; q.t = 0;
     });
     if (r.set.cards) {
       const cnt = {}; CARDS.forEach(t => cnt[t] = 0);
@@ -531,7 +706,7 @@ io.on('connection', sock => {
     p.ready = true;
     if (r.players.every(q => q.ready)) {
       r.phase = 'countdown'; r.cdEnd = Date.now() + 3500;
-      setTimeout(() => { if (r.phase !== 'countdown') return; r.phase = 'play'; r.startAt = Date.now(); r.endsAt = r.startAt + r.set.time * 60000; r.turn = 0; r.cardUsed = false; send(r); }, 3500);
+      setTimeout(() => { if (r.phase !== 'countdown') return; r.phase = 'play'; r.startAt = Date.now(); r.endsAt = r.startAt + r.set.time * 60000; r.turn = 0; r.cardUsed = false; r.qa = null; send(r); }, 3500);
     }
     send(r);
   });
@@ -550,8 +725,9 @@ io.on('connection', sock => {
     const i = p.cards.indexOf(type);
     if (i < 0) return;
     p.cards.splice(i, 1); p.used++; r.cardUsed = true;
-    const h = hint(type, p.full); p.hints.push(h);
-    r.players.forEach(q => q.sid && io.to(q.sid).emit('toast', { name: p.name, type, hint: h }));
+    const entry = { card: type, q: QUESTION[type], answers: [] }; p.qlog.push(entry);
+    r.qa = { asker: p.pid, askerName: p.name, card: type, q: entry.q, entry, guide: hint(type, p.full) };
+    r.players.forEach(q => q.sid && io.to(q.sid).emit('toast', { name: p.name, type, q: entry.q }));
     send(r);
   });
 
@@ -579,7 +755,7 @@ io.on('connection', sock => {
     if (r.turn >= r.players.length) r.turn = 0;
     if (!['lobby', 'over'].includes(r.phase) && r.players.length < 2) {
       r.phase = 'lobby';
-      r.players.forEach(q => { q.ch = null; q.full = null; q.res = null; q.ready = false; q.cards = []; q.hints = []; });
+      r.players.forEach(q => { q.ch = null; q.full = null; q.res = null; q.ready = false; q.cards = []; q.hints = []; q.qlog = []; });
     }
     send(r);
   });
@@ -598,10 +774,34 @@ io.on('connection', sock => {
     const [q] = r.players.splice(i, 1); if (q.sid) io.to(q.sid).emit('kicked'); send(r);
   });
 
+  sock.on('answer', text => {
+    const r = find(), p = me(r);
+    if (!r || r.phase !== 'play' || !r.qa || r.qa.asker === p.pid) return;
+    text = String(text || '').trim().slice(0, 120); if (!text) return;
+    if (Date.now() - (p.la || 0) < 500) return; p.la = Date.now();
+    r.qa.entry.answers.push({ name: p.name, text }); send(r);
+  });
+
+  sock.on('getchat', () => { const r = find(); if (r) sock.emit('chatlog', r.chat); });
+  sock.on('chat', text => {
+    const r = find(), p = me(r); if (!r) return;
+    text = String(text || '').trim().slice(0, 200); if (!text) return;
+    if (Date.now() - (p.lc || 0) < 500) return; p.lc = Date.now();
+    const m = { pid: p.pid, name: p.name, text, t: Date.now() };
+    r.chat.push(m); if (r.chat.length > 60) r.chat.shift();
+    r.players.forEach(q => q.sid && io.to(q.sid).emit('chat', m));
+  });
+  sock.on('emote', e => {
+    const r = find(), p = me(r);
+    if (!r || !['👏', '😂', '😱', '🤔', '🔥', '❤️', '🙈', '🎉'].includes(e)) return;
+    if (Date.now() - (p.le || 0) < 400) return; p.le = Date.now();
+    r.players.forEach(q => q.sid && io.to(q.sid).emit('emote', { name: p.name, e }));
+  });
+
   sock.on('again', () => {
     const r = find(), p = me(r);
     if (!r || r.owner !== p.pid || r.phase !== 'over') return;
-    r.phase = 'lobby'; r.players.forEach(q => { q.ch = null; q.full = null; q.res = null; q.ready = false; q.cards = []; q.hints = []; });
+    r.phase = 'lobby'; r.players.forEach(q => { q.ch = null; q.full = null; q.res = null; q.ready = false; q.cards = []; q.hints = []; q.qlog = []; });
     send(r);
   });
 });
