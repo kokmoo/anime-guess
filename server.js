@@ -1,7 +1,13 @@
 const express = require('express'), http = require('http'), { Server } = require('socket.io');
 const fs = require('fs'), path = require('path');
 const app = express(), srv = http.createServer(app), io = new Server(srv);
-app.use(express.static('public'));
+const PUB = path.join(__dirname, 'public');
+const WEB = fs.existsSync(path.join(PUB, 'index.html')) ? PUB : __dirname;
+const IMGDIRS = [path.join(PUB, 'img'), __dirname];
+const hasImg = slug => IMGDIRS.some(d => fs.existsSync(path.join(d, slug + '.jpg')));
+IMGDIRS.forEach(d => app.use('/img', express.static(d)));
+app.use(express.static(WEB));
+app.get('/', (req, res) => res.sendFile(path.join(WEB, 'index.html')));
 
 // [name, aliases, anime, era, world, ability, side, role]
 const CH = [
@@ -643,7 +649,7 @@ setInterval(() => {
 }, 1000);
 
 io.on('connection', sock => {
-  sock.emit('meta', { v: 4, animes: ANIMES, chars: CH.map(c => [c[0], c[2], fs.existsSync(path.join(__dirname, 'public', 'img', slugOf(c[0]) + '.jpg')) ? slugOf(c[0]) : '', c[1]]) });
+  sock.emit('meta', { v: 4, animes: ANIMES, chars: CH.map(c => [c[0], c[2], hasImg(slugOf(c[0])) ? slugOf(c[0]) : '', c[1]]) });
   const find = () => Object.values(rooms).find(r => r.players.some(p => p.sid === sock.id));
   const me = r => r && r.players.find(p => p.sid === sock.id);
   const err = m => sock.emit('err', m);
@@ -684,7 +690,7 @@ io.on('connection', sock => {
       picks.push(c); seen.add(c[2]);
     });
     r.players.forEach((q, i) => {
-      q.full = picks[i]; q.ch = { n: picks[i][0], a: picks[i][2], i: (slug => fs.existsSync(path.join(__dirname, 'public', 'img', slug + '.jpg')) ? slug : '')(picks[i][0].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')) };
+      q.full = picks[i]; q.ch = { n: picks[i][0], a: picks[i][2], i: (slug => hasImg(slug) ? slug : '')(picks[i][0].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')) };
       q.cards = [];
       q.hints = []; q.qlog = []; q.res = null; q.ready = false; q.asks = 0; q.used = 0; q.t = 0;
     });
