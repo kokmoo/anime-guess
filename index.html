@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- ag-build:20261027 -->
+<!-- ag-build:20261028 -->
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ANIME GUESS</title>
@@ -131,8 +131,60 @@ mark{background:var(--sun);color:#14142b;padding:0 2px}
 .shop .it{border:3px solid var(--line);background:var(--w);padding:8px 4px;text-align:center;font-size:13px}.shop .it.on{background:var(--sun);color:#14142b}
 .shop .it button{padding:4px 6px;font-size:13px;margin-top:6px}
 .ver{text-align:center;opacity:.7;font-size:12px;margin:10px 0 0}
+
+/* ===== v2.3 UI ===== */
+main.game{max-width:1120px}body.gm .top{max-width:1120px}main.mid{max-width:760px}body.md .top{max-width:760px}
+.top .tr{display:flex;gap:8px}.gear.mt{font-size:18px}
+#cn{position:fixed;left:0;right:0;top:0;z-index:50;background:var(--pink);color:#fff;text-align:center;padding:8px 12px;font-weight:600;font-size:14px;display:none}
+.code{cursor:pointer;position:relative}.code small{display:block;font-size:12px;letter-spacing:0;font-weight:400;opacity:.7}
+/* hero */
+.fan{display:flex;gap:12px;margin:22px 0 8px;align-items:flex-end}
+.fc{flex:1;min-width:0;background:var(--w);border:3px solid var(--line);box-shadow:5px 5px 0 var(--sh);padding:6px;text-align:center;transform:rotate(-3deg);animation:flt 3.4s ease-in-out infinite}
+.fc.f1{transform:rotate(2deg) translateY(-10px);animation-delay:.5s}.fc.f2{transform:rotate(-1deg);animation-delay:1s}
+.fc img,.fc .qq{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;object-position:top;border:2px solid var(--line);background:var(--soft)}
+.fc .qq{display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;color:var(--pink);background:repeating-linear-gradient(45deg,#ffe0ec 0 10px,#fff 10px 20px)}
+.fc.me{background:var(--sun);color:#14142b}.fc b{display:block;font-size:14px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fc small{display:block;font-size:11px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home>*{min-width:0}.mq{overflow:hidden;max-width:100%;margin:18px 0 0;border:3px solid var(--line);background:var(--w);padding:8px 0}
+.mqt{display:flex;gap:8px;width:max-content;animation:mq 38s linear infinite}
+.mqt img{width:60px;height:60px;object-fit:cover;object-position:top;border:2px solid var(--line);flex:none}
+@keyframes mq{to{transform:translateX(-50%)}}
+/* game layout */
+.play2{display:flex;flex-direction:column}.play2 .box{margin:0 0 14px}
+@media(min-width:960px){
+ .play2{display:grid;grid-template-columns:minmax(0,1fr) 390px;grid-template-areas:"tiles top" "tiles bot";grid-template-rows:auto 1fr;column-gap:22px;align-items:start}
+ .a-tiles{grid-area:tiles}.a-top{grid-area:top}.a-bot{grid-area:bot}
+ .a-tiles .tiles{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+}
+.a-tiles .box{margin-bottom:0}
+.tile{position:relative}.tile.res-win{background:#d6ffe2;color:#14142b}.tile.res-lose{background:#ffe0ec;color:#14142b}
+.tile .ph{width:100%;aspect-ratio:1;object-fit:cover;object-position:top}
+/* lobby seats */
+.seats{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px;margin-top:10px}
+.seat{border:3px solid var(--line);background:var(--w);padding:12px 6px 8px;text-align:center;position:relative;min-height:128px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.seat .sn{font-weight:700;font-size:15px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seat.me{background:var(--sun);color:#14142b}.seat.off{opacity:.55}
+.seat.empty{border-style:dashed;background:transparent;color:inherit;justify-content:center;opacity:.65}.seat .av0{width:52px;height:52px;border:3px dashed var(--line);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px}
+.seat .bd{position:absolute;top:-10px;right:-8px;background:var(--w);border:2px solid var(--line);border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.seat button{width:auto;margin:2px 0 0;padding:1px 10px;font-size:13px}
+/* podium */
+.pod{display:flex;justify-content:center;align-items:flex-end;gap:10px;margin:18px 0 8px}
+.pcol{flex:1;max-width:150px;text-align:center;animation:pop .6s both}.pcol .pn{font-weight:800;margin-top:4px;font-size:15px;word-break:break-word}.pcol small{display:block;opacity:.75}
+.pbar{margin-top:6px;border:3px solid var(--line);box-shadow:4px 4px 0 var(--sh);display:flex;align-items:flex-start;justify-content:center;padding-top:6px;font-size:30px;background:var(--w);color:#14142b}
+.pcol.p0 .pbar{height:110px;background:var(--sun)}.pcol.p1 .pbar{height:80px;background:#dfe6ff}.pcol.p2 .pbar{height:58px;background:#ffd1b3}
+.pcol.p1{animation-delay:.25s}.pcol.p2{animation-delay:.5s}.pcol.p0{animation-delay:.75s}
+.revs{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}.revs .box{margin:0}
+/* quiz */
+.acards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:10px}
+.ac{border:3px solid var(--line);background:var(--w);box-shadow:4px 4px 0 var(--sh);cursor:pointer;text-align:left;padding:0;margin:0;width:100%;display:block;color:inherit;overflow:hidden}
+.ac .cv{aspect-ratio:4/3;width:100%;object-fit:cover;object-position:top;display:block;border-bottom:3px solid var(--line);background:var(--soft)}
+.ac .cv0{aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:800;border-bottom:3px solid var(--line);background:var(--soft)}
+.ac .ct{padding:8px 10px}.ac .ct b{display:block;font-size:15px;line-height:1.25}.ac .ct small{opacity:.75}
+.ac.all{grid-column:1/-1;background:var(--blue);color:#fff;padding:14px;text-align:center;font-weight:800;font-size:18px}.ac.all small{color:#fff;opacity:.85;font-weight:400}
+.opt{display:flex;align-items:center;gap:12px;font-size:17px;line-height:1.35}.opt .ltr{flex:none;width:30px;height:30px;border:3px solid var(--line);background:var(--sun);color:#14142b;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
+.opt.ok .ltr,.opt.no .ltr,.opt.sel .ltr{background:#fff}
+.qtext{font-size:22px;font-weight:600;line-height:1.5;margin:10px 0 14px}
 </style></head><body>
-<div class="top"><div class="logo"><b>ANIME</b> GUESS</div><button class="gear g" onclick="openSet()" aria-label="ตั้งค่า">⚙️</button></div>
+<div class="top"><div class="logo"><b>ANIME</b> GUESS</div><div class="tr"><button class="gear g mt" id="mt" onclick="toggleMute()" aria-label="เปิด/ปิดเสียง">🔊</button><button class="gear g" onclick="openSet()" aria-label="ตั้งค่า">⚙️</button></div></div><div id="cn">กำลังเชื่อมต่อเซิร์ฟเวอร์ใหม่… (เซิร์ฟเวอร์ฟรีอาจใช้เวลาตื่นราว 30 วินาที) เกมของคุณยังอยู่ ไม่ต้องรีเฟรช</div>
 <div id="bg"></div><main id="app"></main>
 <div class="ov" id="toast"><div id="tt"></div></div>
 <div class="ov" id="set"><div class="box" style="width:100%;max-width:420px" id="sc"></div></div>
@@ -149,7 +201,7 @@ mark{background:var(--sun);color:#14142b;padding:0 2px}
 const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิดตัวอักษร'],era:['📅','ใบ้ยุค'],ability:['⚡','ความสามารถ'],side:['🏴','ฝ่าย'],role:['⭐','บทบาท']};
 const s=io(),$=id=>document.getElementById(id);
 const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
-const VER=5,APPV='2.2',BUILD='20261027';let SRVV='';let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
+const VER=5,APPV='2.3',BUILD='20261028';let SRVV='',HERO=null;let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
 const pre=new URLSearchParams(location.search).get('room')||'';
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
@@ -218,7 +270,7 @@ Object.assign(SFX,{
 document.addEventListener('click',e=>{const t=e.target.closest('button,.card');if(t){SFX.click();t.classList.remove('squish');void t.offsetWidth;t.classList.add('squish')}});
 function confetti(){for(let i=0;i<50;i++){const d=document.createElement('i');d.textContent=['🎉','✨','⭐','🎊'][i%4];d.style.cssText=`position:fixed;top:-30px;left:${Math.random()*100}vw;font-size:${18+Math.random()*18}px;z-index:20;pointer-events:none;animation:fall ${2+Math.random()*2}s linear forwards`;document.body.appendChild(d);setTimeout(()=>d.remove(),4500)}}
 // ---- network ----
-s.on('meta',m=>{animes=m.animes;chars=m.chars||[];SRVV=m.ver||'';if($('sv'))$('sv').textContent=SRVV?'v'+SRVV:'(เก่า)';if(m.v!==VER)warn();if(sessionStorage.room)s.emit('join',{code:sessionStorage.room,name,pid,prof:profOut()})});
+s.on('meta',m=>{animes=m.animes;chars=m.chars||[];SRVV=m.ver||'';heroPick();if(HERO&&!st&&!QM&&mode==='home')render();if($('sv'))$('sv').textContent=SRVV?'v'+SRVV:'(เก่า)';if(m.v!==VER)warn();if(sessionStorage.room)s.emit('join',{code:sessionStorage.room,name,pid,prof:profOut()})});
 s.on('state',x=>{
  const k=JSON.stringify({...x,left:0}),same=st&&k===lastKey,o=st;lastKey=k;st=x;t0=Date.now();sessionStorage.room=x.code;
  if(!o||o.code!==x.code){chatMsgs=[];act('getchat');act('prof',profOut())}
@@ -251,7 +303,7 @@ const ask=(h,ok='ยืนยัน',cls='b')=>dlg(h,[[ok,cls],['ยกเลิ
 function howto(){say('1) ทุกคนสุ่มได้ตัวละครแต่มองไม่เห็นของตัวเอง\n2) ถามคำถามผ่าน Discord เพื่อนตอบได้แค่ ใช่/ไม่\n3) ถึงตาคุณใช้การ์ดคำถามปลายเปิดได้ 1 ใบต่อตา เพื่อนๆ จะช่วยตอบด้วยคำพูดของตัวเอง\n4) พิมพ์ชื่อตัวละครเมื่อมั่นใจ ตอบได้ครั้งเดียว ผิดคือแพ้\n5) หมดเวลาแล้วมีโอกาสตอบครั้งสุดท้าย')}
 function tile(p){const you=p.pid===st.you,c=p.ch,hid=you&&!p.res;
  const img=hid?'<div class="ph q">???</div>':(c.i?`<img class="ph" src="/img/${c.i}.jpg" alt="" data-i="${c.i}" data-n="${esc(c.n)}" onclick="zoom(this)">`:`<div class="ph">${esc([...c.n][0])}</div>`);
- return `<div class="tile ${p.pid===st.turn?'turn':''}">${img}<div class="tn">${av(p.name,p)} ${you?'คุณ':pnm(p)}${p.off?' 📴':''} ${p.res==='win'?'✅':p.res==='lose'?'❌':''}</div>${gline(p)}${hid?'':`<b>${esc(c.n)}</b><small>${esc(c.a)}</small>`}</div>`}
+ return `<div class="tile ${p.pid===st.turn?'turn':''} ${p.res?'res-'+p.res:''}">${img}<div class="tn">${av(p.name,p)} ${you?'คุณ':pnm(p)}${p.off?' 📴':''} ${p.res==='win'?'✅':p.res==='lose'?'❌':''}</div>${gline(p)}${hid?'':`<b>${esc(c.n)}</b><small>${esc(c.a)}</small>`}</div>`}
 function zoom(e){dlg(`<img src="/img/${e.dataset.i}.jpg" style="width:100%;border:3px solid var(--line)"><div style="text-align:center;font-weight:800;margin-top:8px">${esc(e.dataset.n)}</div>`,[['ปิด','b']])}
 function useCard(c){if(!st.canCard)return say(st.turn===st.you?'ตานี้คุณใช้การ์ดไปแล้ว ใช้ได้ 1 ใบต่อตา':'ต้องถึงตาของคุณก่อนถึงจะใช้การ์ดได้');act('useCard',c)}
 function joinRoom(){if(getName())act('join',{code:$('cd').value.trim(),name,pid,prof:profOut()})}
@@ -345,14 +397,14 @@ function openSet(){const dk=document.documentElement.dataset.theme==='dark';$('s
 function closeSet(){$('set').style.display='none'}
 function render(){const a=document.activeElement,id=a&&a.id,v=a&&a.value;draw();screenFx();bgmSync();$('chatBtn').style.display=st?'flex':'none';$('noteBtn').style.display=st?'flex':'none';if(!st&&panelOpen)closePanel();if(id){const n=$(id);if(n&&n.tagName==='INPUT'&&v!==undefined){n.value=v;n.focus();try{n.setSelectionRange(v.length,v.length)}catch(e){}if(id==='gs')suggest()}}}
 function draw(){
- const A=$('app');const wide=!st&&mode==='home';A.className=wide?'wide':'';document.body.classList.toggle('w',wide);
+ const A=$('app');const wide=!st&&mode==='home',gm=!!(st&&(st.phase==='play'||st.phase==='final')),md=!!(st&&st.phase==='over');A.className=wide?'wide':gm?'game':md?'mid':'';document.body.classList.toggle('w',wide);document.body.classList.toggle('gm',gm);document.body.classList.toggle('md',md);
  if(!st){
   if(QM){drawQM(A);return}
   if(mode.startsWith('quiz')){drawQuiz(A);return}
   if(mode==='home')A.innerHTML=`<div class="home"><div><h1><span>ANIME</span> GUESS</h1>
   <p class="sub">เกมทายตัวละครอนิเมะกับเพื่อนผ่าน Discord<br>เห็นตัวละครของเพื่อนทุกคน…ยกเว้นของตัวเอง 🙈</p>
-  <div class="demo"><div class="dc"><div class="dp">🧑 A</div><b>Naruto</b></div><div class="dc"><div class="dp">🧑 B</div><b>Gojo</b></div><div class="dc me"><div class="dp">🫵 คุณ</div><b class="q">???</b></div></div>
-  <div class="chips"><span>📺 ${animes.length||11} เรื่อง</span><span>🃏 การ์ดคำถามปลายเปิด 6 แบบ</span><span>⏱️ 8-20 นาที</span><span>👥 2-10 คน</span></div></div>
+  ${heroHTML()}
+  <div class="chips"><span>📺 ${animes.length||11} เรื่อง</span><span>🃏 การ์ดคำถามปลายเปิด 6 แบบ</span><span>⏱️ 8-20 นาที</span><span>👥 2-10 คน</span></div>${HERO?mqHTML():''}</div>
   <div><div class="box"><b>ชื่อผู้เล่น</b><input id="nm" maxlength="16" value="${esc(name)}" placeholder="พิมพ์ชื่อของคุณ">
   <button onclick="if(getName()){mode='create';render()}">🏠 สร้างห้อง</button>
   <input id="cd" placeholder="รหัสห้อง เช่น A7K9P" value="${esc(pre)}" style="text-transform:uppercase">
@@ -371,15 +423,16 @@ function draw(){
  const me=st.players.find(p=>p.pid===st.you),ph=st.phase;
  const list=f=>st.players.map(f).join('');
  const pic=(c,z=44)=>!c.i?'':`<img src="/img/${c.i}.jpg" width="${z}" height="${z}" alt="" style="object-fit:cover;border:3px solid var(--line);vertical-align:middle;margin-right:8px" onerror="this.remove()">`;
- if(ph==='lobby')A.innerHTML=`<h2>ห้องรอเพื่อน</h2><div class="code">${st.code}</div>
+ if(ph==='lobby')A.innerHTML=`<h2>ห้องรอเพื่อน</h2><div class="code" onclick="copy(location.origin+'/?room='+st.code)">${st.code}<small>แตะเพื่อคัดลอกลิงก์เชิญ · ส่งรหัสนี้ให้เพื่อน</small></div>
   <button class="g" onclick="copy(location.origin+'/?room='+st.code)">🔗 คัดลอกลิงก์เชิญเพื่อน</button>
-  <div class="box">${list(p=>`<div class="pl">${av(p.name,p)}<span class="gr">${pnm(p)}${p.off?' <small>(หลุด — รอกลับเข้าห้อง)</small>':''}${p.pid===st.you?' (คุณ)':''}</span>${p.pid===st.you&&st.owner?'👑':''}${p.wins?`<small>🏆${p.wins}</small>`:''}${st.owner&&p.pid!==st.you?`<button class="r" style="width:auto;margin:0;padding:2px 10px" onclick="kick('${p.pid}')">เตะ</button>`:''}</div>`)}
-  ชื่อของคุณ<input id="rn" maxlength="16" value="${esc(me.name)}" onchange="rename(this.value)"></div>
-  <div class="box">${st.set.mode==='hard'?'🔴 ยาก':'🟢 ง่าย'} · ⏱️ ${st.set.time?st.set.time+' นาที':'ไม่จำกัดเวลา'} · 📚 ${st.set.animes==='ALL'?'ALL ANIME':esc(st.set.animes.join(', '))} · 🃏 ${st.set.cards?st.set.cardCount+' ใบ/คน':'ปิด'} · 👥 สูงสุด ${st.set.max}</div>
+  <div class="box"><div class="row"><b>ผู้เล่น ${st.players.length}/${st.set.max}</b><small>${st.players.length<2?'ต้องมีอย่างน้อย 2 คนถึงจะเริ่มได้':'พร้อมเริ่มได้เลย'}</small></div>
+  <div class="seats">${list(p=>`<div class="seat ${p.pid===st.you?'me':''} ${p.off?'off':''}">${av(p.name,p,1)}<div class="sn">${pnm(p)}${p.pid===st.you?' (คุณ)':''}</div><small>${p.off?'📴 หลุด รอกลับ':(p.wins?'🏆 ชนะ '+p.wins:'พร้อม')}</small>${st.owner&&p.pid===st.you?'<span class="bd">👑</span>':''}${st.owner&&p.pid!==st.you?`<button class="r" onclick="kick('${p.pid}')">เตะ</button>`:''}</div>`)}${Array.from({length:Math.max(0,st.set.max-st.players.length)},()=>'<div class="seat empty"><div class="av0">+</div><small>รอเพื่อน…</small></div>').join('')}</div>
+  <small style="display:block;margin-top:10px">ชื่อของคุณ</small><input id="rn" maxlength="16" value="${esc(me.name)}" onchange="rename(this.value)"></div>
+  <div class="box chips"><span>${st.set.mode==='hard'?'🔴 ยาก':'🟢 ง่าย'}</span><span>⏱️ ${st.set.time?st.set.time+' นาที':'ไม่จำกัดเวลา'}</span><span>📚 ${st.set.animes==='ALL'?'ทุกเรื่อง':esc(st.set.animes.join(', '))}</span><span>🃏 ${st.set.cards?st.set.cardCount+' ใบ/คน':'ไม่มีการ์ด'}</span></div>
   ${st.owner?'<button class="b hot" onclick="act(\'start\')">▶ START</button>':'<p style="text-align:center">รอเจ้าของห้องกดเริ่ม…</p>'}
   <button class="g" onclick="leave()">← ออกจากห้อง</button>`;
  else if(ph==='brief')A.innerHTML=`<h2>พร้อมหรือยัง?</h2><div class="box">ตัวละครของคุณถูกสุ่มแล้ว แต่คุณจะมองไม่เห็น<br>ถามคำถามผ่าน Discord ตอบได้แค่ ใช่ / ไม่<br>พิมพ์ชื่อตัวละครเมื่อมั่นใจ ตอบได้ครั้งเดียว ผิดคือแพ้</div>
-  <div class="box">${list(p=>`<div class="pl">${av(p.name,p)}<span class="gr">${pnm(p)}${p.off?' <small>(หลุด — รอกลับเข้าห้อง)</small>':''}</span><span>${p.ready?'✅':'⏳'}</span></div>`)}</div>
+  <div class="box"><div class="row"><b>ความพร้อม</b><small>${st.players.filter(p=>p.ready).length}/${st.players.length} คน</small></div><div class="seats">${list(p=>`<div class="seat ${p.ready?'me':''} ${p.off?'off':''}">${av(p.name,p,1)}<div class="sn">${pnm(p)}</div><small>${p.off?'📴 หลุด':p.ready?'พร้อมแล้ว':'รอสักครู่…'}</small><span class="bd">${p.ready?'✅':'⏳'}</span></div>`)}</div></div>
   <button class="b hot" ${me.ready?'disabled':''} onclick="act('ready')">READY ✓</button>`;
  else if(ph==='countdown'){A.innerHTML=`<div class="big" id="cdn" style="margin-top:25vh">…</div>`;cd()}
  else if(ph==='play'||ph==='final'){
@@ -387,17 +440,18 @@ function draw(){
   A.innerHTML=`${ph==='final'?'<h2 style="text-align:center;color:var(--pink)">⏰ หมดเวลา! โอกาสตอบครั้งสุดท้าย</h2>':''}
   <div class="timer" id="tm">${st.set.time||ph==='final'?mmss(st.left):'∞'}</div>
   ${st.set.time===0&&st.owner&&ph==='play'?'<button class="g" onclick="act(\'forceFinal\')">⏹ จบเกม (ทุกคนมีเวลาตอบครั้งสุดท้าย 30 วิ)</button>':''}
-  ${ph==='play'&&tp?`<div class="box ${st.turn===st.you?'mine':''}" style="background:var(--sun)">ถึงตาของ: <b>${st.turn===st.you?'คุณ! ถามเพื่อนได้เลย':esc(tp.name)}</b>${st.turn===st.you?'<button class="b" onclick="act(\'endTurn\')">ถามเสร็จแล้ว → ตาถัดไป</button><button class="g" onclick="openPanel(\'guide\')">💡 ไม่รู้จะถามอะไร? ดูไกด์คำถาม</button>':''}</div>`:''}
+  <div class="play2"><div class="a-top">${ph==='play'&&tp?`<div class="box ${st.turn===st.you?'mine':''}" style="background:var(--sun)">ถึงตาของ: <b>${st.turn===st.you?'คุณ! ถามเพื่อนได้เลย':esc(tp.name)}</b>${st.turn===st.you?'<button class="b" onclick="act(\'endTurn\')">ถามเสร็จแล้ว → ตาถัดไป</button><button class="g" onclick="openPanel(\'guide\')">💡 ไม่รู้จะถามอะไร? ดูไกด์คำถาม</button>':''}</div>`:''}
   ${ph==='play'&&tp&&st.turn!==st.you?`<div class="box"><b>ตอบคำถามของ ${esc(tp.name)}</b><div class="row"><button class="b" onclick="act('react','yes')">✅ ใช่</button><button class="r" onclick="act('react','no')">❌ ไม่</button></div></div>`:''}
   ${st.qa&&st.qa.asker!==st.you?`<div class="box"><b>❓ ${esc(st.qa.askerName)} ใช้การ์ด “${CARDS[st.qa.card][1]}”</b><div>${esc(st.qa.q)}</div>${st.qa.guide?`<div class="hint">💡 แนวทางตอบ: ${esc(st.qa.guide)}</div>`:''}${st.qa.answers.map(a=>`<div>💬 <b>${esc(a.name)}</b>: ${esc(a.text)}</div>`).join('')}<input id="an" placeholder="พิมพ์คำตอบด้วยคำพูดของคุณ (ไม่ใช่แค่ ใช่/ไม่)" maxlength="120" autocomplete="off" onkeydown="if(event.key==='Enter')sendAns()"><button class="b" onclick="sendAns()">ส่งคำตอบให้เพื่อน</button></div>`:''}
-  <div class="box"><h2>ตัวละครของเพื่อน</h2><div class="tiles">${list(tile)}</div><small>แตะรูปเพื่อขยาย</small></div>
-  <div class="box"><h2>การ์ดของคุณ</h2>${st.cards.length?st.cards.map(c=>`<span class="card ${st.canCard?'':'off'}" onclick="useCard('${c}')">${CARDS[c][0]} ${CARDS[c][1]}</span>`).join('')+`<br><small>${st.canCard?'ถึงตาคุณแล้ว ใช้ได้ 1 ใบ':'ใช้การ์ดได้เมื่อถึงตาคุณ (1 ใบต่อตา)'}</small>`:'<small>ไม่มีการ์ดแล้ว</small>'}
+  </div><div class="a-tiles"><div class="box"><h2>ตัวละครของเพื่อน</h2><div class="tiles">${list(tile)}</div><small>แตะรูปเพื่อขยาย</small></div></div>
+  <div class="a-bot"><div class="box"><h2>การ์ดของคุณ</h2>${st.cards.length?st.cards.map(c=>`<span class="card ${st.canCard?'':'off'}" onclick="useCard('${c}')">${CARDS[c][0]} ${CARDS[c][1]}</span>`).join('')+`<br><small>${st.canCard?'ถึงตาคุณแล้ว ใช้ได้ 1 ใบ':'ใช้การ์ดได้เมื่อถึงตาคุณ (1 ใบต่อตา)'}</small>`:'<small>ไม่มีการ์ดแล้ว</small>'}
   ${st.qlog.map(e=>`<div class="hint">❓ <b>${esc(e.q)}</b>${e.answers.length?e.answers.map(a=>`<div>💬 <b>${esc(a.name)}</b>: ${esc(a.text)}</div>`).join(''):'<div><small>รอเพื่อนตอบ…</small></div>'}</div>`).join('')}</div>
-  ${mine?`<div class="box ${mine}">${mine==='win'?'🎉 คุณทายถูก!':'😵 คุณทายผิด'}</div>`:`<div class="box"><b>ตอบเลย (ครั้งเดียว)</b><input id="gs" placeholder="พิมพ์ชื่อตัวละคร เช่น D… แล้วเลือกจากรายการ" autocomplete="off" oninput="suggest()" onkeydown="sgKey(event)"><div id="gsl" class="sgl"></div><button class="b" onclick="sendGuess()">ส่งคำตอบ</button></div>`}`;
+  ${mine?`<div class="box ${mine}">${mine==='win'?'🎉 คุณทายถูก!':'😵 คุณทายผิด'}</div>`:`<div class="box"><b>ตอบเลย (ครั้งเดียว)</b><input id="gs" placeholder="พิมพ์ชื่อตัวละคร เช่น D… แล้วเลือกจากรายการ" autocomplete="off" oninput="suggest()" onkeydown="sgKey(event)"><div id="gsl" class="sgl"></div><button class="b" onclick="sendGuess()">ส่งคำตอบ</button></div>`}</div></div>`;
  }else{
   const w=[...st.players].sort((a,b)=>(a.res==='win'?0:1)-(b.res==='win'?0:1)||a.t-b.t),mx=k=>[...st.players].sort((a,b)=>b[k]-a[k])[0],fast=w.find(p=>p.res==='win');
-  A.innerHTML=`<h1 style="font-size:36px">🏆 GAME OVER</h1><h2>🎭 CHARACTER REVEAL</h2>
-  ${w.map((p,i)=>`<div class="box rev" style="animation-delay:${i*.5}s"><div class="row"><span>${av(p.name,p)} <b>${pnm(p)}</b>${p.earn?` <small class="win">+${p.earn}🪙</small>`:''}</span><span class="${p.res}">${p.res==='win'?'ชนะ':'แพ้'}</span></div><div style="text-align:center">${gline(p,true)}↓<br>${pic(p.ch,200)}<br><span style="font-size:22px;font-weight:800">${esc(p.ch.n)}</span> <small>${esc(p.ch.a)}</small></div></div>`).join('')}
+  const wins=w.filter(p=>p.res==='win'),pod=wins.length?`<div class="pod">${[1,0,2].filter(i=>wins[i]).map(i=>`<div class="pcol p${i}">${av(wins[i].name,wins[i],1)}<div class="pn">${pnm(wins[i])}</div><small>${mmss(wins[i].t)}</small><div class="pbar">${['🥇','🥈','🥉'][i]}</div></div>`).join('')}</div>`:`<div class="box" style="text-align:center;font-size:18px">😵 รอบนี้ไม่มีใครทายถูก</div>`;
+  A.innerHTML=`<h1 style="font-size:36px;margin-bottom:0">🏆 GAME OVER</h1>${pod}<h2 style="margin-top:18px">🎭 เฉลยตัวละคร</h2><div class="revs">
+  ${w.map((p,i)=>`<div class="box rev" style="animation-delay:${i*.5}s"><div class="row"><span>${av(p.name,p)} <b>${pnm(p)}</b>${p.earn?` <small class="win">+${p.earn}🪙</small>`:''}</span><span class="${p.res}">${p.res==='win'?'ชนะ':'แพ้'}</span></div><div style="text-align:center">${gline(p,true)}↓<br>${pic(p.ch,200)}<br><span style="font-size:22px;font-weight:800">${esc(p.ch.n)}</span> <small>${esc(p.ch.a)}</small></div></div>`).join('')}</div>
   <div class="box">🧠 ถามมากสุด: ${esc(mx('asks').name)}<br>⚡ เดาเร็วสุด: ${fast?esc(fast.name)+' ('+mmss(fast.t)+')':'-'}<br>🎒 ใช้การ์ดรวม: ${st.players.reduce((a,p)=>a+p.used,0)} ใบ<br>🏆 ชนะสะสมในห้อง: ${st.players.map(p=>esc(p.name)+' '+p.wins).join(' · ')}</div>
   ${st.owner?'<button class="b" onclick="act(\'again\')">🔄 PLAY AGAIN</button>':'<p style="text-align:center">รอเจ้าของห้องเริ่มรอบใหม่…</p>'}
   <button class="g" onclick="leave()">🚪 ออกจากห้อง</button>`;
@@ -445,15 +499,15 @@ function drawQuiz(A){
   if(!QZ.length){A.innerHTML=`<h2>🧠 โหมดแฟนพันธุ์แท้</h2><div class="box">โหลดคำถามไม่สำเร็จ ตรวจว่ามีไฟล์ quiz.json อยู่ข้าง index.html</div>${back}`;return}
   const nm=qNames();
   A.innerHTML=`<h2>🧠 โหมดแฟนพันธุ์แท้</h2><div class="box"><p style="margin-top:0;line-height:1.6">ตอบคำถามเกี่ยวกับฉาก ตัวละคร และคำพูดจากอนิเมะที่คุณรัก ข้อละ ${QLIM} วินาที ตอบเร็วได้คะแนนเพิ่ม ตอบถูกติดกันได้โบนัส 🔥</p>
-   <button class="b" onclick="quizStart(-1)">🎲 สุ่มจากทุกเรื่อง <small>(${QZ.length} ข้อ${qBest('ALL')?` · สถิติ ${qBest('ALL')}`:''})</small></button>
-   ${nm.map((n,i)=>{const c=QZ.filter(q=>q.a===n).length,b=qBest(n);return `<button class="g" onclick="quizStart(${i})">${esc(n)} <small>(${c} ข้อ${b?` · สถิติ ${b}`:''})</small></button>`}).join('')}</div>${mpBox()}${back}`;return}
+   <div class="acards"><button class="ac all" onclick="quizStart(-1)">🎲 สุ่มจากทุกเรื่อง<br><small>${QZ.length} ข้อ${qBest('ALL')?` · สถิติ ${qBest('ALL')}`:''}</small></button>
+   ${nm.map((n,i)=>{const c=QZ.filter(q=>q.a===n).length,b=qBest(n),cv=coverOf(n);return `<button class="ac" onclick="quizStart(${i})">${cv?`<img class="cv" loading="lazy" src="/img/${cv}.jpg" alt="">`:`<div class="cv0">${esc([...n][0])}</div>`}<div class="ct"><b>${esc(n)}</b><small>${c} ข้อ${b?` · สถิติ ${b}`:''}</small></div></button>`}).join('')}</div></div>${mpBox()}${back}`;return}
  if(mode==='quizPlay'&&QS){
   const q=QS.qs[QS.i],done=QS.picked!==null,ok=done&&QS.picked>=0&&q.o[QS.picked]===q.c;
   A.innerHTML=`<div class="row"><b>${QS.a==='ALL'?'ทุกเรื่อง':esc(QS.a)}</b><small>ข้อ ${QS.i+1}/${QS.qs.length} · ⭐ ${QS.score}${QS.streak>=2?` · 🔥x${QS.streak}`:''}</small></div>
   <div class="qbar"><i id="qbar" style="width:${done?0:100}%"></i></div>
   <div class="box"><div class="row"><small>${QT[q.t]||''} · ${esc(q.a)}</small><b class="q" id="qt">${done?'':QLIM}</b></div>
-  ${qmImg(q)}<p style="font-size:20px;font-weight:600;line-height:1.5">${esc(q.q)}</p>
-  ${q.o.map((o,i)=>`<button class="opt g ${done?(o===q.c?'ok':(i===QS.picked?'no':'')):''}" ${done?'disabled':''} onclick="quizAnswer(${i})">${esc(o)}</button>`).join('')}</div>
+  ${qmImg(q)}<p class="qtext">${esc(q.q)}</p>
+  ${q.o.map((o,i)=>`<button class="opt g ${done?(o===q.c?'ok':(i===QS.picked?'no':'')):''}" ${done?'disabled':''} onclick="quizAnswer(${i})"><span class="ltr">${'ABCD'[i]}</span><span>${esc(o)}</span></button>`).join('')}</div>
   ${done?`<div class="box"><b class="${ok?'win':'lose'}">${ok?'✅ ถูกต้อง! +'+QS.gain:QS.picked<0?'⏰ หมดเวลา':'❌ ตอบผิด'}</b><p style="line-height:1.6">${esc(q.e||'')}</p><button class="b" onclick="quizNext()">${QS.i+1<QS.qs.length?'ข้อต่อไป ▶':'ดูผลคะแนน 🏁'}</button></div>`:''}${back}`;return}
  if(mode==='quizEnd'&&QS){
   const n=QS.qs.length,p=QS.ok/n,rank=p===1?'👑 แฟนพันธุ์แท้ตัวจริง':p>=.8?'🔥 แฟนตัวยง':p>=.5?'🙂 แฟนทั่วไป':'🌱 แฟนมือใหม่';
@@ -510,7 +564,7 @@ function drawQM(A){
   ${rv?'':`<div class="qbar"><i id="qmbar" style="width:${left/(q.time*10)}%"></i></div>`}
   <div class="box"><div class="row"><small>${QT[q.t]||''}</small>${rv?'':`<b class="q" id="qmt">${Math.ceil(left/1000)}</b>`}</div>
   ${qmImg(q)}<p style="font-size:20px;font-weight:600;line-height:1.5;margin:0 0 12px">${esc(q.text)}</p>
-  ${q.opts.map((o,i)=>`<button class="opt g ${rv?(i===QM.rev.ci?'ok':(i===QM.mine?'no':'')):(QM.mine===i?'sel':'')}" ${rv||ans?'disabled':''} onclick="qzAns(${i})">${esc(o)}</button>`).join('')}
+  ${q.opts.map((o,i)=>`<button class="opt g ${rv?(i===QM.rev.ci?'ok':(i===QM.mine?'no':'')):(QM.mine===i?'sel':'')}" ${rv||ans?'disabled':''} onclick="qzAns(${i})"><span class="ltr">${'ABCD'[i]}</span><span>${esc(o)}</span></button>`).join('')}
   ${rv?'':`<small>${ans?'✅ ส่งคำตอบแล้ว รอเพื่อน… ':''}ตอบแล้ว ${ac}/${on} คน</small>`}</div>
   ${rv?`<div class="box"><b class="${ok?'win':'lose'}">${ok?'✅ ถูกต้อง! +'+me.delta:QM.mine===null?'⏰ คุณไม่ได้ตอบ':'❌ ตอบผิด'}</b><p style="line-height:1.6">${esc(QM.rev.exp)}</p>
    ${QM.owner?`<button class="b" onclick="s.emit('qz:next')">${QM.i+1<QM.n?'ข้อต่อไป ▶':'ดูผลรวม 🏁'}</button>`:''}<small>ไปข้อถัดไปอัตโนมัติใน <span id="qmn">${Math.ceil(QM.rev.nextIn/1000)}</span> วินาที</small></div>`:''}
@@ -560,7 +614,21 @@ function openProf(tab){pTab=tab||pTab;const lv=lvOf(PF.xp),a=40*(lv-1)*(lv-1),b=
    return `<div class="it ${on?'on':''}">${pv}<div>${lb}</div>${on?'<b>✓ ใช้งานอยู่</b>':ow?`<button class="b" onclick="equip('${k}','${id}')">ใช้</button>`:`<button class="${PF.coins>=pr?'b':'g'}" onclick="buy('${k}','${id}',${pr},'${lb}')">🪙 ${pr}</button>`}</div>`}).join('');
   body=`<b>🖼️ กรอบโปรไฟล์</b><div class="shop">${it('fr',FR)}</div><b>✨ เอฟเฟกต์ชื่อ</b><div class="shop">${it('nf',NF)}</div>`}
  $('sc').innerHTML=head+body+`<button class="b" onclick="closeSet()">ปิด</button>`;$('set').style.display='flex'}
-const NEWS=['🎵 เสียงใหม่: มีเพลงพื้นหลังเปลี่ยนตามหน้าจอ (ล็อบบี้ / ตอนเล่น / โอกาสสุดท้าย / แฟนพันธุ์แท้ / ชนะ) พร้อมเสียงชนะ-แพ้ เสียงเหรียญ เลเวลอัป เสียงตอบถูกคอมโบ และเสียงเตือนตอนเหลือ 5 วินาที ปรับระดับหรือปิดได้ที่ ⚙️ ตั้งค่า (เพลงจะเริ่มหลังแตะหน้าจอครั้งแรก)','🆕 เกมทายตัวละคร: ถ้าใครตอบผิด ทุกคนในห้องจะเห็นว่าเขาตอบเป็นตัวอะไร (มีรูปตัวที่ตอบด้วย) และดูย้อนหลังได้ที่ใต้ชื่อของเขากับหน้าสรุปผล','👤 โปรไฟล์: อัปโหลดรูปของตัวเองได้ เพื่อนในห้องจะเห็นรูปคุณ','🪙 สะสมเหรียญจากการเล่น (ชนะ/แพ้/แฟนพันธุ์แท้/เข้าเล่นรายวัน) เอาไปซื้อกรอบโปรไฟล์และเอฟเฟกต์ชื่อในร้านค้า','⭐ มีเลเวลจากประสบการณ์ที่สะสม แสดงข้างชื่อ','🔢 แสดงเวอร์ชันเกมและเซิร์ฟเวอร์ที่หน้าแรกและในตั้งค่า'];
+const NEWS=['🎨 หน้าตาใหม่: หน้าแรกใช้รูปตัวละครจริง ห้องรอเพื่อนเป็นที่นั่ง หน้าเล่นบนคอมกว้างขึ้น ตอนจบมีโพเดียม หน้าเลือกอนิเมะในโหมดแฟนพันธุ์แท้เป็นการ์ดมีรูป กดปุ่ม 1-4 หรือ A-D เพื่อตอบควิซได้ และมีปุ่มปิดเสียงด่วนที่มุมบน','🎵 เสียงใหม่: มีเพลงพื้นหลังเปลี่ยนตามหน้าจอ (ล็อบบี้ / ตอนเล่น / โอกาสสุดท้าย / แฟนพันธุ์แท้ / ชนะ) พร้อมเสียงชนะ-แพ้ เสียงเหรียญ เลเวลอัป เสียงตอบถูกคอมโบ และเสียงเตือนตอนเหลือ 5 วินาที ปรับระดับหรือปิดได้ที่ ⚙️ ตั้งค่า (เพลงจะเริ่มหลังแตะหน้าจอครั้งแรก)','🆕 เกมทายตัวละคร: ถ้าใครตอบผิด ทุกคนในห้องจะเห็นว่าเขาตอบเป็นตัวอะไร (มีรูปตัวที่ตอบด้วย) และดูย้อนหลังได้ที่ใต้ชื่อของเขากับหน้าสรุปผล','👤 โปรไฟล์: อัปโหลดรูปของตัวเองได้ เพื่อนในห้องจะเห็นรูปคุณ','🪙 สะสมเหรียญจากการเล่น (ชนะ/แพ้/แฟนพันธุ์แท้/เข้าเล่นรายวัน) เอาไปซื้อกรอบโปรไฟล์และเอฟเฟกต์ชื่อในร้านค้า','⭐ มีเลเวลจากประสบการณ์ที่สะสม แสดงข้างชื่อ','🔢 แสดงเวอร์ชันเกมและเซิร์ฟเวอร์ที่หน้าแรกและในตั้งค่า'];
 function openNews(){closeSet();dlg(`<b style="font-size:20px">📜 มีอะไรใหม่ · v${APPV}</b><ul style="text-align:left;line-height:1.6;padding-left:18px">${NEWS.map(n=>`<li>${n}</li>`).join('')}</ul>`,[['เริ่มเลย','b']])}
 setTimeout(()=>{dailyBonus();if(localStorage.seenVer!==APPV){try{localStorage.seenVer=APPV}catch(e){}openNews()}},900);
+
+// ================= v2.3: ฮีโร่หน้าแรก / ปิดเสียงด่วน / คีย์ลัด / แจ้งเตือนหลุดเชื่อมต่อ =================
+function heroPick(){if(HERO||!chars.length)return;const ok=chars.filter(c=>c[2]).sort(()=>Math.random()-.5);if(ok.length>=14)HERO={fan:ok.slice(0,2),mq:ok.slice(2,14)}}
+function heroHTML(){const f=HERO?HERO.fan:[null,null],c=(x,i)=>x?`<div class="fc f${i}"><img src="/img/${x[2]}.jpg" alt=""><b>${esc(x[0])}</b><small>${esc(x[1])}</small></div>`:`<div class="fc f${i}"><div class="qq">${i?'B':'A'}</div><b>&nbsp;</b></div>`;
+ return `<div class="fan">${c(f[0],0)}${c(f[1],1)}<div class="fc f2 me"><div class="qq">???</div><b>🫵 คุณ</b><small>ทายให้ได้!</small></div></div>`}
+function mqHTML(){const t=HERO.mq.map(c=>`<img loading="lazy" src="/img/${c[2]}.jpg" alt="" title="${esc(c[0])}">`).join('');return `<div class="mq" aria-hidden="true"><div class="mqt">${t}${t}</div></div>`}
+const coverOf=n=>{const c=chars.find(x=>x[1]===n&&x[2]);return c?c[2]:''};
+function toggleMute(){const on=!(sound||music);sound=on;music=on;try{localStorage.snd=on?1:0;localStorage.bgm=on?1:0}catch(e){}if(on){actx();bgm.next=0;SFX.pop()}muteIcon()}
+function muteIcon(){const b=$('mt');if(b)b.textContent=(sound||music)?'🔊':'🔇'}
+muteIcon();
+document.addEventListener('keydown',e=>{const t=e.target&&e.target.tagName;if(t==='INPUT'||t==='SELECT'||t==='TEXTAREA'||e.ctrlKey||e.metaKey||e.altKey)return;if($('dlg').style.display==='flex')return;
+ const k=e.key.toUpperCase(),i='1234'.includes(k)&&k?'1234'.indexOf(k):'ABCD'.includes(k)&&k?'ABCD'.indexOf(k):-1;if(i<0)return;
+ if(mode==='quizPlay'&&QS&&QS.picked===null&&QS.qs[QS.i]&&i<QS.qs[QS.i].o.length)quizAnswer(i);else if(QM&&QM.phase==='q'&&QM.mine===null&&QM.q&&i<QM.q.opts.length)qzAns(i)});
+s.on('disconnect',()=>{const e=$('cn');if(e)e.style.display='block'});s.on('connect',()=>{const e=$('cn');if(e)e.style.display='none'});
 </script></body></html>
