@@ -610,7 +610,7 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '2.5';
+const APP_VERSION = '2.6';
 const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
 const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
 let CFIDS = new Set(), CFM = 0;
@@ -836,7 +836,7 @@ io.on('connection', sock => {
     send(r);
   });
 
-  sock.on('prof', d => { const r = find(), p = me(r); if (!r || !p) return; if (Date.now() - (p.lp || 0) < 300) return; p.lp = Date.now(); applyProf(p, d); send(r); });
+  sock.on('prof', d => { const r = find(), p = me(r); if (!r || !p) return; applyProf(p, d); send(r); });
   sock.on('getav', pids => { const r = find(); if (r) sendAv(sock, r.players, pids); });
   sock.on('rename', n => { const r = find(), p = me(r); if (!r || !p) return; p.name = String(n || '').trim().slice(0, 16) || p.name; send(r); });
 

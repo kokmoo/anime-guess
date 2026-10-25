@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- ag-build:20261031 -->
+<!-- ag-build:20261033 -->
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ANIME GUESS</title>
@@ -210,6 +210,50 @@ body.bgi .pod .pn,body.bgi .pod small{color:#fff;text-shadow:0 2px 6px rgba(0,0,
 body.bgi .top .logo{background:rgba(255,255,255,.88);padding:2px 8px;border:2px solid var(--line);color:#14142b}
 .logoimg{display:block;width:min(560px,100%);height:auto;margin:4px 0 0;filter:drop-shadow(0 6px 10px rgba(0,0,0,.35));animation:flt 4s ease-in-out infinite}
 @media(max-width:859px){.logoimg{margin:0 auto}}
+/* ===== v2.6 polish: ระบบแอนิเมชันให้ลื่นแบบเกมจริง ===== */
+:root{--ease:cubic-bezier(.22,1,.36,1);--spring:cubic-bezier(.34,1.56,.64,1)}
+html{scroll-behavior:smooth}
+button{position:relative;overflow:hidden;transition:transform .18s var(--spring),box-shadow .18s var(--ease),filter .18s,background-color .2s}
+button:hover:not(:disabled){transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--sh);filter:brightness(1.07)}
+button:active:not(:disabled){transform:translate(3px,3px);box-shadow:0 0 0 var(--sh);filter:brightness(.95);transition-duration:.05s}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+input,select{transition:border-color .2s,box-shadow .25s var(--ease)}input:focus,select:focus{box-shadow:0 0 0 4px rgba(45,107,255,.25)}
+.rp{position:absolute;border-radius:50%;background:rgba(255,255,255,.55);transform:scale(0);animation:rp .6s var(--ease) forwards;pointer-events:none}
+@keyframes rp{to{transform:scale(1);opacity:0}}
+/* หน้าต่างป๊อปอัป: เฟดพื้นหลัง + เด้งเข้า/ค่อย ๆ ออก */
+@keyframes ovin{from{opacity:0}}@keyframes ovout{to{opacity:0}}
+@keyframes boxin{from{opacity:0;transform:translateY(26px) scale(.93)}}@keyframes boxout{to{opacity:0;transform:translateY(14px) scale(.96)}}
+#set,#dlg{animation:ovin .22s var(--ease);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+#set>.box,#dlg>.box{animation:boxin .42s var(--spring)}
+#set.out,#dlg.out{animation:ovout .17s forwards}#set.out>.box,#dlg.out>.box{animation:boxout .17s forwards}
+#sc,#dc,.gres,#lib{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+/* การ์ดตัวละคร */
+@keyframes tilein{from{opacity:0;transform:translateY(28px) scale(.9) rotate(-2deg)}}
+.enter .tile{animation:tilein .6s var(--spring) both}.enter .tile:nth-child(2){animation-delay:.09s}.enter .tile:nth-child(3){animation-delay:.18s}.enter .tile:nth-child(4){animation-delay:.27s}.enter .tile:nth-child(5){animation-delay:.36s}.enter .tile:nth-child(n+6){animation-delay:.45s}
+.tile{transition:transform .35s var(--spring),box-shadow .35s var(--ease),background-color .3s}.tile:hover{transform:translateY(-6px) rotate(-1deg)}
+@keyframes turnglow{50%{box-shadow:0 0 0 3px rgba(255,210,63,.95),0 0 24px rgba(255,210,63,.75)}}
+.tile.turn{animation:turnglow 1.8s ease-in-out infinite}
+@keyframes tpop{40%{transform:scale(1.07)}}@keyframes tshake{20%{transform:translateX(-7px) rotate(-1deg)}45%{transform:translateX(6px)}70%{transform:translateX(-3px)}}
+.tile.fx-win{animation:tpop .6s var(--spring)}.tile.fx-lose{animation:tshake .5s}
+.pt{position:fixed;width:9px;height:9px;border-radius:50%;z-index:40;pointer-events:none;animation:ptf .85s var(--ease) forwards}
+@keyframes ptf{to{transform:translate(var(--dx),var(--dy)) scale(.15);opacity:0}}
+.vflash{position:fixed;inset:0;z-index:35;pointer-events:none;background:radial-gradient(circle at 50% 50%,transparent 35%,var(--fc) 150%);animation:vfl .7s ease-out forwards}
+@keyframes vfl{from{opacity:.9}to{opacity:0}}
+@keyframes appshake{20%{transform:translateX(-6px)}45%{transform:translateX(5px)}70%{transform:translateX(-3px)}}.appshake{animation:appshake .4s}
+/* เวลาใกล้หมด / ข้อความลอย */
+.timer.low,#qt.low{color:var(--pink);text-shadow:0 0 14px rgba(255,77,141,.6);animation:beat .8s ease-in-out infinite}
+@keyframes beat{50%{transform:scale(1.09)}}
+.bub{animation:bubin .38s var(--spring),bubout .3s ease-in 1.45s forwards}
+@keyframes bubin{from{opacity:0;transform:translate(-50%,18px) scale(.8)}}@keyframes bubout{to{opacity:0;transform:translate(-50%,-14px)}}
+/* พื้นหลังขยับช้า ๆ ให้ดูมีชีวิต */
+body.bgi::before{animation:kb 55s ease-in-out infinite alternate;will-change:transform}
+@keyframes kb{from{transform:scale(1.02)}to{transform:scale(1.09) translate(-1.2%,-1%)}}
+/* สุ่มกรอบ: ช่วงรวมพลังก่อนเปิดผล */
+.gwrap{position:relative;min-height:130px}
+.orb{position:absolute;left:50%;top:50%;width:90px;height:90px;margin:-45px 0 0 -45px;border-radius:50%;background:radial-gradient(circle,#fff 8%,var(--tc) 55%,transparent 72%);box-shadow:0 0 40px var(--tc);animation:orb 1.05s var(--ease) forwards;pointer-events:none;z-index:2}
+@keyframes orb{0%{transform:scale(.2);opacity:0}25%{opacity:1}60%{transform:scale(.95) rotate(120deg)}80%{transform:scale(1.15) rotate(220deg)}100%{transform:scale(7);opacity:0}}
+.gwrap .gc{animation-delay:calc(var(--d,0s) + 1s)}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style></head><body>
 <div class="top"><div class="logo"><b>ANIME</b> GUESS</div><div class="tr"><button class="gear g mt" id="mt" onclick="toggleMute()" aria-label="เปิด/ปิดเสียง">🔊</button><button class="gear g" onclick="openSet()" aria-label="ตั้งค่า">⚙️</button></div></div><div id="cn">กำลังเชื่อมต่อเซิร์ฟเวอร์ใหม่… (เซิร์ฟเวอร์ฟรีอาจใช้เวลาตื่นราว 30 วินาที) เกมของคุณยังอยู่ ไม่ต้องรีเฟรช</div>
 <div id="bg"></div><main id="app"></main>
@@ -222,22 +266,23 @@ body.bgi .top .logo{background:rgba(255,255,255,.88);padding:2px 8px;border:2px 
 <div class="emotes"><button class="g em" onclick="act('emote','👏')">👏</button><button class="g em" onclick="act('emote','😂')">😂</button><button class="g em" onclick="act('emote','😱')">😱</button><button class="g em" onclick="act('emote','🤔')">🤔</button><button class="g em" onclick="act('emote','🔥')">🔥</button><button class="g em" onclick="act('emote','❤️')">❤️</button><button class="g em" onclick="act('emote','🙈')">🙈</button><button class="g em" onclick="act('emote','🎉')">🎉</button></div>
 <div class="row"><input id="ci" maxlength="200" placeholder="พิมพ์ข้อความ…" autocomplete="off" onkeydown="if(event.key==='Enter')sendChat()" style="margin:0"><button class="b" style="width:auto;margin:0" onclick="sendChat()">ส่ง</button></div></div></div>
 <div class="ov" id="lib" style="z-index:25;align-items:flex-start;overflow:auto"><div class="box" style="width:100%;max-width:640px;margin:20px auto" id="lc"></div></div>
-<div class="ov" id="dlg" style="z-index:30"><div class="box" style="width:100%;max-width:380px;animation:pop .35s cubic-bezier(.2,1.6,.4,1)" id="dc"></div></div>
+<div class="ov" id="dlg" style="z-index:30"><div class="box" style="width:100%;max-width:380px;" id="dc"></div></div>
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิดตัวอักษร'],era:['📅','ใบ้ยุค'],ability:['⚡','ความสามารถ'],side:['🏴','ฝ่าย'],role:['⭐','บทบาท']};
 const s=io(),$=id=>document.getElementById(id);
 const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
-const VER=5,APPV='2.5',BUILD='20261031';let CF=[],CFM={};let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
+const VER=5,APPV='2.6',BUILD='20261033';let CF=[],CFM={};let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
 const pre=new URLSearchParams(location.search).get('room')||'';
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
-const AVC={},avAsk=new Set(),AVOK=/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/;
+const AVC={},avAsk=new Map(),AVOK=/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/;
 const avSrc=p=>{if(!p)return '';if(!p.pid)return p.av||'';if((st&&p.pid===st.you)||(QM&&p.pid===QM.you))return PF.av||'';const c=AVC[p.pid];return c&&c.ah===p.ah?c.src:''};
 const av=(n,p,big)=>{p=p||{};const src=avSrc(p),f=p.fr&&p.fr!=='none'?' fr-'+p.fr:'';return `<span class="avw${f}${big?' big':''}"><span class="av" style="background:hsl(${[...n].reduce((a,c)=>a+c.charCodeAt(0),0)*47%360} 85% 65%)">${src?`<img src="${src}" alt="">`:esc([...n][0]||'?')}</span></span>`};
 const pnm=p=>{const n=esc(p.name);return (p.nf&&p.nf!=='none'?`<span class="nf nf-${p.nf}">${n}</span>`:n)+(p.lv>1?` <small class="lvb">Lv${p.lv}</small>`:'')};
 const gline=(p,big)=>{if(!p||p.res!=='lose'||!p.g)return '';const g=p.g,t=esc(g.th||g.n)+(g.th?` <small>(${esc(g.n)})</small>`:'');return `<div class="wg${big?' big':''}">${g.i?`<img src="/img/${g.i}.jpg" alt="" onerror="this.remove()">`:''}❌ ${big?esc(p.name)+' ':''}ตอบ: ${t}</div>`};
-function needAv(list){const need=list.filter(p=>p.ah&&!((st&&p.pid===st.you)||(QM&&p.pid===QM.you))&&!(AVC[p.pid]&&AVC[p.pid].ah===p.ah)&&!avAsk.has(p.pid+':'+p.ah));if(need.length){need.forEach(p=>avAsk.add(p.pid+':'+p.ah));s.emit(st?'getav':'qz:getav',need.map(p=>p.pid))}}
+function needAv(list){const now=Date.now(),need=list.filter(p=>p.ah&&!((st&&p.pid===st.you)||(QM&&p.pid===QM.you))&&!(AVC[p.pid]&&AVC[p.pid].ah===p.ah)&&!(now-(avAsk.get(p.pid+':'+p.ah)||0)<2500));if(need.length){need.forEach(p=>avAsk.set(p.pid+':'+p.ah,now));s.emit(st?'getav':'qz:getav',need.map(p=>p.pid))}}
+setInterval(()=>{const l=(st&&st.players)||(QM&&QM.players);if(l)needAv(l)},3000);s.on('connect',()=>avAsk.clear());
 s.on('av',({pid,ah,src})=>{if(typeof src==='string'&&src.length<=24000&&AVOK.test(src)){AVC[pid]={ah,src};render()}});
 // ---- sound (synthesized, no files) ----
 let ac,busS,busM,qLast=0;
@@ -331,7 +376,7 @@ function howto(){say('1) ทุกคนสุ่มได้ตัวละค�
 function tile(p){const you=p.pid===st.you,c=p.ch,hid=you&&!p.res;
  const img=hid?'<div class="ph q">???</div>':(c.i?`<img class="ph" src="/img/${c.i}.jpg" alt="" data-i="${c.i}" data-n="${esc(c.n)}" onclick="zoom(this)">`:`<div class="ph">${esc([...c.n][0])}</div>`);
  const fr=p.cf&&CFM[p.cf];
- return `<div class="tile ${p.pid===st.turn?'turn':''} ${p.res?'res-'+p.res:''}">${fr?fbox(fr,img):img}<div class="tn">${av(p.name,p)} ${you?'คุณ':pnm(p)}${p.off?' 📴':''} ${p.res==='win'?'✅':p.res==='lose'?'❌':''}</div>${gline(p)}${hid?'':`<b>${esc(c.n)}</b><small>${esc(c.a)}</small>`}</div>`}
+ return `<div data-pid="${p.pid}" class="tile ${p.pid===st.turn?'turn':''} ${p.res?'res-'+p.res:''}">${fr?fbox(fr,img):img}<div class="tn">${av(p.name,p)} ${pnm(p)}${you?' <small>(คุณ)</small>':''}${p.off?' 📴':''} ${p.res==='win'?'✅':p.res==='lose'?'❌':''}</div>${gline(p)}${hid?'':`<b>${esc(c.n)}</b><small>${esc(c.a)}</small>`}</div>`}
 function zoom(e){dlg(`<img src="/img/${e.dataset.i}.jpg" style="width:100%;border:3px solid var(--line)"><div style="text-align:center;font-weight:800;margin-top:8px">${esc(e.dataset.n)}</div>`,[['ปิด','b']])}
 function useCard(c){if(!st.canCard)return say(st.turn===st.you?'ตานี้คุณใช้การ์ดไปแล้ว ใช้ได้ 1 ใบต่อตา':'ต้องถึงตาของคุณก่อนถึงจะใช้การ์ดได้');act('useCard',c)}
 function joinRoom(){if(getName())act('join',{code:$('cd').value.trim(),name,pid,prof:profOut()})}
@@ -665,11 +710,13 @@ function rollOne(){const g=PF.gp;g.s++;g.r++;let t='C';
 async function doRoll(n){if(!CF.length)return say('กำลังโหลดข้อมูลกรอบ ลองใหม่อีกครั้ง');
  const price=n===10?GA.cost10:GA.cost;if(PF.coins<price)return say('เหรียญไม่พอ ต้องการ '+price+' 🪙 (คุณมี '+PF.coins+')');
  PF.coins-=price;const rs=[];for(let i=0;i<n;i++)rs.push(rollOne());pfSave();syncProf();
- const best=rs.reduce((m,r)=>Math.max(m,TORD.indexOf(r.t)),0),bt=TORD[best];SFX.gacha(bt);
+ const best=rs.reduce((m,r)=>Math.max(m,TORD.indexOf(r.t)),0),bt=TORD[best];SFX.charge();
+ setTimeout(()=>{SFX.gacha(bt);vib(bt==='SSR'?[40,60,40,60,140]:bt==='S'?[30,50,70]:12);const d=$('dc').getBoundingClientRect();if(best>=3){burst(d.left+d.width/2,d.top+d.height*.4,TCOL[bt],bt==='SSR'?70:36);vflash(TCOL[bt]+'aa')}},1000);
  const back=rs.reduce((s,r)=>s+(r.dup?GA.refund[r.t]:0),0);
- const card=(r,big)=>`<div class="gc ${r.t==='SSR'?'ssr':''} ${big?'big':''}" style="--tc:${TCOL[r.t]};animation-delay:${big?0:rs.indexOf(r)*.12}s">${fbox(r.f,gSample())}<div class="gt">${r.t}</div><div class="gn">${esc(r.f.n)}</div>${r.dup?`<small>ซ้ำ +${GA.refund[r.t]} 🪙</small>`:'<small class="nw">✨ ใหม่!</small>'}</div>`;
+ const card=(r,big)=>`<div class="gc ${r.t==='SSR'?'ssr':''} ${big?'big':''}" style="--tc:${TCOL[r.t]};--d:${big?0:rs.indexOf(r)*.12}s">${fbox(r.f,gSample())}<div class="gt">${r.t}</div><div class="gn">${esc(r.f.n)}</div>${r.dup?`<small>ซ้ำ +${GA.refund[r.t]} 🪙</small>`:'<small class="nw">✨ ใหม่!</small>'}</div>`;
  closeSet();
- const html=n===1?`<div class="gres one">${card(rs[0],1)}</div>`:`<div class="gres">${rs.map(r=>card(r)).join('')}</div>${back?`<small>ได้เหรียญคืนจากกรอบซ้ำ ${back} 🪙</small>`:''}`;
+ const orb=`<div class="orb" style="--tc:${TCOL[bt]}"></div>`;
+ const html=n===1?`<div class="gwrap">${orb}<div class="gres one">${card(rs[0],1)}</div></div>`:`<div class="gwrap">${orb}<div class="gres">${rs.map(r=>card(r)).join('')}</div></div>${back?`<small>ได้เหรียญคืนจากกรอบซ้ำ ${back} 🪙</small>`:''}`;
  const i=await dlg(html,[[n===1?'สุ่มอีก ('+GA.cost+' 🪙)':'สุ่ม ×10 อีก ('+GA.cost10+' 🪙)','b'],['ใช้ / ดูคอลเลกชัน','g']]);
  if(i===0)doRoll(n);else openProf('gacha')}
 function equipCf(id){if(id&&!PF.cfo.includes(id))return;PF.cf=id;pfSave();syncProf();openProf('gacha')}
@@ -688,7 +735,7 @@ SFX.gacha=t=>{const i=TORD.indexOf(t);
  if(i>=2)setTimeout(()=>seq([659,784,988,1319],'triangle',.18,.1),380);
  if(i>=3)setTimeout(()=>{seq([784,988,1175,1568,1976],'sawtooth',.2,.07);[523,784,1047].forEach(f=>tone(f,1.1,'sine',.08,.55))},800);
  if(i>=4)setTimeout(()=>{[0,1,2,3,4,5].forEach(k=>tone(1047*Math.pow(1.122,k*2),.5,'sine',.07,k*.09));[262,330,392,523].forEach(f=>tone(f,1.6,'sine',.09,.3))},1400)};
-NEWS.unshift('🎰 ระบบสุ่มกรอบการ์ดตัวละครใหม่! ใช้เหรียญสุ่มกรอบ 5 ระดับ C/B/A/S/SSR ยิ่งสูงยิ่งสุ่มยาก มีระบบการันตี สุ่ม ×10 และเหรียญคืนเมื่อซ้ำ ดูที่ โปรไฟล์ → 🎰 สุ่มกรอบ');
+NEWS.unshift('✨ ปรับแอนิเมชันทั้งเกมให้ลื่นขึ้น: ปุ่มกดมีคลื่นและเด้ง หน้าต่างเปิด-ปิดนุ่ม การ์ดตัวละครเด้งเข้า ตอบถูก/ผิดมีอนุภาคและแฟลช สุ่มกรอบมีช่วงรวมพลังก่อนเปิดผล พื้นหลังขยับช้า ๆ (ปิดได้ที่ ตั้งค่า → ลดการเคลื่อนไหว)');NEWS.unshift('🎰 ระบบสุ่มกรอบการ์ดตัวละครใหม่! ใช้เหรียญสุ่มกรอบ 5 ระดับ C/B/A/S/SSR ยิ่งสูงยิ่งสุ่มยาก มีระบบการันตี สุ่ม ×10 และเหรียญคืนเมื่อซ้ำ ดูที่ โปรไฟล์ → 🎰 สุ่มกรอบ');
 
 setTimeout(()=>{dailyBonus();if(localStorage.seenVer!==APPV){try{localStorage.seenVer=APPV}catch(e){}openNews()}},900);
 
@@ -710,4 +757,21 @@ s.on('disconnect',()=>{const e=$('cn');if(e)e.style.display='block'});s.on('conn
 [['sea','/bg-sea.jpg'],['forest','/bg-forest.jpg']].forEach(([k,u])=>{const i=new Image();i.onload=()=>{BGOK[k]=true;bgSync()};i.src=u});
 function bgKind(){return (st||QM)?'forest':'sea'}
 function bgSync(){const k=bgKind(),ok=BGOK[k],b=document.body.classList;b.toggle('bgsea',k==='sea'&&ok);b.toggle('bgforest',k==='forest'&&ok);b.toggle('bgi',ok)}
+// ================= v2.6: เอฟเฟกต์/แอนิเมชันให้ลื่นไหล =================
+const vib=n=>{try{if(navigator.vibrate&&localStorage.snd!=='0')navigator.vibrate(n)}catch(e){}};
+function burst(x,y,col,n){for(let i=0;i<(n||20);i++){const d=document.createElement('i'),a=Math.random()*6.283,r=60+Math.random()*110;d.className='pt';d.style.cssText=`left:${x}px;top:${y}px;background:${col};--dx:${Math.cos(a)*r}px;--dy:${Math.sin(a)*r}px`;document.body.appendChild(d);setTimeout(()=>d.remove(),900)}}
+function vflash(col){const d=document.createElement('div');d.className='vflash';d.style.setProperty('--fc',col);document.body.appendChild(d);setTimeout(()=>d.remove(),750)}
+document.addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('button');if(!b||b.disabled)return;
+ const r=b.getBoundingClientRect(),d=Math.max(r.width,r.height)*2,sp=document.createElement('span');sp.className='rp';sp.style.cssText=`width:${d}px;height:${d}px;left:${e.clientX-r.left-d/2}px;top:${e.clientY-r.top-d/2}px`;b.appendChild(sp);setTimeout(()=>sp.remove(),650);vib(7)},{passive:true});
+// ปิดหน้าต่างแบบค่อย ๆ จางออก
+function softHide(id){const e=$(id);if(!e||e.style.display!=='flex')return;e.classList.add('out');setTimeout(()=>{if(e.classList.contains('out')){e.style.display='none';e.classList.remove('out')}},175)}
+window.closeSet=()=>softHide('set');
+window.dlgDone=i=>{softHide('dlg');_res(i)};
+[['sc','set'],['dc','dlg']].forEach(([c,o])=>new MutationObserver(()=>$(o).classList.remove('out')).observe($(c),{childList:true}));
+// ตอบถูก/ผิด: ระเบิดอนุภาค + แฟลชขอบจอ + สั่นการ์ด
+s.on('solved',({pid,win})=>setTimeout(()=>{const t=document.querySelector(`.tile[data-pid="${pid}"]`),mine=st&&pid===st.you;
+ if(t){t.classList.add(win?'fx-win':'fx-lose');const r=t.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2,win?'#ffd23f':'#ff4d8d',win?26:14)}
+ if(mine||win)vflash(win?'rgba(61,220,132,.65)':'rgba(255,77,141,.6)');
+ if(!win){const A=$('app');A.classList.remove('appshake');void A.offsetWidth;A.classList.add('appshake');vib([30,40,60])}else vib(18)},80));
+SFX.charge=()=>{slide(180,1200,1,'sawtooth',.04);[0,1,2,3,4,5].forEach(i=>tone(300+i*140,.1,'triangle',.04,.15+i*.15))};
 </script></body></html>
