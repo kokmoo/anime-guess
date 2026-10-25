@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- ag-build:20261033 -->
+<!-- ag-build:20261034 -->
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ANIME GUESS</title>
@@ -261,6 +261,7 @@ body.bgi::before{animation:kb 55s ease-in-out infinite alternate;will-change:tra
 <div class="ov" id="set"><div class="box" style="width:100%;max-width:420px" id="sc"></div></div>
 <button id="noteBtn" class="fab" style="bottom:80px;background:var(--sun);color:#14142b" onclick="togglePanel()" aria-label="โน้ตและไกด์คำถาม">📝</button>
 <div id="side"><div class="row" style="align-items:flex-start"><div class="tabs"><button id="tbn" class="tab" onclick="showTab('note')">📝 โน้ต</button><button id="tbg" class="tab" onclick="showTab('guide')">💡 ไกด์คำถาม</button></div><button class="g xbtn" onclick="closePanel()" aria-label="ปิด">✕</button></div><div id="pb"></div></div>
+<button id="libBtn" class="fab" style="bottom:146px;background:var(--w);color:#14142b" onclick="openLib()" aria-label="คลังตัวละคร">📚</button>
 <button id="chatBtn" class="fab" onclick="openChat()" aria-label="แชท">💬<span id="cb"></span></button>
 <div class="ov" id="chat" style="z-index:22;align-items:flex-end"><div class="box" style="width:100%;max-width:520px;margin:0 auto 10px"><div class="row"><h2>💬 แชทห้อง</h2><button class="g" style="width:auto" onclick="closeChat()">ปิด ✕</button></div><div id="cm"></div>
 <div class="emotes"><button class="g em" onclick="act('emote','👏')">👏</button><button class="g em" onclick="act('emote','😂')">😂</button><button class="g em" onclick="act('emote','😱')">😱</button><button class="g em" onclick="act('emote','🤔')">🤔</button><button class="g em" onclick="act('emote','🔥')">🔥</button><button class="g em" onclick="act('emote','❤️')">❤️</button><button class="g em" onclick="act('emote','🙈')">🙈</button><button class="g em" onclick="act('emote','🎉')">🎉</button></div>
@@ -272,7 +273,7 @@ body.bgi::before{animation:kb 55s ease-in-out infinite alternate;will-change:tra
 const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิดตัวอักษร'],era:['📅','ใบ้ยุค'],ability:['⚡','ความสามารถ'],side:['🏴','ฝ่าย'],role:['⭐','บทบาท']};
 const s=io(),$=id=>document.getElementById(id);
 const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
-const VER=5,APPV='2.6',BUILD='20261033';let CF=[],CFM={};let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
+const VER=5,APPV='2.7',BUILD='20261034';let CF=[],CFM={};let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
 const pre=new URLSearchParams(location.search).get('room')||'';
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
@@ -462,13 +463,26 @@ function openSet(){const dk=document.documentElement.dataset.theme==='dark';$('s
  <button class="g" onclick="SFX.win()">▶ ลองฟังเสียงชนะ</button><br>
  <label class="c"><input type="checkbox" ${localStorage.calm==='1'?'checked':''} onchange="setCalm(this.checked)"> ลดการเคลื่อนไหว/แอนิเมชัน</label>
  <button class="g" onclick="openProf('me')">👤 โปรไฟล์ & ร้านค้า (🪙 ${PF.coins})</button>
- <button class="g" onclick="openLib()">${libLocked()?'🔒 คลังตัวละคร (ล็อกในโหมดยาก)':'📚 ตัวละครในเกม (ดูว่ามีใครบ้าง)'}</button>
  <button class="g" onclick="howto()">🎮 วิธีเล่น</button>
  ${st?`<button class="g" onclick="copy(location.origin+'/?room='+st.code)">🔗 คัดลอกลิงก์เชิญเพื่อน</button><button class="r" onclick="leave()">🚪 ออกจากห้อง</button>`:''}
  <small>ANIME GUESS v${APPV} (build ${BUILD}) · เซิร์ฟเวอร์ ${SRVV?'v'+SRVV:'เก่า'}</small>
  <button class="b" onclick="closeSet()">ปิด</button>`;$('set').style.display='flex'}
+
+// ===== ตั้งค่าห้องระหว่างรอเพื่อน (เจ้าของห้อง) =====
+function openRoomSet(){if(!st||!st.owner||st.phase!=='lobby')return;const c=st.set,all=c.animes==='ALL';
+ $('sc').innerHTML=`<h2>⚙️ ตั้งค่าห้อง</h2>
+  เวลาเกม (นาที)<select id="ltm">${[8,10,15,20,30].map(t=>`<option value="${t}" ${c.time===t?'selected':''}>${t}</option>`).join('')}<option value="0" ${c.time===0?'selected':''}>ไม่จำกัดเวลา (เจ้าของห้องกดจบเกมเอง)</option></select>
+  จำนวนผู้เล่นสูงสุด<input id="lmx" type="number" min="${Math.max(2,st.players.length)}" max="10" value="${c.max}">
+  <b>ระดับความยาก</b><br><label class="c"><input type="radio" name="lmd" value="easy" ${c.mode!=='hard'?'checked':''}> 🟢 ง่าย (เปิดดูคลังตัวละครระหว่างเกมได้)</label><br><label class="c"><input type="radio" name="lmd" value="hard" ${c.mode==='hard'?'checked':''}> 🔴 ยาก (ห้ามดูคลังตัวละครระหว่างเกม)</label><br><br>
+  <b>หมวดอนิเมะ</b><br><label class="c"><input type="checkbox" id="lall" ${all?'checked':''} onchange="document.querySelectorAll('.lan').forEach(x=>x.checked=false)"> ALL ANIME</label><br>
+  ${animes.map(a=>`<label class="c"><input type="checkbox" class="lan" value="${esc(a)}" ${!all&&c.animes.includes(a)?'checked':''} onchange="if(this.checked)$('lall').checked=false"> ${esc(a)} (${chars.filter(x=>x[1]===a).length})</label>`).join('')}<br><br>
+  <label class="c"><input type="checkbox" id="lcs" ${c.cards?'checked':''}> เปิดการ์ดพิเศษ</label>
+  จำนวนการ์ดต่อคน<input id="lcc" type="number" min="1" max="5" value="${c.cardCount}">
+  <button class="b" onclick="saveRoomSet()">💾 บันทึก</button><button class="g" onclick="closeSet()">ยกเลิก</button>`;$('set').style.display='flex'}
+function saveRoomSet(){const all=$('lall').checked,an=[...document.querySelectorAll('.lan:checked')].map(x=>x.value);if(!all&&!an.length)return say('เลือกอนิเมะอย่างน้อย 1 เรื่อง');
+ act('setset',{time:$('ltm').value,max:$('lmx').value,mode:(document.querySelector('input[name=lmd]:checked')||{}).value,cards:$('lcs').checked,cardCount:$('lcc').value,animes:all?'ALL':an});closeSet();flash('✅ บันทึกการตั้งค่าแล้ว')}
 function closeSet(){$('set').style.display='none'}
-function render(){const a=document.activeElement,id=a&&a.id,v=a&&a.value;draw();screenFx();bgmSync();bgSync();$('chatBtn').style.display=st?'flex':'none';$('noteBtn').style.display=st?'flex':'none';if(!st&&panelOpen)closePanel();if(id){const n=$(id);if(n&&n.tagName==='INPUT'&&v!==undefined){n.value=v;n.focus();try{n.setSelectionRange(v.length,v.length)}catch(e){}if(id==='gs')suggest()}}}
+function render(){const a=document.activeElement,id=a&&a.id,v=a&&a.value;draw();screenFx();bgmSync();bgSync();$('chatBtn').style.display=st?'flex':'none';$('noteBtn').style.display=st?'flex':'none';$('libBtn').style.display=st?'flex':'none';$('libBtn').textContent=libLocked()?'🔒':'📚';if(!st&&panelOpen)closePanel();if(id){const n=$(id);if(n&&n.tagName==='INPUT'&&v!==undefined){n.value=v;n.focus();try{n.setSelectionRange(v.length,v.length)}catch(e){}if(id==='gs')suggest()}}}
 function draw(){
  const A=$('app');const wide=!st&&mode==='home',gm=!!(st&&(st.phase==='play'||st.phase==='final')),md=!!(st&&st.phase==='over');A.className=wide?'wide':gm?'game':md?'mid':'';document.body.classList.toggle('w',wide);document.body.classList.toggle('gm',gm);document.body.classList.toggle('md',md);
  if(!st){
@@ -501,7 +515,7 @@ function draw(){
   <div class="box"><div class="row"><b>ผู้เล่น ${st.players.length}/${st.set.max}</b><small>${st.players.length<2?'ต้องมีอย่างน้อย 2 คนถึงจะเริ่มได้':'พร้อมเริ่มได้เลย'}</small></div>
   <div class="seats">${list(p=>`<div class="seat ${p.pid===st.you?'me':''} ${p.off?'off':''}">${av(p.name,p,1)}<div class="sn">${pnm(p)}${p.pid===st.you?' (คุณ)':''}</div><small>${p.off?'📴 หลุด รอกลับ':(p.wins?'🏆 ชนะ '+p.wins:'พร้อม')}</small>${st.owner&&p.pid===st.you?'<span class="bd">👑</span>':''}${st.owner&&p.pid!==st.you?`<button class="r" onclick="kick('${p.pid}')">เตะ</button>`:''}</div>`)}${Array.from({length:Math.max(0,st.set.max-st.players.length)},()=>'<div class="seat empty"><div class="av0">+</div><small>รอเพื่อน…</small></div>').join('')}</div>
   <small style="display:block;margin-top:10px">ชื่อของคุณ</small><input id="rn" maxlength="16" value="${esc(me.name)}" onchange="rename(this.value)"></div>
-  <div class="box chips"><span>${st.set.mode==='hard'?'🔴 ยาก':'🟢 ง่าย'}</span><span>⏱️ ${st.set.time?st.set.time+' นาที':'ไม่จำกัดเวลา'}</span><span>📚 ${st.set.animes==='ALL'?'ทุกเรื่อง':esc(st.set.animes.join(', '))}</span><span>🃏 ${st.set.cards?st.set.cardCount+' ใบ/คน':'ไม่มีการ์ด'}</span></div>
+  <div class="box chips"><span>${st.set.mode==='hard'?'🔴 ยาก':'🟢 ง่าย'}</span><span>⏱️ ${st.set.time?st.set.time+' นาที':'ไม่จำกัดเวลา'}</span><span>📚 ${st.set.animes==='ALL'?'ทุกเรื่อง':esc(st.set.animes.join(', '))}</span><span>🃏 ${st.set.cards?st.set.cardCount+' ใบ/คน':'ไม่มีการ์ด'}</span><span>👥 สูงสุด ${st.set.max} คน</span></div>${st.owner?'<button class="g" onclick="openRoomSet()">⚙️ ตั้งค่าห้อง (เวลา · ความยาก · อนิเมะ · การ์ด)</button>':''}
   ${st.owner?'<button class="b hot" onclick="act(\'start\')">▶ START</button>':'<p style="text-align:center">รอเจ้าของห้องกดเริ่ม…</p>'}
   <button class="g" onclick="leave()">← ออกจากห้อง</button>`;
  else if(ph==='brief')A.innerHTML=`<h2>พร้อมหรือยัง?</h2><div class="box">ตัวละครของคุณถูกสุ่มแล้ว แต่คุณจะมองไม่เห็น<br>ถามคำถามผ่าน Discord ตอบได้แค่ ใช่ / ไม่<br>พิมพ์ชื่อตัวละครเมื่อมั่นใจ ตอบได้ครั้งเดียว ผิดคือแพ้</div>
@@ -735,7 +749,7 @@ SFX.gacha=t=>{const i=TORD.indexOf(t);
  if(i>=2)setTimeout(()=>seq([659,784,988,1319],'triangle',.18,.1),380);
  if(i>=3)setTimeout(()=>{seq([784,988,1175,1568,1976],'sawtooth',.2,.07);[523,784,1047].forEach(f=>tone(f,1.1,'sine',.08,.55))},800);
  if(i>=4)setTimeout(()=>{[0,1,2,3,4,5].forEach(k=>tone(1047*Math.pow(1.122,k*2),.5,'sine',.07,k*.09));[262,330,392,523].forEach(f=>tone(f,1.6,'sine',.09,.3))},1400)};
-NEWS.unshift('✨ ปรับแอนิเมชันทั้งเกมให้ลื่นขึ้น: ปุ่มกดมีคลื่นและเด้ง หน้าต่างเปิด-ปิดนุ่ม การ์ดตัวละครเด้งเข้า ตอบถูก/ผิดมีอนุภาคและแฟลช สุ่มกรอบมีช่วงรวมพลังก่อนเปิดผล พื้นหลังขยับช้า ๆ (ปิดได้ที่ ตั้งค่า → ลดการเคลื่อนไหว)');NEWS.unshift('🎰 ระบบสุ่มกรอบการ์ดตัวละครใหม่! ใช้เหรียญสุ่มกรอบ 5 ระดับ C/B/A/S/SSR ยิ่งสูงยิ่งสุ่มยาก มีระบบการันตี สุ่ม ×10 และเหรียญคืนเมื่อซ้ำ ดูที่ โปรไฟล์ → 🎰 สุ่มกรอบ');
+NEWS.unshift('⚙️ เจ้าของห้องแก้ตั้งค่า (เวลา/ความยาก/อนิเมะ/การ์ด/จำนวนคน) ได้ตอนรอเพื่อน และปุ่ม 📚 คลังตัวละครย้ายมาอยู่เรียงกับปุ่มแชท');NEWS.unshift('✨ ปรับแอนิเมชันทั้งเกมให้ลื่นขึ้น: ปุ่มกดมีคลื่นและเด้ง หน้าต่างเปิด-ปิดนุ่ม การ์ดตัวละครเด้งเข้า ตอบถูก/ผิดมีอนุภาคและแฟลช สุ่มกรอบมีช่วงรวมพลังก่อนเปิดผล พื้นหลังขยับช้า ๆ (ปิดได้ที่ ตั้งค่า → ลดการเคลื่อนไหว)');NEWS.unshift('🎰 ระบบสุ่มกรอบการ์ดตัวละครใหม่! ใช้เหรียญสุ่มกรอบ 5 ระดับ C/B/A/S/SSR ยิ่งสูงยิ่งสุ่มยาก มีระบบการันตี สุ่ม ×10 และเหรียญคืนเมื่อซ้ำ ดูที่ โปรไฟล์ → 🎰 สุ่มกรอบ');
 
 setTimeout(()=>{dailyBonus();if(localStorage.seenVer!==APPV){try{localStorage.seenVer=APPV}catch(e){}openNews()}},900);
 

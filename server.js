@@ -610,7 +610,7 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '2.6';
+const APP_VERSION = '2.7';
 const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
 const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
 let CFIDS = new Set(), CFM = 0;
@@ -743,6 +743,18 @@ io.on('connection', sock => {
     };
     r.players.push({ pid, name: String(name || '').trim().slice(0, 16) || 'Player ' + (r.players.length + 1), sid: sock.id, cards: [], hints: [], qlog: [], asks: 0, used: 0 });
     if (prof) applyProf(r.players[0], prof);
+    send(r);
+  });
+
+  sock.on('setset', set => {
+    const r = find(), p = me(r); if (!r || !p || r.owner !== p.pid || r.phase !== 'lobby') return;
+    set = set && typeof set === 'object' ? set : {};
+    const time = [8, 10, 15, 20, 30, 0].includes(+set.time) ? +set.time : r.set.time;
+    const animes = set.animes === 'ALL' ? 'ALL' : (Array.isArray(set.animes) ? set.animes : []).filter(a => ANIMES.includes(a));
+    if (animes !== 'ALL' && animes.length === 0) return err('เลือกอนิเมะอย่างน้อย 1 เรื่อง');
+    const max = Math.min(10, Math.max(2, +set.max || r.set.max));
+    if (max < r.players.length) return err('จำนวนผู้เล่นสูงสุดน้อยกว่าคนที่อยู่ในห้องตอนนี้ (' + r.players.length + ' คน)');
+    r.set = { time, max, animes, mode: set.mode === 'hard' ? 'hard' : 'easy', cards: !!set.cards, cardCount: Math.min(5, Math.max(1, +set.cardCount || 2)) };
     send(r);
   });
 
