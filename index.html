@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- ag-build:20261034 -->
+<!-- ag-build:20261035 -->
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ANIME GUESS</title>
@@ -254,6 +254,15 @@ body.bgi::before{animation:kb 55s ease-in-out infinite alternate;will-change:tra
 @keyframes orb{0%{transform:scale(.2);opacity:0}25%{opacity:1}60%{transform:scale(.95) rotate(120deg)}80%{transform:scale(1.15) rotate(220deg)}100%{transform:scale(7);opacity:0}}
 .gwrap .gc{animation-delay:calc(var(--d,0s) + 1s)}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+/* v2.7 หน้าแรกจัดลำดับใหม่ */
+.act .sec{font-weight:800;margin:14px 0 6px;font-size:15px;opacity:.85}
+.act button.big{padding:16px;font-size:20px;margin-top:2px}
+.or{display:flex;align-items:center;gap:8px;margin:10px 0 6px;font-size:13px;opacity:.75}.or::before,.or::after{content:'';flex:1;height:2px;background:currentColor;opacity:.35}
+.joinrow{display:flex;gap:8px;align-items:stretch}.joinrow input{flex:1;min-width:0;margin:0}.joinrow button{width:auto;margin:0;padding:10px 16px;white-space:nowrap}
+.box.feat{background:linear-gradient(135deg,rgba(255,77,141,.28),rgba(124,92,255,.22)),var(--w);border-color:var(--pink);cursor:pointer;text-align:left}
+.feat .ft{font-size:22px;font-weight:800;margin-bottom:2px}.feat small{display:block;margin-bottom:8px;opacity:.85}.feat button{margin:0;padding:14px;font-size:18px}
+.mini2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}.mini2 button{margin:0;padding:12px 8px;font-size:15px}.mini2 small{font-size:13px;opacity:.85}
+.sgl{touch-action:pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 </style></head><body>
 <div class="top"><div class="logo"><b>ANIME</b> GUESS</div><div class="tr"><button class="gear g mt" id="mt" onclick="toggleMute()" aria-label="เปิด/ปิดเสียง">🔊</button><button class="gear g" onclick="openSet()" aria-label="ตั้งค่า">⚙️</button></div></div><div id="cn">กำลังเชื่อมต่อเซิร์ฟเวอร์ใหม่… (เซิร์ฟเวอร์ฟรีอาจใช้เวลาตื่นราว 30 วินาที) เกมของคุณยังอยู่ ไม่ต้องรีเฟรช</div>
 <div id="bg"></div><main id="app"></main>
@@ -273,7 +282,7 @@ body.bgi::before{animation:kb 55s ease-in-out infinite alternate;will-change:tra
 const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิดตัวอักษร'],era:['📅','ใบ้ยุค'],ability:['⚡','ความสามารถ'],side:['🏴','ฝ่าย'],role:['⭐','บทบาท']};
 const s=io(),$=id=>document.getElementById(id);
 const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
-const VER=5,APPV='2.7',BUILD='20261034';let CF=[],CFM={};let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
+const VER=5,APPV='2.8',BUILD='20261035';let CF=[],CFM={};let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
 const pre=new URLSearchParams(location.search).get('room')||'';
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
@@ -435,8 +444,9 @@ function suggest(){const i=$('gs'),l=$('gsl');if(!i||!l)return;const q=i.value.t
  if(hard&&q.length<3){l.innerHTML='<small>😈 โหมดยาก: พิมพ์อย่างน้อย 3 ตัวอักษรถึงจะมีตัวช่วย</small>';return}
  const sc=[];chars.forEach(c=>{const n=c[0].toLowerCase(),al=(c[3]||'').toLowerCase().split('|').filter(Boolean);
   const s=n.startsWith(q)?0:al.some(a=>a.startsWith(q))?1:n.split(/[\s().\-:]+/).some(w=>w.startsWith(q))?2:(q.length>=2&&(n.includes(q)||al.some(a=>a.includes(q))))?3:9;if(s<9)sc.push([s,c])});
- sc.sort((a,b)=>a[0]-b[0]||a[1][0].localeCompare(b[1][0]));sgList=sc.slice(0,hard?4:8).map(x=>x[1]);
- l.innerHTML=sgList.length?sgList.map((c,k)=>`<div class="sg" id="sg${k}" onpointerdown="event.preventDefault();pickSg(${k})">${!hard&&c[2]?`<img src="/img/${c[2]}.jpg" alt="" loading="lazy">`:''}<span><b>${hlite(c[0],q)}</b>${hard?'':`<small>${esc(c[1])}</small>`}</span></div>`).join(''):'<small>ไม่พบชื่อที่ตรงกัน ลองพิมพ์ตัวอักษรอื่นดู</small>'}
+ sc.sort((a,b)=>a[0]-b[0]||a[1][0].localeCompare(b[1][0]));sgList=sc.slice(0,hard?4:30).map(x=>x[1]);
+ l.innerHTML=sgList.length?sgList.map((c,k)=>`<div class="sg" id="sg${k}" onmousedown="event.preventDefault()" onclick="pickSg(${k})">${!hard&&c[2]?`<img src="/img/${c[2]}.jpg" alt="" loading="lazy">`:''}<span><b>${hlite(c[0],q)}</b>${hard?'':`<small>${esc(c[1])}</small>`}</span></div>`).join(''):'<small>ไม่พบชื่อที่ตรงกัน ลองพิมพ์ตัวอักษรอื่นดู</small>';if(q===sgQ)l.scrollTop=sgTop;else{sgQ=q;sgTop=0}}
+let sgQ='',sgTop=0;document.addEventListener('scroll',e=>{if(e.target&&e.target.id==='gsl')sgTop=e.target.scrollTop},true);
 function pickSg(k){const c=sgList[k];if(!c)return;const i=$('gs');i.value=c[0];$('gsl').innerHTML='';sgList=[];sgSel=-1;i.focus()}
 function sgKey(e){if(e.key==='ArrowDown'||e.key==='ArrowUp'){if(!sgList.length)return;e.preventDefault();sgSel=(sgSel+(e.key==='ArrowDown'?1:-1)+sgList.length)%sgList.length;sgList.forEach((_,k)=>{const d=$('sg'+k);if(d)d.classList.toggle('on',k===sgSel)});const d=$('sg'+sgSel);if(d)d.scrollIntoView({block:'nearest'})}
  else if(e.key==='Enter'){e.preventDefault();if(sgSel>=0)pickSg(sgSel);else sendGuess()}else if(e.key==='Escape'){$('gsl').innerHTML='';sgList=[]}}
@@ -492,10 +502,13 @@ function draw(){
   <p class="sub">เกมทายตัวละครอนิเมะกับเพื่อนผ่าน Discord<br>เห็นตัวละครของเพื่อนทุกคน…ยกเว้นของตัวเอง 🙈</p>
   ${heroHTML()}
   <div class="chips"><span>📺 ${animes.length||11} เรื่อง</span><span>🃏 การ์ดคำถามปลายเปิด 6 แบบ</span><span>⏱️ 8-20 นาที</span><span>👥 2-10 คน</span></div>${HERO?mqHTML():''}</div>
-  <div><div class="box"><b>ชื่อผู้เล่น</b><input id="nm" maxlength="16" value="${esc(name)}" placeholder="พิมพ์ชื่อของคุณ">
-  <button onclick="if(getName()){mode='create';render()}">🏠 สร้างห้อง</button>
-  <input id="cd" placeholder="รหัสห้อง เช่น A7K9P" value="${esc(pre)}" style="text-transform:uppercase">
-  <button class="b" onclick="joinRoom()">🔑 เข้าร่วมห้อง</button><button class="g" onclick="openLib()">📚 ตัวละครในเกม</button><button class="r" onclick="quizHome()">🧠 โหมดแฟนพันธุ์แท้</button><button class="g" onclick="openProf('me')">👤 โปรไฟล์ & ร้านค้า · 🪙 ${PF.coins}</button></div>
+  <div><div class="box act"><b>ชื่อผู้เล่น</b><input id="nm" maxlength="16" value="${esc(name)}" placeholder="พิมพ์ชื่อของคุณ">
+  <div class="sec">🎮 เล่นทายตัวละครกับเพื่อน</div>
+  <button class="big" onclick="if(getName()){mode='create';render()}">🏠 สร้างห้องใหม่</button>
+  <div class="or"><span>หรือ ใส่รหัสห้องที่เพื่อนส่งให้</span></div>
+  <div class="joinrow"><input id="cd" placeholder="รหัสห้อง เช่น A7K9P" value="${esc(pre)}" style="text-transform:uppercase"><button class="b" onclick="joinRoom()">🔑 เข้าร่วม</button></div></div>
+  <div class="box feat" onclick="quizHome()" role="button" tabindex="0"><div class="ft">🧠 โหมดแฟนพันธุ์แท้</div><small>ตอบคำถามเฉพาะเรื่อง แข่งคะแนนกับเพื่อนในห้อง หรือเล่นคนเดียว</small><button class="r big">เข้าโหมดแฟนพันธุ์แท้ →</button></div>
+  <div class="mini2"><button class="g" onclick="openLib()">📚 ตัวละครในเกม</button><button class="g" onclick="openProf('me')">👤 โปรไฟล์ & ร้านค้า<br><small>🪙 ${PF.coins}</small></button></div>
   <div class="box"><h2>เล่นยังไง?</h2><ol class="steps"><li>สร้างห้อง แล้วส่งรหัสให้เพื่อน</li><li>ทุกคนสุ่มได้ตัวละคร เห็นแค่ของเพื่อน</li><li>ถามเพื่อนผ่าน Discord ตอบได้แค่ ใช่/ไม่</li><li>ถึงตาคุณใช้การ์ดถามคำถามปลายเปิดได้ 1 ใบ เพื่อนช่วยตอบ</li><li>ทายชื่อตัวละครให้ถูกก่อนหมดเวลา!</li></ol></div><p class="ver">ANIME GUESS v${APPV} · เซิร์ฟเวอร์ <span id="sv">${SRVV?'v'+SRVV:'…'}</span> · <a href="#" onclick="openNews();return false">มีอะไรใหม่</a></p></div></div>`;
   else A.innerHTML=`<h2>ตั้งค่าห้อง</h2><div class="box">
   เวลาเกม (นาที)<select id="tm0"><option>8</option><option selected>10</option><option>15</option><option>20</option><option>30</option><option value="0">ไม่จำกัดเวลา (เจ้าของห้องกดจบเกมเอง)</option></select>
@@ -749,7 +762,7 @@ SFX.gacha=t=>{const i=TORD.indexOf(t);
  if(i>=2)setTimeout(()=>seq([659,784,988,1319],'triangle',.18,.1),380);
  if(i>=3)setTimeout(()=>{seq([784,988,1175,1568,1976],'sawtooth',.2,.07);[523,784,1047].forEach(f=>tone(f,1.1,'sine',.08,.55))},800);
  if(i>=4)setTimeout(()=>{[0,1,2,3,4,5].forEach(k=>tone(1047*Math.pow(1.122,k*2),.5,'sine',.07,k*.09));[262,330,392,523].forEach(f=>tone(f,1.6,'sine',.09,.3))},1400)};
-NEWS.unshift('⚙️ เจ้าของห้องแก้ตั้งค่า (เวลา/ความยาก/อนิเมะ/การ์ด/จำนวนคน) ได้ตอนรอเพื่อน และปุ่ม 📚 คลังตัวละครย้ายมาอยู่เรียงกับปุ่มแชท');NEWS.unshift('✨ ปรับแอนิเมชันทั้งเกมให้ลื่นขึ้น: ปุ่มกดมีคลื่นและเด้ง หน้าต่างเปิด-ปิดนุ่ม การ์ดตัวละครเด้งเข้า ตอบถูก/ผิดมีอนุภาคและแฟลช สุ่มกรอบมีช่วงรวมพลังก่อนเปิดผล พื้นหลังขยับช้า ๆ (ปิดได้ที่ ตั้งค่า → ลดการเคลื่อนไหว)');NEWS.unshift('🎰 ระบบสุ่มกรอบการ์ดตัวละครใหม่! ใช้เหรียญสุ่มกรอบ 5 ระดับ C/B/A/S/SSR ยิ่งสูงยิ่งสุ่มยาก มีระบบการันตี สุ่ม ×10 และเหรียญคืนเมื่อซ้ำ ดูที่ โปรไฟล์ → 🎰 สุ่มกรอบ');
+NEWS.unshift('🏠 หน้าแรกจัดลำดับใหม่ (สร้างห้อง/เข้าร่วม → โหมดแฟนพันธุ์แท้ → เมนูรอง) และช่องพิมพ์ชื่อตัวละครเลื่อนดูรายชื่อบนมือถือได้โดยไม่เผลอเลือก');NEWS.unshift('⚙️ เจ้าของห้องแก้ตั้งค่า (เวลา/ความยาก/อนิเมะ/การ์ด/จำนวนคน) ได้ตอนรอเพื่อน และปุ่ม 📚 คลังตัวละครย้ายมาอยู่เรียงกับปุ่มแชท');NEWS.unshift('✨ ปรับแอนิเมชันทั้งเกมให้ลื่นขึ้น: ปุ่มกดมีคลื่นและเด้ง หน้าต่างเปิด-ปิดนุ่ม การ์ดตัวละครเด้งเข้า ตอบถูก/ผิดมีอนุภาคและแฟลช สุ่มกรอบมีช่วงรวมพลังก่อนเปิดผล พื้นหลังขยับช้า ๆ (ปิดได้ที่ ตั้งค่า → ลดการเคลื่อนไหว)');NEWS.unshift('🎰 ระบบสุ่มกรอบการ์ดตัวละครใหม่! ใช้เหรียญสุ่มกรอบ 5 ระดับ C/B/A/S/SSR ยิ่งสูงยิ่งสุ่มยาก มีระบบการันตี สุ่ม ×10 และเหรียญคืนเมื่อซ้ำ ดูที่ โปรไฟล์ → 🎰 สุ่มกรอบ');
 
 setTimeout(()=>{dailyBonus();if(localStorage.seenVer!==APPV){try{localStorage.seenVer=APPV}catch(e){}openNews()}},900);
 
