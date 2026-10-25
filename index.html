@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- ag-build:20261029 -->
+<!-- ag-build:20261030 -->
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ANIME GUESS</title>
@@ -158,6 +158,16 @@ main.game{max-width:1120px}body.gm .top{max-width:1120px}main.mid{max-width:760p
 .a-tiles .box{margin-bottom:0}
 .tile{position:relative}.tile.res-win{background:#d6ffe2;color:#14142b}.tile.res-lose{background:#ffe0ec;color:#14142b}
 .tile .ph{width:100%;aspect-ratio:1;object-fit:cover;object-position:top}
+/* v2.5 กรอบการ์ด + สุ่ม */
+.fb{position:relative;width:100%}.fw{position:absolute;overflow:hidden;background:#14142b}.fw>.ph{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto;object-fit:cover;object-position:top}
+.fw>.ph.q{display:flex;align-items:center;justify-content:center}.ff{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.ph.gs{display:flex;align-items:center;justify-content:center;font-size:30px;background:linear-gradient(135deg,#4a4f8a,#2a2d55)}
+.tile>.fb{margin-bottom:4px}.shop.gal{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}.shop.gal .it{padding:4px}
+.rt{display:flex;gap:4px;flex-wrap:wrap;margin:8px 0}.rt span{color:#14142b;font-weight:800;font-size:12px;padding:2px 8px;border:2px solid #14142b}
+.gres{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px;max-height:56vh;overflow:auto;padding:4px}.gres.one{display:block;max-width:230px;margin:0 auto}
+.gc{text-align:center;font-size:12px;opacity:0;animation:gpop .5s cubic-bezier(.2,1.4,.4,1) forwards;filter:drop-shadow(0 0 6px var(--tc))}.gc.big{font-size:15px;filter:drop-shadow(0 0 16px var(--tc))}
+.gc .gt{display:inline-block;background:var(--tc);color:#14142b;font-weight:900;padding:0 8px;margin-top:2px}.gc .nw{color:#b8860b}.gc.ssr{animation:gpop .5s cubic-bezier(.2,1.4,.4,1) forwards,gglow 1s ease-in-out infinite alternate}
+@keyframes gpop{0%{opacity:0;transform:scale(.3) rotate(-8deg)}100%{opacity:1;transform:none}}@keyframes gglow{to{filter:drop-shadow(0 0 22px #ff4d8d) hue-rotate(40deg)}}
 /* lobby seats */
 .seats{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px;margin-top:10px}
 .seat{border:3px solid var(--line);background:var(--w);padding:12px 6px 8px;text-align:center;position:relative;min-height:128px;display:flex;flex-direction:column;align-items:center;gap:4px}
@@ -199,9 +209,6 @@ body.bgi .pod .pn,body.bgi .pod small{color:#fff;text-shadow:0 2px 6px rgba(0,0,
 body.bgi .top .logo{background:rgba(255,255,255,.88);padding:2px 8px;border:2px solid var(--line);color:#14142b}
 .logoimg{display:block;width:min(560px,100%);height:auto;margin:4px 0 0;filter:drop-shadow(0 6px 10px rgba(0,0,0,.35));animation:flt 4s ease-in-out infinite}
 @media(max-width:859px){.logoimg{margin:0 auto}}
-/* optional card frame: drop frame-card.png next to index.html to enable */
-body.cf .tile{border:22px solid transparent;border-image:url(/frame-card.png) var(--fsl,90) / 22px / 4px stretch;background-clip:padding-box;padding:2px;box-shadow:none}
-body.cf .tile .tn{margin-top:4px}
 </style></head><body>
 <div class="top"><div class="logo"><b>ANIME</b> GUESS</div><div class="tr"><button class="gear g mt" id="mt" onclick="toggleMute()" aria-label="เปิด/ปิดเสียง">🔊</button><button class="gear g" onclick="openSet()" aria-label="ตั้งค่า">⚙️</button></div></div><div id="cn">กำลังเชื่อมต่อเซิร์ฟเวอร์ใหม่… (เซิร์ฟเวอร์ฟรีอาจใช้เวลาตื่นราว 30 วินาที) เกมของคุณยังอยู่ ไม่ต้องรีเฟรช</div>
 <div id="bg"></div><main id="app"></main>
@@ -220,7 +227,7 @@ body.cf .tile .tn{margin-top:4px}
 const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิดตัวอักษร'],era:['📅','ใบ้ยุค'],ability:['⚡','ความสามารถ'],side:['🏴','ฝ่าย'],role:['⭐','บทบาท']};
 const s=io(),$=id=>document.getElementById(id);
 const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
-const VER=5,APPV='2.4',BUILD='20261029';let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
+const VER=5,APPV='2.5',BUILD='20261030';let CF=[],CFM={};let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
 const pre=new URLSearchParams(location.search).get('room')||'';
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
@@ -322,7 +329,8 @@ const ask=(h,ok='ยืนยัน',cls='b')=>dlg(h,[[ok,cls],['ยกเลิ
 function howto(){say('1) ทุกคนสุ่มได้ตัวละครแต่มองไม่เห็นของตัวเอง\n2) ถามคำถามผ่าน Discord เพื่อนตอบได้แค่ ใช่/ไม่\n3) ถึงตาคุณใช้การ์ดคำถามปลายเปิดได้ 1 ใบต่อตา เพื่อนๆ จะช่วยตอบด้วยคำพูดของตัวเอง\n4) พิมพ์ชื่อตัวละครเมื่อมั่นใจ ตอบได้ครั้งเดียว ผิดคือแพ้\n5) หมดเวลาแล้วมีโอกาสตอบครั้งสุดท้าย')}
 function tile(p){const you=p.pid===st.you,c=p.ch,hid=you&&!p.res;
  const img=hid?'<div class="ph q">???</div>':(c.i?`<img class="ph" src="/img/${c.i}.jpg" alt="" data-i="${c.i}" data-n="${esc(c.n)}" onclick="zoom(this)">`:`<div class="ph">${esc([...c.n][0])}</div>`);
- return `<div class="tile ${p.pid===st.turn?'turn':''} ${p.res?'res-'+p.res:''}">${img}<div class="tn">${av(p.name,p)} ${you?'คุณ':pnm(p)}${p.off?' 📴':''} ${p.res==='win'?'✅':p.res==='lose'?'❌':''}</div>${gline(p)}${hid?'':`<b>${esc(c.n)}</b><small>${esc(c.a)}</small>`}</div>`}
+ const fr=p.cf&&CFM[p.cf];
+ return `<div class="tile ${p.pid===st.turn?'turn':''} ${p.res?'res-'+p.res:''}">${fr?fbox(fr,img):img}<div class="tn">${av(p.name,p)} ${you?'คุณ':pnm(p)}${p.off?' 📴':''} ${p.res==='win'?'✅':p.res==='lose'?'❌':''}</div>${gline(p)}${hid?'':`<b>${esc(c.n)}</b><small>${esc(c.a)}</small>`}</div>`}
 function zoom(e){dlg(`<img src="/img/${e.dataset.i}.jpg" style="width:100%;border:3px solid var(--line)"><div style="text-align:center;font-weight:800;margin-top:8px">${esc(e.dataset.n)}</div>`,[['ปิด','b']])}
 function useCard(c){if(!st.canCard)return say(st.turn===st.you?'ตานี้คุณใช้การ์ดไปแล้ว ใช้ได้ 1 ใบต่อตา':'ต้องถึงตาของคุณก่อนถึงจะใช้การ์ดได้');act('useCard',c)}
 function joinRoom(){if(getName())act('join',{code:$('cd').value.trim(),name,pid,prof:profOut()})}
@@ -595,11 +603,11 @@ if(pqroom)quizHome();
 // ================= โปรไฟล์ / เหรียญ / ร้านค้า / มีอะไรใหม่ =================
 const FR=[['none','ไม่มีกรอบ',0],['gold','กรอบทอง',150],['sakura','กรอบซากุระ',200],['ice','กรอบน้ำแข็ง',250],['emerald','กรอบมรกต',300],['neon','กรอบนีออน',400],['fire','กรอบเปลวไฟ',500],['royal','กรอบราชวงศ์',600],['rainbow','กรอบสายรุ้ง',800],['galaxy','กรอบกาแล็กซี่',1000]];
 const NF=[['none','ชื่อปกติ',0],['gold','ชื่อสีทอง',100],['ice','ชื่อน้ำแข็ง',150],['neon','ชื่อนีออน',250],['fire','ชื่อเปลวไฟ',300],['sparkle','ชื่อประกาย',400],['rainbow','ชื่อสายรุ้ง',500]];
-function pfLoad(){const d={coins:0,xp:0,owned:[],fr:'none',nf:'none',av:'',games:0,wins:0,qgames:0,daily:'',paid:[]};try{Object.assign(d,JSON.parse(localStorage.prof||'{}'))}catch(e){}
- if(!Array.isArray(d.owned))d.owned=[];if(!Array.isArray(d.paid))d.paid=[];return d}
+function pfLoad(){const d={coins:0,xp:0,owned:[],fr:'none',nf:'none',av:'',games:0,wins:0,qgames:0,daily:'',paid:[],cf:'',cfo:[],gp:{s:0,r:0}};try{Object.assign(d,JSON.parse(localStorage.prof||'{}'))}catch(e){}
+ if(!Array.isArray(d.cfo))d.cfo=[];if(!d.gp||typeof d.gp!=='object')d.gp={s:0,r:0};d.gp.s=+d.gp.s||0;d.gp.r=+d.gp.r||0;if(!Array.isArray(d.owned))d.owned=[];if(!Array.isArray(d.paid))d.paid=[];return d}
 const pfSave=()=>{try{localStorage.prof=JSON.stringify(PF)}catch(e){}};
 const lvOf=xp=>Math.floor(Math.sqrt(Math.max(0,xp)/40))+1;
-const profOut=()=>({fr:PF.fr,nf:PF.nf,lv:lvOf(PF.xp),av:PF.av||''});
+const profOut=()=>({fr:PF.fr,nf:PF.nf,lv:lvOf(PF.xp),av:PF.av||'',cf:(PF.cf&&PF.cfo.includes(PF.cf))?PF.cf:''});
 const owns=(k,id)=>id==='none'||PF.owned.includes(k+':'+id);
 function syncProf(){const o=profOut();if(st)act('prof',o);if(QM)s.emit('qz:prof',o)}
 function gain(coins,xp,key,msg){if(key){if(PF.paid.includes(key))return false;PF.paid.push(key);if(PF.paid.length>60)PF.paid.shift()}
@@ -621,13 +629,14 @@ async function buy(k,id,price,label){if(PF.coins<price)return say('เหรี�
 function openProf(tab){pTab=tab||pTab;const lv=lvOf(PF.xp),a=40*(lv-1)*(lv-1),b=40*lv*lv,pc=Math.min(100,Math.round((PF.xp-a)/(b-a)*100));
  const me={name,fr:PF.fr,nf:PF.nf,lv,av:PF.av};
  const head=`<h2>👤 โปรไฟล์</h2><div class="row" style="justify-content:flex-start;gap:14px">${av(name||'?',me,1)}<div style="flex:1"><b style="font-size:18px">${pnm({...me,lv:0,name:name||'ผู้เล่น'})}</b><br><small>Lv.${lv} · ${PF.xp} XP</small></div><b style="font-size:18px">🪙 ${PF.coins}</b></div><div class="xpbar"><i style="width:${pc}%"></i></div><small>อีก ${b-PF.xp} XP จะขึ้นเลเวลถัดไป</small>
- <div class="row" style="margin-top:8px"><button class="${pTab==='me'?'b':'g'}" onclick="openProf('me')">ข้อมูล</button><button class="${pTab==='shop'?'b':'g'}" onclick="openProf('shop')">🛒 ร้านค้า</button></div>`;
+ <div class="row" style="margin-top:8px"><button class="${pTab==='me'?'b':'g'}" onclick="openProf('me')">ข้อมูล</button><button class="${pTab==='shop'?'b':'g'}" onclick="openProf('shop')">🛒 ร้านค้า</button><button class="${pTab==='gacha'?'b':'g'}" onclick="openProf('gacha')">🎰 สุ่มกรอบ</button></div>`;
  let body='';
  if(pTab==='me')body=`<div class="box">ชื่อผู้เล่น<input id="pn" maxlength="16" value="${esc(name)}" onchange="setPName(this.value)">
   <b>รูปโปรไฟล์</b><br><small>เลือกรูปจากเครื่อง ระบบจะตัดเป็นสี่เหลี่ยมจัตุรัสและย่อให้อัตโนมัติ</small>
   <input id="pf" type="file" accept="image/*" style="display:none" onchange="pickAv(this)"><div class="row"><button class="b" onclick="$('pf').click()">📷 เลือกรูป</button>${PF.av?'<button class="g" onclick="delAv()">ลบรูป</button>':''}</div></div>
   <div class="box"><b>สถิติ</b><br>🎮 เกมทายตัวละคร: ${PF.games} รอบ · ชนะ ${PF.wins}${PF.games?` (${Math.round(PF.wins/PF.games*100)}%)`:''}<br>🧠 แฟนพันธุ์แท้ (ห้อง/เดี่ยว): ${PF.qgames} รอบ<br><small>เหรียญ: ชนะ +50 (เร็วสุด +20, โบนัสความเร็วสูงสุด +30, โหมดยากคูณ 1.5) · แพ้ +10 · แฟนพันธุ์แท้ ≈ คะแนน÷10 · เข้าเล่นรายวัน +30<br>ข้อมูลโปรไฟล์เก็บในเบราว์เซอร์เครื่องนี้ ถ้าล้างข้อมูลเบราว์เซอร์หรือเปลี่ยนเครื่อง เหรียญจะหายไป</small></div>
   <button class="g" onclick="openNews()">📜 มีอะไรใหม่ในเวอร์ชัน ${APPV}</button>`;
+ else if(pTab==='gacha')body=gachaBody();
  else{const it=(k,L)=>L.map(([id,lb,pr])=>{const on=PF[k]===id,ow=owns(k,id);
    const pv=k==='fr'?av(name||'?',{...me,fr:id}):`<div style="min-height:40px;display:flex;align-items:center;justify-content:center">${pnm({name:name||'ชื่อ',nf:id,lv:0})}</div>`;
    return `<div class="it ${on?'on':''}">${pv}<div>${lb}</div>${on?'<b>✓ ใช้งานอยู่</b>':ow?`<button class="b" onclick="equip('${k}','${id}')">ใช้</button>`:`<button class="${PF.coins>=pr?'b':'g'}" onclick="buy('${k}','${id}',${pr},'${lb}')">🪙 ${pr}</button>`}</div>`}).join('');
@@ -635,6 +644,51 @@ function openProf(tab){pTab=tab||pTab;const lv=lvOf(PF.xp),a=40*(lv-1)*(lv-1),b=
  $('sc').innerHTML=head+body+`<button class="b" onclick="closeSet()">ปิด</button>`;$('set').style.display='flex'}
 const NEWS=['🖼️ โลโก้และพื้นหลังใหม่: หน้าแรกเป็นฉากทะเล ส่วนในห้องและตอนเล่นเป็นฉากป่า','🎨 หน้าตาใหม่: หน้าแรกใช้รูปตัวละครจริง ห้องรอเพื่อนเป็นที่นั่ง หน้าเล่นบนคอมกว้างขึ้น ตอนจบมีโพเดียม หน้าเลือกอนิเมะในโหมดแฟนพันธุ์แท้เป็นการ์ดมีรูป กดปุ่ม 1-4 หรือ A-D เพื่อตอบควิซได้ และมีปุ่มปิดเสียงด่วนที่มุมบน','🎵 เสียงใหม่: มีเพลงพื้นหลังเปลี่ยนตามหน้าจอ (ล็อบบี้ / ตอนเล่น / โอกาสสุดท้าย / แฟนพันธุ์แท้ / ชนะ) พร้อมเสียงชนะ-แพ้ เสียงเหรียญ เลเวลอัป เสียงตอบถูกคอมโบ และเสียงเตือนตอนเหลือ 5 วินาที ปรับระดับหรือปิดได้ที่ ⚙️ ตั้งค่า (เพลงจะเริ่มหลังแตะหน้าจอครั้งแรก)','🆕 เกมทายตัวละคร: ถ้าใครตอบผิด ทุกคนในห้องจะเห็นว่าเขาตอบเป็นตัวอะไร (มีรูปตัวที่ตอบด้วย) และดูย้อนหลังได้ที่ใต้ชื่อของเขากับหน้าสรุปผล','👤 โปรไฟล์: อัปโหลดรูปของตัวเองได้ เพื่อนในห้องจะเห็นรูปคุณ','🪙 สะสมเหรียญจากการเล่น (ชนะ/แพ้/แฟนพันธุ์แท้/เข้าเล่นรายวัน) เอาไปซื้อกรอบโปรไฟล์และเอฟเฟกต์ชื่อในร้านค้า','⭐ มีเลเวลจากประสบการณ์ที่สะสม แสดงข้างชื่อ','🔢 แสดงเวอร์ชันเกมและเซิร์ฟเวอร์ที่หน้าแรกและในตั้งค่า'];
 function openNews(){closeSet();dlg(`<b style="font-size:20px">📜 มีอะไรใหม่ · v${APPV}</b><ul style="text-align:left;line-height:1.6;padding-left:18px">${NEWS.map(n=>`<li>${n}</li>`).join('')}</ul>`,[['เริ่มเลย','b']])}
+// ================= v2.5: สุ่มกรอบการ์ด (Gacha) =================
+// ปรับค่าได้ที่นี่: ราคา อัตราสุ่ม (รวมต้อง = 100) ระบบการันตี และเหรียญคืนเมื่อได้ซ้ำ
+const GA={cost:100,cost10:900,rates:{C:46,B:28,A:16,S:8,SSR:2},pitySS:10,pitySSR:80,refund:{C:15,B:30,A:60,S:150,SSR:400}};
+const TORD=['C','B','A','S','SSR'],TCOL={C:'#9aa4b2',B:'#4da3ff',A:'#b36bff',S:'#ffb020',SSR:'#ff4d8d'};
+const rnd=()=>{try{const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]/4294967296}catch(e){return Math.random()}};
+fetch('/frames.json?v='+BUILD).then(r=>r.json()).then(a=>{CF=a;CFM={};a.forEach(x=>CFM[x.id]=x);PF.cfo=PF.cfo.filter(i=>CFM[i]);if(PF.cf&&!CFM[PF.cf])PF.cf='';pfSave();syncProf()}).catch(()=>{});
+function fbox(f,inner,cls){const w=f.win,pd=.012;
+ return `<div class="fb ${cls||''}" style="aspect-ratio:${f.w}/${f.h}"><div class="fw" style="left:${(w[0]-pd)*100}%;top:${(w[1]-pd)*100}%;width:${(w[2]-w[0]+2*pd)*100}%;height:${(w[3]-w[1]+2*pd)*100}%">${inner}</div><img class="ff" src="/${f.f}" alt="" loading="lazy"></div>`}
+const gSample=()=>PF.av?`<img class="ph" src="${PF.av}" alt="">`:`<div class="ph gs">🙂</div>`;
+function rollOne(){const g=PF.gp;g.s++;g.r++;let t='C';
+ if(g.r>=GA.pitySSR)t='SSR';
+ else{let x=rnd()*100,acc=0;for(const k of TORD){acc+=GA.rates[k];if(x<acc){t=k;break}}
+  if(g.s>=GA.pitySS&&TORD.indexOf(t)<3)t=rnd()*(GA.rates.S+GA.rates.SSR)<GA.rates.S?'S':'SSR'}
+ if(t==='S'||t==='SSR')g.s=0;if(t==='SSR')g.r=0;
+ const pool=CF.filter(f=>f.t===t),f=pool[Math.floor(rnd()*pool.length)],dup=PF.cfo.includes(f.id);
+ if(dup)PF.coins+=GA.refund[t];else PF.cfo.push(f.id);
+ return {f,dup,t}}
+async function doRoll(n){if(!CF.length)return say('กำลังโหลดข้อมูลกรอบ ลองใหม่อีกครั้ง');
+ const price=n===10?GA.cost10:GA.cost;if(PF.coins<price)return say('เหรียญไม่พอ ต้องการ '+price+' 🪙 (คุณมี '+PF.coins+')');
+ PF.coins-=price;const rs=[];for(let i=0;i<n;i++)rs.push(rollOne());pfSave();syncProf();
+ const best=rs.reduce((m,r)=>Math.max(m,TORD.indexOf(r.t)),0),bt=TORD[best];SFX.gacha(bt);
+ const back=rs.reduce((s,r)=>s+(r.dup?GA.refund[r.t]:0),0);
+ const card=(r,big)=>`<div class="gc ${r.t==='SSR'?'ssr':''} ${big?'big':''}" style="--tc:${TCOL[r.t]};animation-delay:${big?0:rs.indexOf(r)*.12}s">${fbox(r.f,gSample())}<div class="gt">${r.t}</div><div class="gn">${esc(r.f.n)}</div>${r.dup?`<small>ซ้ำ +${GA.refund[r.t]} 🪙</small>`:'<small class="nw">✨ ใหม่!</small>'}</div>`;
+ closeSet();
+ const html=n===1?`<div class="gres one">${card(rs[0],1)}</div>`:`<div class="gres">${rs.map(r=>card(r)).join('')}</div>${back?`<small>ได้เหรียญคืนจากกรอบซ้ำ ${back} 🪙</small>`:''}`;
+ const i=await dlg(html,[[n===1?'สุ่มอีก ('+GA.cost+' 🪙)':'สุ่ม ×10 อีก ('+GA.cost10+' 🪙)','b'],['ใช้ / ดูคอลเลกชัน','g']]);
+ if(i===0)doRoll(n);else openProf('gacha')}
+function equipCf(id){if(id&&!PF.cfo.includes(id))return;PF.cf=id;pfSave();syncProf();openProf('gacha')}
+function gachaBody(){const g=PF.gp,own=PF.cfo.length,tot=CF.length;
+ let h=`<div class="box"><b>🎰 สุ่มกรอบการ์ดตัวละคร</b><br><small>กรอบจะล้อมการ์ดตัวละครของคุณในเกมทายตัวละคร · ยิ่งระดับสูงยิ่งสุ่มยาก</small>
+ <div class="rt">${TORD.map(t=>`<span style="background:${TCOL[t]}">${t} ${GA.rates[t]}%</span>`).join('')}</div>
+ <div class="row"><button class="${PF.coins>=GA.cost?'b':'g'}" onclick="doRoll(1)">สุ่ม ×1 · 🪙 ${GA.cost}</button><button class="${PF.coins>=GA.cost10?'b':'g'}" onclick="doRoll(10)">สุ่ม ×10 · 🪙 ${GA.cost10}</button></div>
+ <small>การันตี: ระดับ S ขึ้นไปอย่างน้อย 1 ใบทุก ${GA.pitySS} ครั้ง (ตอนนี้ ${g.s}/${GA.pitySS}) · SSR การันตีใน ${GA.pitySSR} ครั้ง (ตอนนี้ ${g.r}/${GA.pitySSR})<br>ได้กรอบซ้ำ คืนเหรียญ: ${TORD.map(t=>t+' '+GA.refund[t]).join(' · ')}<br>สะสมแล้ว ${own}/${tot}</small></div>`;
+ h+=`<div class="row" style="justify-content:flex-start"><button class="${PF.cf?'g':'b'}" onclick="equipCf('')">${PF.cf?'ถอดกรอบการ์ด':'✓ ไม่ใส่กรอบการ์ด'}</button></div>`;
+ for(const t of [...TORD].reverse()){const L=CF.filter(f=>f.t===t);if(!L.length)continue;const o=L.filter(f=>PF.cfo.includes(f.id)).length;
+  h+=`<b style="color:${TCOL[t]}">${t}</b> <small>${o}/${L.length}</small><div class="shop gal">${L.map(f=>{const ow=PF.cfo.includes(f.id),on=PF.cf===f.id;
+   return `<div class="it ${on?'on':''}" style="${ow?'':'opacity:.45;filter:grayscale(.8)'}">${fbox(f,gSample())}<div>${ow?esc(f.n):'🔒 ???'}</div>${on?'<b>✓ ใช้งานอยู่</b>':ow?`<button class="b" onclick="equipCf('${f.id}')">ใช้</button>`:''}</div>`}).join('')}</div>`}
+ return h}
+SFX.gacha=t=>{const i=TORD.indexOf(t);
+ seq([392,494,587].slice(0,2+(i>0)),'triangle',.14,.09);
+ if(i>=2)setTimeout(()=>seq([659,784,988,1319],'triangle',.18,.1),380);
+ if(i>=3)setTimeout(()=>{seq([784,988,1175,1568,1976],'sawtooth',.2,.07);[523,784,1047].forEach(f=>tone(f,1.1,'sine',.08,.55))},800);
+ if(i>=4)setTimeout(()=>{[0,1,2,3,4,5].forEach(k=>tone(1047*Math.pow(1.122,k*2),.5,'sine',.07,k*.09));[262,330,392,523].forEach(f=>tone(f,1.6,'sine',.09,.3))},1400)};
+NEWS.unshift('🎰 ระบบสุ่มกรอบการ์ดตัวละครใหม่! ใช้เหรียญสุ่มกรอบ 5 ระดับ C/B/A/S/SSR ยิ่งสูงยิ่งสุ่มยาก มีระบบการันตี สุ่ม ×10 และเหรียญคืนเมื่อซ้ำ ดูที่ โปรไฟล์ → 🎰 สุ่มกรอบ');
+
 setTimeout(()=>{dailyBonus();if(localStorage.seenVer!==APPV){try{localStorage.seenVer=APPV}catch(e){}openNews()}},900);
 
 // ================= v2.3: ฮีโร่หน้าแรก / ปิดเสียงด่วน / คีย์ลัด / แจ้งเตือนหลุดเชื่อมต่อ =================
@@ -653,7 +707,6 @@ s.on('disconnect',()=>{const e=$('cn');if(e)e.style.display='block'});s.on('conn
 
 // ================= v2.4: พื้นหลังภาพ (ทะเล = หน้าแรก, ป่า = ในห้อง/ในเกม) + กรอบการ์ดแบบเลือกได้ =================
 [['sea','/bg-sea.jpg'],['forest','/bg-forest.jpg']].forEach(([k,u])=>{const i=new Image();i.onload=()=>{BGOK[k]=true;bgSync()};i.src=u});
-{const fi=new Image();fi.onload=()=>document.body.classList.add('cf');fi.src='/frame-card.png'}
 function bgKind(){return (st||QM)?'forest':'sea'}
 function bgSync(){const k=bgKind(),ok=BGOK[k],b=document.body.classList;b.toggle('bgsea',k==='sea'&&ok);b.toggle('bgforest',k==='forest'&&ok);b.toggle('bgi',ok)}
 </script></body></html>

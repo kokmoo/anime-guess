@@ -610,19 +610,26 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '2.4';
+const APP_VERSION = '2.5';
 const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
 const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
+let CFIDS = new Set(), CFM = 0;
+function cfIds() {
+  try {
+    for (const d of [WEB, __dirname]) { const f = path.join(d, 'frames.json'); if (!fs.existsSync(f)) continue; const m = fs.statSync(f).mtimeMs; if (m !== CFM) { CFM = m; CFIDS = new Set(JSON.parse(fs.readFileSync(f, 'utf8')).map(x => x.id)); } break; }
+  } catch (e) { console.log('frames.json:', e.message); }
+  return CFIDS;
+}
 const AV_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/;
 function cleanProf(d) {
   d = d && typeof d === 'object' ? d : {};
-  const o = { fr: FRAMES.has(d.fr) ? d.fr : 'none', nf: NFX.has(d.nf) ? d.nf : 'none', lv: Math.min(99, Math.max(1, parseInt(d.lv) || 1)), av: '' };
+  const o = { fr: FRAMES.has(d.fr) ? d.fr : 'none', nf: NFX.has(d.nf) ? d.nf : 'none', cf: (typeof d.cf === 'string' && cfIds().has(d.cf)) ? d.cf : '', lv: Math.min(99, Math.max(1, parseInt(d.lv) || 1)), av: '' };
   if (typeof d.av === 'string' && d.av.length <= 24000 && AV_RE.test(d.av)) o.av = d.av;
   return o;
 }
 function applyProf(p, d) {
   const o = cleanProf(d);
-  p.fr = o.fr; p.nf = o.nf; p.lv = o.lv;
+  p.fr = o.fr; p.nf = o.nf; p.cf = o.cf; p.lv = o.lv;
   if (o.av !== (p.av || '')) { p.av = o.av; p.ah = o.av ? (p.ah || 0) + 1 : 0; }
 }
 const sendAv = (sock, list, pids) => (Array.isArray(pids) ? pids : []).slice(0, 12).forEach(pid => {
@@ -641,7 +648,7 @@ function view(r, p) {
     cards: p.cards, qlog: p.qlog || [], qa: r.phase === 'play' && r.qa ? { asker: r.qa.asker, askerName: r.qa.askerName, card: r.qa.card, q: r.qa.q, answers: r.qa.entry.answers, guide: r.qa.asker === p.pid ? null : r.qa.guide } : null, res: p.res,
     players: r.players.map(q => ({
       pid: q.pid, name: q.name, off: !q.sid, ready: q.ready, res: q.res, cards: q.cards.length, wins: q.wins || 0,
-      fr: q.fr || 'none', nf: q.nf || 'none', lv: q.lv || 1, ah: q.ah || 0, g: q.res ? (q.g || null) : null, earn: over ? (q.earn || 0) : 0,
+      fr: q.fr || 'none', nf: q.nf || 'none', cf: q.cf || '', lv: q.lv || 1, ah: q.ah || 0, g: q.res ? (q.g || null) : null, earn: over ? (q.earn || 0) : 0,
       asks: over ? q.asks : 0, used: over ? q.used : 0, t: over ? q.t : 0,
       ch: (over || q.res || (q.pid !== p.pid && r.phase !== 'lobby')) ? q.ch : null
     }))
@@ -910,7 +917,7 @@ function qzView(r, p) {
   const v = {
     code: r.code, phase: r.phase, you: p.pid, rid: r.rid || 0, owner: r.owner === p.pid, ownerPid: r.owner, set: r.set, n: r.qs.length, i: r.i,
     players: r.players.map(x => ({
-      pid: x.pid, name: x.name, score: x.score, ok: x.ok, streak: x.streak, online: x.online, fr: x.fr || 'none', nf: x.nf || 'none', lv: x.lv || 1, ah: x.ah || 0,
+      pid: x.pid, name: x.name, score: x.score, ok: x.ok, streak: x.streak, online: x.online, fr: x.fr || 'none', nf: x.nf || 'none', cf: x.cf || '', lv: x.lv || 1, ah: x.ah || 0,
       answered: r.phase === 'q' ? x.ans !== null : undefined,
       delta: r.phase === 'reveal' ? x.delta : undefined,
       pick: r.phase === 'reveal' ? x.ans : undefined
