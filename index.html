@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- ag-build:20261026 -->
+<!-- ag-build:20261027 -->
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ANIME GUESS</title>
@@ -149,7 +149,7 @@ mark{background:var(--sun);color:#14142b;padding:0 2px}
 const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิดตัวอักษร'],era:['📅','ใบ้ยุค'],ability:['⚡','ความสามารถ'],side:['🏴','ฝ่าย'],role:['⭐','บทบาท']};
 const s=io(),$=id=>document.getElementById(id);
 const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
-const VER=5,APPV='2.1',BUILD='20261026';let SRVV='';let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0';
+const VER=5,APPV='2.2',BUILD='20261027';let SRVV='';let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
 const pre=new URLSearchParams(location.search).get('room')||'';
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
@@ -161,13 +161,60 @@ const gline=(p,big)=>{if(!p||p.res!=='lose'||!p.g)return '';const g=p.g,t=esc(g.
 function needAv(list){const need=list.filter(p=>p.ah&&!((st&&p.pid===st.you)||(QM&&p.pid===QM.you))&&!(AVC[p.pid]&&AVC[p.pid].ah===p.ah)&&!avAsk.has(p.pid+':'+p.ah));if(need.length){need.forEach(p=>avAsk.add(p.pid+':'+p.ah));s.emit(st?'getav':'qz:getav',need.map(p=>p.pid))}}
 s.on('av',({pid,ah,src})=>{if(typeof src==='string'&&src.length<=24000&&AVOK.test(src)){AVC[pid]={ah,src};render()}});
 // ---- sound (synthesized, no files) ----
-let ac;
-function tone(f,d=.12,type='square',v=.07,t=0){if(!sound)return;try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();const o=ac.createOscillator(),g=ac.createGain(),n=ac.currentTime+t;o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,n);g.gain.exponentialRampToValueAtTime(.001,n+d);o.connect(g);g.connect(ac.destination);o.start(n);o.stop(n+d)}catch(e){}}
+let ac,busS,busM,qLast=0;
+function actx(){try{if(!ac){ac=new(window.AudioContext||window.webkitAudioContext)();busS=ac.createGain();busS.gain.value=vS;busS.connect(ac.destination);busM=ac.createGain();busM.gain.value=vM*.45;busM.connect(ac.destination)}if(ac.state==='suspended')ac.resume()}catch(e){}return ac}
+['pointerdown','keydown','touchstart'].forEach(ev=>document.addEventListener(ev,()=>actx(),{passive:true}));
+document.addEventListener('visibilitychange',()=>{if(!ac)return;if(document.hidden)ac.suspend();else{ac.resume();bgm.next=0}});
+function tone(f,d=.12,type='square',v=.07,t=0){if(!sound)return;try{actx();const o=ac.createOscillator(),g=ac.createGain(),n=ac.currentTime+t;o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,n);g.gain.exponentialRampToValueAtTime(.001,n+d);o.connect(g);g.connect(busS);o.start(n);o.stop(n+d)}catch(e){}}
 const seq=(a,type,d,v)=>a.forEach((f,i)=>tone(f,d,type,v,i*.1));
-const slide=(a,b,d=.2,type='sawtooth',v=.07,t=0)=>{if(!sound)return;try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();const o=ac.createOscillator(),g=ac.createGain(),n=ac.currentTime+t;o.type=type;o.frequency.setValueAtTime(a,n);o.frequency.exponentialRampToValueAtTime(b,n+d);g.gain.setValueAtTime(v,n);g.gain.exponentialRampToValueAtTime(.001,n+d);o.connect(g);g.connect(ac.destination);o.start(n);o.stop(n+d)}catch(e){}};
+const slide=(a,b,d=.2,type='sawtooth',v=.07,t=0)=>{if(!sound)return;try{actx();const o=ac.createOscillator(),g=ac.createGain(),n=ac.currentTime+t;o.type=type;o.frequency.setValueAtTime(a,n);o.frequency.exponentialRampToValueAtTime(b,n+d);g.gain.setValueAtTime(v,n);g.gain.exponentialRampToValueAtTime(.001,n+d);o.connect(g);g.connect(busS);o.start(n);o.stop(n+d)}catch(e){}};
+// ---- เพลงพื้นหลัง (สังเคราะห์สด ไม่ใช้ไฟล์เสียง) ----
+const mid=m=>440*Math.pow(2,(m-69)/12);
+const CHD=(b,t)=>({b,t});
+const MOODS={
+ chill:{bpm:88,root:60,ch:[CHD(0,[0,4,7,12]),CHD(-3,[0,3,7,12]),CHD(-7,[0,4,7,12]),CHD(-5,[0,4,7,11])],bs:[0,10],bw:'triangle',bv:.5,ar:[0,-1,1,-1,2,-1,1,-1,3,-1,2,-1,1,-1,2,-1],aw:'triangle',av:.2,k:[0],s:[],h:[4,12],dv:.5},
+ play:{bpm:112,root:57,ch:[CHD(0,[0,3,7,12]),CHD(-4,[0,4,7,12]),CHD(3,[0,4,7,12]),CHD(-2,[0,4,7,11])],bs:[0,3,6,8,11,14],bw:'triangle',bv:.55,ar:[0,1,2,3,2,1,2,1,0,1,2,3,4,3,2,1],aw:'square',av:.09,k:[0,8],s:[4,12],h:[2,6,10,14],dv:.6},
+ final:{bpm:152,root:52,ch:[CHD(0,[0,3,7,12]),CHD(-4,[0,4,7,12]),CHD(-2,[0,4,7,12]),CHD(-5,[0,4,7,11])],bs:[0,2,4,6,8,10,12,14],bw:'sawtooth',bv:.3,ar:[0,2,1,3,0,2,1,3,4,6,5,7,4,6,5,7],aw:'square',av:.1,k:[0,4,8,12],s:[4,12],h:[2,6,10,14],dv:.75},
+ quiz:{bpm:104,root:62,ch:[CHD(0,[0,4,7,12]),CHD(-3,[0,3,7,12]),CHD(-7,[0,4,7,12]),CHD(-5,[0,4,7,12])],bs:[0,6,8,14],bw:'triangle',bv:.5,ar:[-1,0,-1,1,-1,2,-1,1,-1,0,-1,1,-1,3,-1,2],aw:'square',av:.08,k:[0,8],s:[4,12],h:[2,6,10,14],dv:.5},
+ win:{bpm:120,root:60,ch:[CHD(0,[0,4,7,12]),CHD(5,[0,4,7,12]),CHD(7,[0,4,7,12]),CHD(0,[0,4,7,12])],bs:[0,4,8,12],bw:'triangle',bv:.55,ar:[4,0,1,2,4,2,1,0,5,1,2,3,5,3,2,1],aw:'triangle',av:.18,k:[0,8],s:[4,12],h:[0,2,4,6,8,10,12,14],dv:.5}
+};
+const bgm={mood:'',step:0,next:0,timer:0};
+let nbuf;const nb=()=>nbuf||(nbuf=(()=>{const b=ac.createBuffer(1,ac.sampleRate>>1,ac.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return b})());
+function bn(f,t,d,type,v){const o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(busM);o.start(t);o.stop(t+d+.02)}
+function bkick(t,v){const o=ac.createOscillator(),g=ac.createGain();o.frequency.setValueAtTime(130,t);o.frequency.exponentialRampToValueAtTime(40,t+.12);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+.16);o.connect(g);g.connect(busM);o.start(t);o.stop(t+.18)}
+function bhit(t,d,v,f){const src=ac.createBufferSource();src.buffer=nb();const h=ac.createBiquadFilter();h.type='highpass';h.frequency.value=f;const g=ac.createGain();g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);src.connect(h);h.connect(g);g.connect(busM);src.start(t);src.stop(t+d)}
+function bgmStep(){const M=MOODS[bgm.mood],s16=bgm.step%16,c=M.ch[Math.floor(bgm.step/16)%M.ch.length],t=bgm.next,sd=60/M.bpm/4;
+ if(M.bs.includes(s16))bn(mid(M.root+c.b-12),t,sd*2.2,M.bw,M.bv);
+ const ai=M.ar[s16];if(ai>=0)bn(mid(M.root+c.b+c.t[ai%4]+(ai>=4?12:0)),t,sd*1.7,M.aw,M.av);
+ if(s16===0)c.t.slice(0,3).forEach(x=>bn(mid(M.root+c.b+x),t,sd*15,'sine',.07));
+ if(M.k.includes(s16))bkick(t,M.dv);
+ if(M.s.includes(s16))bhit(t,.12,M.dv*.45,1500);
+ if(M.h.includes(s16))bhit(t,.04,M.dv*.22,7000)}
+function bgmTick(){if(!ac||ac.state!=='running'||!music||!bgm.mood)return;try{const M=MOODS[bgm.mood],sd=60/M.bpm/4;if(bgm.next<ac.currentTime)bgm.next=ac.currentTime+.05;while(bgm.next<ac.currentTime+.35){bgmStep();bgm.next+=sd;bgm.step++}}catch(e){}}
+function setMood(m){if(bgm.mood===m)return;bgm.mood=m;bgm.step=0;bgm.next=0;if(!bgm.timer)bgm.timer=setInterval(bgmTick,100)}
+function wantMood(){if(st){const me=st.players.find(p=>p.pid===st.you);return {lobby:'chill',brief:'chill',countdown:'',play:'play',final:'final',over:me&&me.res==='win'?'win':'chill'}[st.phase]||'chill'}
+ if(QM)return {lobby:'chill',q:'quiz',reveal:'quiz',end:'win'}[QM.phase]||'chill';
+ if(mode==='quizPlay')return 'quiz';if(mode==='quizEnd')return 'win';return 'chill'}
+const bgmSync=()=>{try{setMood(wantMood())}catch(e){}};
+function setVol(k,v){v=Math.max(0,Math.min(1,+v));if(k==='vs'){vS=v;if(busS)busS.gain.value=v;try{localStorage.vs=v}catch(e){}SFX.pop()}else{vM=v;if(busM)busM.gain.value=v*.45;try{localStorage.vm=v}catch(e){}}}
+function setMusic(on){music=on;try{localStorage.bgm=on?1:0}catch(e){}if(on){actx();bgm.next=0;bgmSync()}}
 const R=a=>a[Math.floor(Math.random()*a.length)];
 const CS={world:()=>{slide(200,800,.35,'sine',.1);seq([523,659,784],'triangle',.2,.08)},letter:()=>seq([1319,1568,1319,1760],'square',.08,.05),era:()=>{tone(262,.5,'sine',.12);tone(392,.5,'sine',.1,.12);tone(523,.6,'sine',.08,.24)},ability:()=>{slide(150,1200,.3,'sawtooth',.07);tone(1500,.15,'square',.05,.3)},side:()=>{tone(330,.15,'triangle',.1);tone(247,.15,'triangle',.1,.15);tone(330,.3,'triangle',.1,.3)},role:()=>seq([784,988,1175,1568],'triangle',.2,.09)};
 const SFX={click:()=>tone(R([560,620,700,780]),.06),tick:c=>tone(500+(10-(c||5))*70,.06,'square',.05),beep:()=>tone(520,.15,'triangle',.1),go:()=>seq([392,523,659,784,1047],'sawtooth',.2,.07),card:t=>(CS[t]||CS.world)(),hint:()=>seq([1047,1319,1568],'sine',.25,.09),ready:()=>seq([659,988],'triangle',.15,.1),leave:()=>slide(600,150,.35,'triangle',.09),err:()=>{tone(150,.2,'sawtooth',.09);tone(120,.25,'sawtooth',.09,.15)},final:()=>[0,1,2].forEach(i=>{tone(880,.12,'square',.07,i*.25);tone(660,.12,'square',.07,i*.25+.12)}),win:()=>seq([523,659,784,1047,1319],'triangle',.22,.12),lose:()=>seq([392,330,262,196],'sawtooth',.28,.08),reveal:()=>{slide(R([200,260,330]),R([700,900,1100]),.3,'triangle',.09);tone(R([880,988,1175]),.2,'triangle',.08,.2)},join:()=>seq([740,988],'triangle',.12,.09),yes:()=>seq([880,1175],'triangle',.1,.09),no:()=>slide(420,180,.22,'sawtooth',.07),msg:()=>seq([1319,1760],'sine',.08,.06),pop:()=>tone(R([660,880,990]),.1,'triangle',.07)};
+Object.assign(SFX,{
+ win:()=>{[[523,0],[659,.12],[784,.24],[1047,.36]].forEach(([f,t])=>tone(f,.16,'square',.07,t));[523,659,784,1047].forEach(f=>tone(f,1.1,'triangle',.06,.5));seq([2093,2637,3136],'sine',.2,.04);setTimeout(()=>seq([1319,1568,2093],'sine',.18,.05),900)},
+ lose:()=>{tone(311,.4,'sawtooth',.09);tone(294,.4,'sawtooth',.09,.38);tone(277,.4,'sawtooth',.09,.76);slide(262,185,.8,'sawtooth',.09,1.14)},
+ wrong:()=>{slide(180,520,.12,'sine',.12);slide(520,150,.28,'sine',.12,.12)},
+ cheer:()=>{seq([784,988,1175,1568],'triangle',.12,.1);tone(2093,.4,'sine',.05,.45)},
+ coin:()=>{tone(988,.08,'square',.06);tone(1319,.3,'square',.06,.08)},
+ levelup:()=>{seq([523,659,784,1047,1319,1568],'triangle',.16,.1);[523,784,1047].forEach(f=>tone(f,.9,'sine',.07,.6))},
+ buy:()=>{SFX.coin();slide(800,1800,.25,'sine',.07,.2)},
+ ding:()=>{tone(1319,.4,'sine',.13);tone(2637,.25,'sine',.04);tone(1760,.3,'sine',.06,.08)},
+ combo:n=>{const f=[523,587,659,784,880,1047,1175,1319][Math.min(7,Math.max(0,n-1))];tone(f,.14,'triangle',.11);tone(f*1.5,.25,'triangle',.08,.08);tone(f*2,.3,'sine',.05,.16)},
+ buzz:()=>{tone(160,.28,'sawtooth',.1);tone(125,.34,'sawtooth',.1,.14)},
+ urgent:c=>tone(880+(5-(c||1))*110,.06,'square',.06),
+ gameover:()=>seq([392,330,262],'triangle',.25,.09)
+});
 document.addEventListener('click',e=>{const t=e.target.closest('button,.card');if(t){SFX.click();t.classList.remove('squish');void t.offsetWidth;t.classList.add('squish')}});
 function confetti(){for(let i=0;i<50;i++){const d=document.createElement('i');d.textContent=['🎉','✨','⭐','🎊'][i%4];d.style.cssText=`position:fixed;top:-30px;left:${Math.random()*100}vw;font-size:${18+Math.random()*18}px;z-index:20;pointer-events:none;animation:fall ${2+Math.random()*2}s linear forwards`;document.body.appendChild(d);setTimeout(()=>d.remove(),4500)}}
 // ---- network ----
@@ -221,7 +268,7 @@ function setTheme(t){document.documentElement.dataset.theme=t;localStorage.theme
 function setCalm(on){if(on)document.documentElement.setAttribute('data-calm','');else document.documentElement.removeAttribute('data-calm');localStorage.calm=on?1:0}
 function warn(){if($('wn'))return;const d=document.createElement('div');d.id='wn';d.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:40;background:#ff4d8d;color:#fff;font-weight:600;padding:10px 14px;text-align:center';d.textContent='⚠️ เซิร์ฟเวอร์เป็นเวอร์ชันเก่า บางฟีเจอร์จะไม่ทำงาน — แทนที่ server.js แล้วรีสตาร์ท (Ctrl+C แล้ว npm start)';document.body.appendChild(d)}
 let tt0;function showToast(ms){$('toast').style.display='flex';clearTimeout(tt0);tt0=setTimeout(()=>$('toast').style.display='none',ms)}
-s.on('solved',({pid,name,win,first,ch,g})=>{SFX.reveal();if(win&&pid!==(st&&st.you))confetti();
+s.on('solved',({pid,name,win,first,ch,g})=>{if(pid!==(st&&st.you))(win?SFX.cheer:SFX.wrong)();if(win&&pid!==(st&&st.you))confetti();
  const wr=!win&&g?`<div class="wgbox">${esc(name)} ตอบว่า<br><b>${esc(g.th||g.n)}</b>${g.th?` <small>(${esc(g.n)})</small>`:''}${g.a?`<br><small>${esc(g.a)}</small>`:''}${g.i?`<img src="/img/${g.i}.jpg" alt="" onerror="this.remove()">`:''}</div><div>แต่ที่จริงคือ…</div>`:'';
  $('tt').innerHTML=`<div style="font-size:54px">${win?'🎉':'😵'}</div>${esc(name)} ${win?(first?'ทายถูกเป็นคนแรก!':'ทายถูก!'):'ทายผิด!'}${wr}${ch.i?`<img src="/img/${ch.i}.jpg" alt="" style="width:min(240px,60vw);display:block;margin:12px auto;border:4px solid var(--line)">`:''}<div style="font-size:24px">${esc(ch.n)}</div><small>${esc(ch.a)}</small>`;showToast(!win&&g?6500:4200)});
 let lastScreen='';
@@ -282,7 +329,12 @@ function copy(u){const f=()=>dlg(`คัดลอกลิงก์นี้ส�
 async function leave(){if(!await ask('ออกจากห้องนี้?','ออกจากห้อง','r'))return;act('leave');st=null;lastKey='';chatMsgs=[];unread=0;closeChat();updBadge();sessionStorage.removeItem('room');mode='home';closeSet();render()}
 function openSet(){const dk=document.documentElement.dataset.theme==='dark';$('sc').innerHTML=`<h2>ตั้งค่า</h2>
  <b>ธีม</b><div class="row"><button class="${dk?'g':'b'}" onclick="setTheme('light')">☀️ สว่าง</button><button class="${dk?'b':'g'}" onclick="setTheme('dark')">🌙 มืด</button></div>
- <label class="c"><input type="checkbox" ${sound?'checked':''} onchange="sound=this.checked;localStorage.snd=sound?1:0;if(sound)SFX.click()"> เปิดเสียงเอฟเฟกต์</label><br>
+ <b>🔊 เสียง</b>
+ <label class="c"><input type="checkbox" ${sound?'checked':''} onchange="sound=this.checked;localStorage.snd=sound?1:0;if(sound)SFX.click()"> เสียงเอฟเฟกต์</label>
+ <input type="range" min="0" max="100" value="${Math.round(vS*100)}" oninput="setVol('vs',this.value/100)" aria-label="ระดับเสียงเอฟเฟกต์">
+ <label class="c"><input type="checkbox" ${music?'checked':''} onchange="setMusic(this.checked)"> 🎵 เพลงพื้นหลัง</label>
+ <input type="range" min="0" max="100" value="${Math.round(vM*100)}" oninput="setVol('vm',this.value/100)" aria-label="ระดับเสียงเพลง">
+ <button class="g" onclick="SFX.win()">▶ ลองฟังเสียงชนะ</button><br>
  <label class="c"><input type="checkbox" ${localStorage.calm==='1'?'checked':''} onchange="setCalm(this.checked)"> ลดการเคลื่อนไหว/แอนิเมชัน</label>
  <button class="g" onclick="openProf('me')">👤 โปรไฟล์ & ร้านค้า (🪙 ${PF.coins})</button>
  <button class="g" onclick="openLib()">${libLocked()?'🔒 คลังตัวละคร (ล็อกในโหมดยาก)':'📚 ตัวละครในเกม (ดูว่ามีใครบ้าง)'}</button>
@@ -291,7 +343,7 @@ function openSet(){const dk=document.documentElement.dataset.theme==='dark';$('s
  <small>ANIME GUESS v${APPV} (build ${BUILD}) · เซิร์ฟเวอร์ ${SRVV?'v'+SRVV:'เก่า'}</small>
  <button class="b" onclick="closeSet()">ปิด</button>`;$('set').style.display='flex'}
 function closeSet(){$('set').style.display='none'}
-function render(){const a=document.activeElement,id=a&&a.id,v=a&&a.value;draw();screenFx();$('chatBtn').style.display=st?'flex':'none';$('noteBtn').style.display=st?'flex':'none';if(!st&&panelOpen)closePanel();if(id){const n=$(id);if(n&&n.tagName==='INPUT'&&v!==undefined){n.value=v;n.focus();try{n.setSelectionRange(v.length,v.length)}catch(e){}if(id==='gs')suggest()}}}
+function render(){const a=document.activeElement,id=a&&a.id,v=a&&a.value;draw();screenFx();bgmSync();$('chatBtn').style.display=st?'flex':'none';$('noteBtn').style.display=st?'flex':'none';if(!st&&panelOpen)closePanel();if(id){const n=$(id);if(n&&n.tagName==='INPUT'&&v!==undefined){n.value=v;n.focus();try{n.setSelectionRange(v.length,v.length)}catch(e){}if(id==='gs')suggest()}}}
 function draw(){
  const A=$('app');const wide=!st&&mode==='home';A.className=wide?'wide':'';document.body.classList.toggle('w',wide);
  if(!st){
@@ -373,16 +425,17 @@ function qRun(){clearInterval(qTick);QS.t0=Date.now();QS.picked=null;
  qTick=setInterval(()=>{if(!QS||mode!=='quizPlay'||QS.picked!==null){clearInterval(qTick);return}
   const left=Math.max(0,QLIM*1000-(Date.now()-QS.t0)),e=$('qt'),b=$('qbar');
   if(e){e.textContent=Math.ceil(left/1000);e.classList.toggle('low',left<=5000)}
+  if(left>0&&left<=5000){const c=Math.ceil(left/1000);if(c!==qLast){qLast=c;SFX.urgent(c)}}
   if(b)b.style.width=(left/(QLIM*10))+'%';
   if(left<=0)quizAnswer(-1)},200)}
 function quizAnswer(i){
  if(!QS||QS.picked!==null)return;clearInterval(qTick);
  const q=QS.qs[QS.i],ok=i>=0&&q.o[i]===q.c;QS.picked=i;QS.gain=0;
- if(ok){const left=Math.max(0,QLIM*1000-(Date.now()-QS.t0));QS.streak++;QS.gain=100+Math.round(left/(QLIM*1000)*50)+(QS.streak>=3?20:0);QS.score+=QS.gain;QS.ok++;seq([523,659,784],'triangle',.12,.08)}
- else{QS.streak=0;tone(180,.3,'sawtooth',.08)}
+ if(ok){const left=Math.max(0,QLIM*1000-(Date.now()-QS.t0));QS.streak++;QS.gain=100+Math.round(left/(QLIM*1000)*50)+(QS.streak>=3?20:0);QS.score+=QS.gain;QS.ok++;QS.streak>=3?SFX.combo(QS.streak-2):SFX.ding()}
+ else{QS.streak=0;SFX.buzz()}
  render()}
 function quizNext(){
- if(QS.i+1>=QS.qs.length){mode='quizEnd';qSave(QS.a,QS.score);awardSolo();render();if(QS.ok>=QS.qs.length*.8)confetti();return}
+ if(QS.i+1>=QS.qs.length){mode='quizEnd';qSave(QS.a,QS.score);awardSolo();render();if(QS.ok>=QS.qs.length*.8){confetti();SFX.win()}else SFX.gameover();return}
  QS.i++;QS.picked=null;render();qRun()}
 function drawQuiz(A){
  A.className='';document.body.classList.remove('w');
@@ -418,8 +471,8 @@ const mpBox=()=>`<div class="box"><h2 style="margin-top:0">👥 แข่งก�
  <input id="qc" placeholder="รหัสห้อง เช่น A7K9P" value="${esc(pqroom)}" style="text-transform:uppercase">
  <button class="g" onclick="qzJoin()">🔑 เข้าร่วมห้อง</button></div>`;
 s.on('qz:state',x=>{const was=QM&&QM.phase;if(!QM||QM.code!==x.code)s.emit('qz:prof',profOut());QM=x;needAv(x.players);if(x.phase==='end')awardQz(x);QM._t=Date.now();sessionStorage.qroom=x.code;mode='qm';render();qmRun();
- if(x.phase==='end'&&was!=='end')confetti();
- if(x.phase==='reveal'&&was!=='reveal'){if(x.mine===x.rev.ci)seq([523,659,784],'triangle',.12,.08);else tone(180,.3,'sawtooth',.08)}});
+ if(x.phase==='end'&&was!=='end'){confetti();const rk=[...x.players].sort((a,b)=>b.score-a.score);rk[0]&&rk[0].pid===x.you?SFX.win():SFX.gameover()}
+ if(x.phase==='reveal'&&was!=='reveal'){if(x.mine===x.rev.ci){const mp=x.players.find(p=>p.pid===x.you);mp&&mp.streak>=3?SFX.combo(mp.streak-2):SFX.ding()}else SFX.buzz()}});
 s.on('qz:err',m=>{if(!QM)sessionStorage.removeItem('qroom');say(m)});
 s.on('meta',()=>{if(sessionStorage.qroom)s.emit('qz:join',{code:sessionStorage.qroom,name,pid,prof:profOut()})});
 function qzName(){const n=$('qn').value.trim();if(!n){say('ใส่ชื่อก่อน');return ''}name=n;localStorage.name=n;return n}
@@ -430,7 +483,7 @@ function qzAns(i){if(QM&&QM.phase==='q'&&QM.mine===null)s.emit('qz:answer',i)}
 async function qzLeave(){if(!await ask('ออกจากห้องแข่งนี้?','ออกจากห้อง','r'))return;s.emit('qz:leave');QM=null;clearInterval(qmTick);sessionStorage.removeItem('qroom');mode='home';render()}
 function qmRun(){clearInterval(qmTick);if(!QM||(QM.phase!=='q'&&QM.phase!=='reveal'))return;
  qmTick=setInterval(()=>{if(!QM){clearInterval(qmTick);return}const gone=Date.now()-QM._t;
-  if(QM.phase==='q'){const left=Math.max(0,QM.q.left-gone),e=$('qmt'),b=$('qmbar');if(e){e.textContent=Math.ceil(left/1000);e.classList.toggle('low',left<=5000)}if(b)b.style.width=(left/(QM.q.time*10))+'%'}
+  if(QM.phase==='q'){const left=Math.max(0,QM.q.left-gone),e=$('qmt'),b=$('qmbar');if(e){e.textContent=Math.ceil(left/1000);e.classList.toggle('low',left<=5000)}if(QM.mine===null&&left>0&&left<=5000){const c=Math.ceil(left/1000);if(c!==qLast){qLast=c;SFX.urgent(c)}}if(b)b.style.width=(left/(QM.q.time*10))+'%'}
   else{const e=$('qmn');if(e)e.textContent=Math.ceil(Math.max(0,QM.rev.nextIn-gone)/1000)}},200)}
 function drawQM(A){
  A.className='';document.body.classList.remove('w');
@@ -477,7 +530,7 @@ const profOut=()=>({fr:PF.fr,nf:PF.nf,lv:lvOf(PF.xp),av:PF.av||''});
 const owns=(k,id)=>id==='none'||PF.owned.includes(k+':'+id);
 function syncProf(){const o=profOut();if(st)act('prof',o);if(QM)s.emit('qz:prof',o)}
 function gain(coins,xp,key,msg){if(key){if(PF.paid.includes(key))return false;PF.paid.push(key);if(PF.paid.length>60)PF.paid.shift()}
- PF.coins+=coins;PF.xp+=xp;pfSave();if(msg)flash(msg+' +'+coins+' 🪙');return true}
+ const l0=lvOf(PF.xp);PF.coins+=coins;PF.xp+=xp;pfSave();const l1=lvOf(PF.xp);if(msg)flash(msg+' +'+coins+' 🪙');if(l1>l0){SFX.levelup();flash('⭐ เลเวลอัป! Lv.'+l1)}else if(coins>0)SFX.coin();return true}
 function awardGuess(x){const m=x.players.find(p=>p.pid===x.you);if(!m||!m.earn)return;const k='g:'+x.code+':'+x.rid;if(PF.paid.includes(k))return;
  PF.games++;if(m.res==='win')PF.wins++;gain(m.earn,m.earn,k,m.res==='win'?'🏆 ชนะ!':'จบเกม')}
 function awardQz(x){const m=x.players.find(p=>p.pid===x.you);if(!m)return;const rk=[...x.players].sort((a,b)=>b.score-a.score),k='q:'+x.code+':'+x.rid;if(PF.paid.includes(k))return;
@@ -491,7 +544,7 @@ function delAv(){PF.av='';pfSave();syncProf();openProf('me')}
 function setPName(v){v=v.trim().slice(0,16);if(!v)return;name=v;localStorage.name=v;if(st)act('rename',v)}
 function equip(k,id){if(!owns(k,id))return;PF[k]=id;pfSave();syncProf();openProf('shop')}
 async function buy(k,id,price,label){if(PF.coins<price)return say('เหรียญไม่พอ ต้องการ '+price+' 🪙 (คุณมี '+PF.coins+')\nเล่นเกมเพื่อสะสมเหรียญเพิ่มได้เลย');
- if(!await ask('ซื้อ <b>'+esc(label)+'</b> ราคา '+price+' 🪙 ?','ซื้อ'))return;PF.coins-=price;PF.owned.push(k+':'+id);pfSave();equip(k,id)}
+ if(!await ask('ซื้อ <b>'+esc(label)+'</b> ราคา '+price+' 🪙 ?','ซื้อ'))return;PF.coins-=price;PF.owned.push(k+':'+id);pfSave();SFX.buy();equip(k,id)}
 function openProf(tab){pTab=tab||pTab;const lv=lvOf(PF.xp),a=40*(lv-1)*(lv-1),b=40*lv*lv,pc=Math.min(100,Math.round((PF.xp-a)/(b-a)*100));
  const me={name,fr:PF.fr,nf:PF.nf,lv,av:PF.av};
  const head=`<h2>👤 โปรไฟล์</h2><div class="row" style="justify-content:flex-start;gap:14px">${av(name||'?',me,1)}<div style="flex:1"><b style="font-size:18px">${pnm({...me,lv:0,name:name||'ผู้เล่น'})}</b><br><small>Lv.${lv} · ${PF.xp} XP</small></div><b style="font-size:18px">🪙 ${PF.coins}</b></div><div class="xpbar"><i style="width:${pc}%"></i></div><small>อีก ${b-PF.xp} XP จะขึ้นเลเวลถัดไป</small>
@@ -507,7 +560,7 @@ function openProf(tab){pTab=tab||pTab;const lv=lvOf(PF.xp),a=40*(lv-1)*(lv-1),b=
    return `<div class="it ${on?'on':''}">${pv}<div>${lb}</div>${on?'<b>✓ ใช้งานอยู่</b>':ow?`<button class="b" onclick="equip('${k}','${id}')">ใช้</button>`:`<button class="${PF.coins>=pr?'b':'g'}" onclick="buy('${k}','${id}',${pr},'${lb}')">🪙 ${pr}</button>`}</div>`}).join('');
   body=`<b>🖼️ กรอบโปรไฟล์</b><div class="shop">${it('fr',FR)}</div><b>✨ เอฟเฟกต์ชื่อ</b><div class="shop">${it('nf',NF)}</div>`}
  $('sc').innerHTML=head+body+`<button class="b" onclick="closeSet()">ปิด</button>`;$('set').style.display='flex'}
-const NEWS=['🆕 เกมทายตัวละคร: ถ้าใครตอบผิด ทุกคนในห้องจะเห็นว่าเขาตอบเป็นตัวอะไร (มีรูปตัวที่ตอบด้วย) และดูย้อนหลังได้ที่ใต้ชื่อของเขากับหน้าสรุปผล','👤 โปรไฟล์: อัปโหลดรูปของตัวเองได้ เพื่อนในห้องจะเห็นรูปคุณ','🪙 สะสมเหรียญจากการเล่น (ชนะ/แพ้/แฟนพันธุ์แท้/เข้าเล่นรายวัน) เอาไปซื้อกรอบโปรไฟล์และเอฟเฟกต์ชื่อในร้านค้า','⭐ มีเลเวลจากประสบการณ์ที่สะสม แสดงข้างชื่อ','🔢 แสดงเวอร์ชันเกมและเซิร์ฟเวอร์ที่หน้าแรกและในตั้งค่า'];
+const NEWS=['🎵 เสียงใหม่: มีเพลงพื้นหลังเปลี่ยนตามหน้าจอ (ล็อบบี้ / ตอนเล่น / โอกาสสุดท้าย / แฟนพันธุ์แท้ / ชนะ) พร้อมเสียงชนะ-แพ้ เสียงเหรียญ เลเวลอัป เสียงตอบถูกคอมโบ และเสียงเตือนตอนเหลือ 5 วินาที ปรับระดับหรือปิดได้ที่ ⚙️ ตั้งค่า (เพลงจะเริ่มหลังแตะหน้าจอครั้งแรก)','🆕 เกมทายตัวละคร: ถ้าใครตอบผิด ทุกคนในห้องจะเห็นว่าเขาตอบเป็นตัวอะไร (มีรูปตัวที่ตอบด้วย) และดูย้อนหลังได้ที่ใต้ชื่อของเขากับหน้าสรุปผล','👤 โปรไฟล์: อัปโหลดรูปของตัวเองได้ เพื่อนในห้องจะเห็นรูปคุณ','🪙 สะสมเหรียญจากการเล่น (ชนะ/แพ้/แฟนพันธุ์แท้/เข้าเล่นรายวัน) เอาไปซื้อกรอบโปรไฟล์และเอฟเฟกต์ชื่อในร้านค้า','⭐ มีเลเวลจากประสบการณ์ที่สะสม แสดงข้างชื่อ','🔢 แสดงเวอร์ชันเกมและเซิร์ฟเวอร์ที่หน้าแรกและในตั้งค่า'];
 function openNews(){closeSet();dlg(`<b style="font-size:20px">📜 มีอะไรใหม่ · v${APPV}</b><ul style="text-align:left;line-height:1.6;padding-left:18px">${NEWS.map(n=>`<li>${n}</li>`).join('')}</ul>`,[['เริ่มเลย','b']])}
 setTimeout(()=>{dailyBonus();if(localStorage.seenVer!==APPV){try{localStorage.seenVer=APPV}catch(e){}openNews()}},900);
 </script></body></html>
