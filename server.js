@@ -12,7 +12,7 @@ IMGDIRS.forEach(d => app.use('/img', express.static(d)));
 app.use(express.static(WEB));
 CANDS.filter(d => d !== WEB).forEach(d => app.use(express.static(d)));
 app.get('/', (req, res) => res.sendFile(path.join(WEB, 'index.html')));
-app.get('/__info', (req, res) => res.json({ web: path.basename(WEB) === 'public' ? 'public/' : 'root', builds: CANDS.map(d => [path.basename(d) === 'public' ? 'public/' : 'root', buildOf(d)]), quizQuestions: qzBank().length, quizRooms: Object.keys(QROOMS).length, rooms: Object.keys(rooms).length }));
+app.get('/__info', (req, res) => res.json({ web: path.basename(WEB) === 'public' ? 'public/' : 'root', builds: CANDS.map(d => [path.basename(d) === 'public' ? 'public/' : 'root', buildOf(d)]), quizQuestions: qzBank().length, version: APP_VERSION, quizRooms: Object.keys(QROOMS).length, rooms: Object.keys(rooms).length }));
 const GRACE = +process.env.AG_GRACE || 120000, GRACE_LOBBY = +process.env.AG_GRACE_LOBBY || 60000;
 
 // [name, aliases, anime, era, world, ability, side, role]
@@ -610,19 +610,38 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
+const APP_VERSION = '2.1';
+const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
+const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
+const AV_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/;
+function cleanProf(d) {
+  d = d && typeof d === 'object' ? d : {};
+  const o = { fr: FRAMES.has(d.fr) ? d.fr : 'none', nf: NFX.has(d.nf) ? d.nf : 'none', lv: Math.min(99, Math.max(1, parseInt(d.lv) || 1)), av: '' };
+  if (typeof d.av === 'string' && d.av.length <= 24000 && AV_RE.test(d.av)) o.av = d.av;
+  return o;
+}
+function applyProf(p, d) {
+  const o = cleanProf(d);
+  p.fr = o.fr; p.nf = o.nf; p.lv = o.lv;
+  if (o.av !== (p.av || '')) { p.av = o.av; p.ah = o.av ? (p.ah || 0) + 1 : 0; }
+}
+const sendAv = (sock, list, pids) => (Array.isArray(pids) ? pids : []).slice(0, 12).forEach(pid => {
+  const q = list.find(x => x.pid === pid); if (q && q.av) sock.emit('av', { pid: q.pid, ah: q.ah, src: q.av });
+});
 const pick = a => a[Math.floor(Math.random() * a.length)];
 
 function view(r, p) {
   const t = r.phase === 'play' ? r.endsAt : r.phase === 'final' ? r.finalEnd : r.phase === 'countdown' ? r.cdEnd : 0;
   const over = r.phase === 'over';
   return {
-    code: r.code, phase: r.phase, set: r.set, you: p.pid, owner: r.owner === p.pid,
+    code: r.code, phase: r.phase, set: r.set, you: p.pid, owner: r.owner === p.pid, rid: r.startAt || 0,
     left: t ? Math.max(0, t - Date.now()) : 0,
     turn: r.phase === 'play' ? r.players[r.turn].pid : null,
     canCard: r.phase === 'play' && r.players[r.turn].pid === p.pid && !r.cardUsed,
     cards: p.cards, qlog: p.qlog || [], qa: r.phase === 'play' && r.qa ? { asker: r.qa.asker, askerName: r.qa.askerName, card: r.qa.card, q: r.qa.q, answers: r.qa.entry.answers, guide: r.qa.asker === p.pid ? null : r.qa.guide } : null, res: p.res,
     players: r.players.map(q => ({
       pid: q.pid, name: q.name, off: !q.sid, ready: q.ready, res: q.res, cards: q.cards.length, wins: q.wins || 0,
+      fr: q.fr || 'none', nf: q.nf || 'none', lv: q.lv || 1, ah: q.ah || 0, g: q.res ? (q.g || null) : null, earn: over ? (q.earn || 0) : 0,
       asks: over ? q.asks : 0, used: over ? q.used : 0, t: over ? q.t : 0,
       ch: (over || q.res || (q.pid !== p.pid && r.phase !== 'lobby')) ? q.ch : null
     }))
@@ -637,7 +656,20 @@ const nextTurn = r => {
     if (!r.players[k].res) return (r.turn = k);
   }
 };
-function finish(r) { r.phase = 'over'; r.players.forEach(p => { if (p.res === 'win') p.wins = (p.wins || 0) + 1; }); send(r); }
+function finish(r) {
+  r.phase = 'over';
+  const wins = r.players.filter(p => p.res === 'win').sort((a, b) => a.t - b.t);
+  r.players.forEach(p => {
+    if (p.res === 'win') p.wins = (p.wins || 0) + 1;
+    let e = 10;                                   // เหรียญ: เข้าร่วม 10, ชนะ 50, เร็วสุด +20, โบนัสความเร็วสูงสุด +30, โหมดยากคูณ 1.5
+    if (p.res === 'win') {
+      e = 50; if (wins[0] === p) e += 20;
+      if (r.set.time > 0) e += Math.round(30 * Math.max(0, 1 - p.t / (r.set.time * 60000)));
+    }
+    p.earn = Math.round(e * (r.set.mode === 'hard' ? 1.5 : 1));
+  });
+  send(r);
+}
 
 setInterval(() => {
   const now = Date.now();
@@ -688,12 +720,12 @@ setInterval(() => {              // คนหลุด: รอกลับเข
 }, 1000);
 
 io.on('connection', sock => {
-  sock.emit('meta', { v: 4, animes: ANIMES, chars: CH.map(c => [c[0], c[2], hasImg(slugOf(c[0])) ? slugOf(c[0]) : '', c[1]]) });
+  sock.emit('meta', { v: 5, ver: APP_VERSION, animes: ANIMES, chars: CH.map(c => [c[0], c[2], hasImg(slugOf(c[0])) ? slugOf(c[0]) : '', c[1]]) });
   const find = () => Object.values(rooms).find(r => r.players.some(p => p.sid === sock.id));
   const me = r => r && r.players.find(p => p.sid === sock.id);
   const err = m => sock.emit('err', m);
 
-  sock.on('create', ({ name, pid, set }) => {
+  sock.on('create', ({ name, pid, set, prof }) => {
     let code; do { code = Math.random().toString(36).slice(2, 7).toUpperCase(); } while (rooms[code]);
     const time = [8, 10, 15, 20, 30, 0].includes(+set.time) ? +set.time : 10;
     const animes = set.animes === 'ALL' ? 'ALL' : (set.animes || []).filter(a => ANIMES.includes(a));
@@ -703,20 +735,23 @@ io.on('connection', sock => {
       set: { time, max: Math.min(10, Math.max(2, +set.max || 4)), animes, mode: set.mode === 'hard' ? 'hard' : 'easy', cards: !!set.cards, cardCount: Math.min(5, Math.max(1, +set.cardCount || 2)) }
     };
     r.players.push({ pid, name: String(name || '').trim().slice(0, 16) || 'Player ' + (r.players.length + 1), sid: sock.id, cards: [], hints: [], qlog: [], asks: 0, used: 0 });
+    if (prof) applyProf(r.players[0], prof);
     send(r);
   });
 
-  sock.on('join', ({ code, name, pid }) => {
+  sock.on('join', ({ code, name, pid, prof }) => {
     const r = rooms[String(code).toUpperCase()];
     if (!r) return err('ไม่พบห้องนี้');
     const nm = String(name || '').trim().slice(0, 16);
     const old = r.players.find(p => p.pid === pid);
-    if (old) { old.sid = sock.id; old.off = 0; if (nm) old.name = nm; return send(r); }
+    if (old) { old.sid = sock.id; old.off = 0; if (nm) old.name = nm; if (prof) applyProf(old, prof); return send(r); }
     const ghost = nm ? r.players.find(p => !p.sid && p.name.toLowerCase() === nm.toLowerCase()) : null;   // คนที่หลุดอยู่ ใช้ชื่อเดิมเพื่อกลับเข้าที่เดิม
-    if (ghost) { const op = ghost.pid; ghost.pid = pid; ghost.sid = sock.id; ghost.off = 0; if (r.owner === op) r.owner = pid; if (r.qa && r.qa.asker === op) r.qa.asker = pid; return send(r); }
+    if (ghost) { const op = ghost.pid; ghost.pid = pid; ghost.sid = sock.id; ghost.off = 0; if (r.owner === op) r.owner = pid; if (r.qa && r.qa.asker === op) r.qa.asker = pid; if (prof) applyProf(ghost, prof); return send(r); }
     if (r.phase !== 'lobby') return err('เกมเริ่มไปแล้ว ถ้าคุณเคยอยู่ในห้องนี้ ให้ใช้ชื่อเดิมเข้าร่วม (ถ้าเพิ่งหลุด รอประมาณ 20 วินาทีแล้วลองใหม่)');
     if (r.players.length >= r.set.max) return err('ห้องเต็มแล้ว');
-    r.players.push({ pid, name: nm || 'Player ' + (r.players.length + 1), sid: sock.id, cards: [], hints: [], qlog: [], asks: 0, used: 0 });
+    const np = { pid, name: nm || 'Player ' + (r.players.length + 1), sid: sock.id, cards: [], hints: [], qlog: [], asks: 0, used: 0 };
+    if (prof) applyProf(np, prof);
+    r.players.push(np);
     send(r);
   });
 
@@ -734,7 +769,7 @@ io.on('connection', sock => {
     r.players.forEach((q, i) => {
       q.full = picks[i]; q.ch = { n: picks[i][0], a: picks[i][2], i: (slug => hasImg(slug) ? slug : '')(picks[i][0].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')) };
       q.cards = [];
-      q.hints = []; q.qlog = []; q.res = null; q.ready = false; q.asks = 0; q.used = 0; q.t = 0;
+      q.hints = []; q.qlog = []; q.res = null; q.ready = false; q.asks = 0; q.used = 0; q.t = 0; q.g = null; q.earn = 0;
     });
     if (r.set.cards) {
       const cnt = {}; CARDS.forEach(t => cnt[t] = 0);
@@ -781,12 +816,21 @@ io.on('connection', sock => {
     if (!r || !['play', 'final'].includes(r.phase) || p.res) return;
     p.res = accepts(p.full).has(norm(text)) ? 'win' : 'lose';
     p.t = Date.now() - r.startAt;
+    const gt = String(text == null ? '' : text).trim().slice(0, 60), gn = norm(gt);
+    if (p.res === 'win') p.g = { n: p.ch.n };
+    else {                       // ตอบผิด: หาว่าที่ตอบคือตัวละครตัวไหน จะได้ให้เพื่อนในห้องเห็น
+      const mc = CH.find(c => [norm(c[0]), ...c[1].split('|').map(norm)].includes(gn)) || CH.find(c => accepts(c).has(gn));
+      if (mc) { const sl = slugOf(mc[0]); p.g = { n: mc[0], th: mc[1].split('|')[0], a: mc[2], i: hasImg(sl) ? sl : '' }; }
+      else p.g = { n: gt || '(ไม่ได้พิมพ์)' };
+    }
     const first = p.res === 'win' && !r.players.some(q => q !== p && q.res === 'win');
-    r.players.forEach(q => q.sid && io.to(q.sid).emit('solved', { pid: p.pid, name: p.name, win: p.res === 'win', first, ch: p.ch }));
+    r.players.forEach(q => q.sid && io.to(q.sid).emit('solved', { pid: p.pid, name: p.name, win: p.res === 'win', first, ch: p.ch, g: p.g }));
     if (r.phase === 'play' && r.players[r.turn].pid === p.pid) nextTurn(r);
     send(r);
   });
 
+  sock.on('prof', d => { const r = find(), p = me(r); if (!r || !p) return; if (Date.now() - (p.lp || 0) < 300) return; p.lp = Date.now(); applyProf(p, d); send(r); });
+  sock.on('getav', pids => { const r = find(); if (r) sendAv(sock, r.players, pids); });
   sock.on('rename', n => { const r = find(), p = me(r); if (!r || !p) return; p.name = String(n || '').trim().slice(0, 16) || p.name; send(r); });
 
   sock.on('leave', () => { const r = find(), p = me(r); if (r && p) removePlayer(r, p); });
@@ -838,7 +882,7 @@ io.on('connection', sock => {
   sock.on('again', () => {
     const r = find(), p = me(r);
     if (!r || r.owner !== p.pid || r.phase !== 'over') return;
-    r.phase = 'lobby'; r.players.forEach(q => { q.ch = null; q.full = null; q.res = null; q.ready = false; q.cards = []; q.hints = []; q.qlog = []; });
+    r.phase = 'lobby'; r.players.forEach(q => { q.ch = null; q.full = null; q.res = null; q.ready = false; q.cards = []; q.hints = []; q.qlog = []; q.g = null; q.earn = 0; });
     send(r);
   });
 });
@@ -864,9 +908,9 @@ function qzBank() {
 }
 function qzView(r, p) {
   const v = {
-    code: r.code, phase: r.phase, you: p.pid, owner: r.owner === p.pid, ownerPid: r.owner, set: r.set, n: r.qs.length, i: r.i,
+    code: r.code, phase: r.phase, you: p.pid, rid: r.rid || 0, owner: r.owner === p.pid, ownerPid: r.owner, set: r.set, n: r.qs.length, i: r.i,
     players: r.players.map(x => ({
-      pid: x.pid, name: x.name, score: x.score, ok: x.ok, streak: x.streak, online: x.online,
+      pid: x.pid, name: x.name, score: x.score, ok: x.ok, streak: x.streak, online: x.online, fr: x.fr || 'none', nf: x.nf || 'none', lv: x.lv || 1, ah: x.ah || 0,
       answered: r.phase === 'q' ? x.ans !== null : undefined,
       delta: r.phase === 'reveal' ? x.delta : undefined,
       pick: r.phase === 'reveal' ? x.ans : undefined
@@ -934,22 +978,26 @@ io.on('connection', sock => {
   const qerr = m => sock.emit('qz:err', m);
   const newPlayer = (pid, name, sid) => ({ pid, name: String(name || '').trim().slice(0, 16) || 'Player', sid, online: true, score: 0, ok: 0, streak: 0, ans: null, delta: 0, ms: 0 });
 
-  sock.on('qz:create', ({ name, pid }) => {
+  sock.on('qz:create', ({ name, pid, prof }) => {
     if (!pid) return;
     const old = qfind(); if (old) { const o = qme(old); o.online = false; o.sid = null; qzDrop(old, o); }
     let code; do { code = Math.random().toString(36).slice(2, 7).toUpperCase(); } while (QROOMS[code]);
     const r = QROOMS[code] = { code, owner: pid, phase: 'lobby', players: [newPlayer(pid, name, sock.id)], set: { anime: 'ALL', count: 10, time: 20, imgOnly: false }, seen: new Set(), qs: [], i: 0, cur: null };
+    if (prof) applyProf(r.players[0], prof);
     qzSend(r);
   });
-  sock.on('qz:join', ({ code, name, pid }) => {
+  sock.on('qz:join', ({ code, name, pid, prof }) => {
     const r = QROOMS[String(code || '').trim().toUpperCase()];
     if (!r || !pid) return qerr('ไม่พบห้องนี้');
     let p = r.players.find(x => x.pid === pid);
     if (!p && name) { const g = r.players.find(x => !x.online && x.name.toLowerCase() === String(name).trim().toLowerCase()); if (g) { if (r.owner === g.pid) r.owner = pid; g.pid = pid; p = g; } }   // กลับเข้าด้วยชื่อเดิม
     if (p) { p.sid = sock.id; p.online = true; if (name) p.name = String(name).trim().slice(0, 16) || p.name; }
     else { if (r.players.length >= 12) return qerr('ห้องเต็มแล้ว (สูงสุด 12 คน)'); p = newPlayer(pid, name, sock.id); r.players.push(p); }
+    if (prof) applyProf(p, prof);
     r.emptyAt = 0; qzSend(r);
   });
+  sock.on('qz:prof', d => { const r = qfind(), p = qme(r); if (!r || !p) return; applyProf(p, d); qzSend(r); });
+  sock.on('qz:getav', pids => { const r = qfind(); if (r) sendAv(sock, r.players, pids); });
   sock.on('qz:set', d => {
     const r = qfind(), p = qme(r); if (!r || !p || r.owner !== p.pid || r.phase !== 'lobby') return;
     const names = new Set(qzBank().map(q => q.a));
@@ -968,7 +1016,7 @@ io.on('connection', sock => {
     if (!pool.length) return qerr(r.set.imgOnly ? 'ยังไม่มีคำถามที่มีรูปในหมวดนี้' : 'ไม่มีคำถามในหมวดนี้');
     const fresh = qzShuffle(pool.filter(q => !r.seen.has(q._id))), old = qzShuffle(pool.filter(q => r.seen.has(q._id)));
     r.qs = [...fresh, ...old].slice(0, r.set.count || pool.length);   // ข้อที่ยังไม่เคยออกในห้องนี้จะมาก่อนเสมอ
-    r.i = 0; r.players.forEach(x => { x.score = 0; x.ok = 0; x.streak = 0; });
+    r.rid = (r.rid || 0) + 1; r.i = 0; r.players.forEach(x => { x.score = 0; x.ok = 0; x.streak = 0; });
     qzAsk(r);
   });
   sock.on('qz:answer', i => {
