@@ -1,19 +1,7 @@
 const express = require('express'), http = require('http'), { Server } = require('socket.io');
 const fs = require('fs'), path = require('path');
-const app = express(), srv = http.createServer(app), io = new Server(srv, { pingInterval: 10000, pingTimeout: 8000 });
-const PUB = path.join(__dirname, 'public');
-const CANDS = [PUB, __dirname];
-// ถ้ามี index.html ทั้งในราก และ public ให้ใช้ฉบับที่ใหม่กว่า (ดูจากเลข <!-- ag-build:xxxx --> ใน index.html)
-const buildOf = d => { try { const m = /ag-build:(\d+)/.exec(fs.readFileSync(path.join(d, 'index.html'), 'utf8')); return m ? +m[1] : 0; } catch (e) { return -1; } };
-const WEB = (CANDS.map(d => [d, buildOf(d)]).filter(x => x[1] >= 0).sort((a, b) => b[1] - a[1])[0] || [__dirname])[0];
-const IMGDIRS = [path.join(WEB, 'img'), path.join(PUB, 'img'), __dirname];
-const hasImg = slug => IMGDIRS.some(d => fs.existsSync(path.join(d, slug + '.jpg')));
-IMGDIRS.forEach(d => app.use('/img', express.static(d)));
-app.use(express.static(WEB));
-CANDS.filter(d => d !== WEB).forEach(d => app.use(express.static(d)));
-app.get('/', (req, res) => res.sendFile(path.join(WEB, 'index.html')));
-app.get('/__info', (req, res) => res.json({ web: path.basename(WEB) === 'public' ? 'public/' : 'root', builds: CANDS.map(d => [path.basename(d) === 'public' ? 'public/' : 'root', buildOf(d)]), quizQuestions: qzBank().length, version: APP_VERSION, quizRooms: Object.keys(QROOMS).length, rooms: Object.keys(rooms).length }));
-const GRACE = +process.env.AG_GRACE || 120000, GRACE_LOBBY = +process.env.AG_GRACE_LOBBY || 60000;
+const app = express(), srv = http.createServer(app), io = new Server(srv);
+app.use(express.static('public'));
 
 // [name, aliases, anime, era, world, ability, side, role]
 const CH = [
@@ -610,38 +598,19 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '2.3';
-const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
-const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
-const AV_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/;
-function cleanProf(d) {
-  d = d && typeof d === 'object' ? d : {};
-  const o = { fr: FRAMES.has(d.fr) ? d.fr : 'none', nf: NFX.has(d.nf) ? d.nf : 'none', lv: Math.min(99, Math.max(1, parseInt(d.lv) || 1)), av: '' };
-  if (typeof d.av === 'string' && d.av.length <= 24000 && AV_RE.test(d.av)) o.av = d.av;
-  return o;
-}
-function applyProf(p, d) {
-  const o = cleanProf(d);
-  p.fr = o.fr; p.nf = o.nf; p.lv = o.lv;
-  if (o.av !== (p.av || '')) { p.av = o.av; p.ah = o.av ? (p.ah || 0) + 1 : 0; }
-}
-const sendAv = (sock, list, pids) => (Array.isArray(pids) ? pids : []).slice(0, 12).forEach(pid => {
-  const q = list.find(x => x.pid === pid); if (q && q.av) sock.emit('av', { pid: q.pid, ah: q.ah, src: q.av });
-});
 const pick = a => a[Math.floor(Math.random() * a.length)];
 
 function view(r, p) {
   const t = r.phase === 'play' ? r.endsAt : r.phase === 'final' ? r.finalEnd : r.phase === 'countdown' ? r.cdEnd : 0;
   const over = r.phase === 'over';
   return {
-    code: r.code, phase: r.phase, set: r.set, you: p.pid, owner: r.owner === p.pid, rid: r.startAt || 0,
+    code: r.code, phase: r.phase, set: r.set, you: p.pid, owner: r.owner === p.pid,
     left: t ? Math.max(0, t - Date.now()) : 0,
     turn: r.phase === 'play' ? r.players[r.turn].pid : null,
     canCard: r.phase === 'play' && r.players[r.turn].pid === p.pid && !r.cardUsed,
     cards: p.cards, qlog: p.qlog || [], qa: r.phase === 'play' && r.qa ? { asker: r.qa.asker, askerName: r.qa.askerName, card: r.qa.card, q: r.qa.q, answers: r.qa.entry.answers, guide: r.qa.asker === p.pid ? null : r.qa.guide } : null, res: p.res,
     players: r.players.map(q => ({
-      pid: q.pid, name: q.name, off: !q.sid, ready: q.ready, res: q.res, cards: q.cards.length, wins: q.wins || 0,
-      fr: q.fr || 'none', nf: q.nf || 'none', lv: q.lv || 1, ah: q.ah || 0, g: q.res ? (q.g || null) : null, earn: over ? (q.earn || 0) : 0,
+      pid: q.pid, name: q.name, ready: q.ready, res: q.res, cards: q.cards.length, wins: q.wins || 0, frame: q.frame || '',
       asks: over ? q.asks : 0, used: over ? q.used : 0, t: over ? q.t : 0,
       ch: (over || q.res || (q.pid !== p.pid && r.phase !== 'lobby')) ? q.ch : null
     }))
@@ -656,27 +625,14 @@ const nextTurn = r => {
     if (!r.players[k].res) return (r.turn = k);
   }
 };
-function finish(r) {
-  r.phase = 'over';
-  const wins = r.players.filter(p => p.res === 'win').sort((a, b) => a.t - b.t);
-  r.players.forEach(p => {
-    if (p.res === 'win') p.wins = (p.wins || 0) + 1;
-    let e = 10;                                   // เหรียญ: เข้าร่วม 10, ชนะ 50, เร็วสุด +20, โบนัสความเร็วสูงสุด +30, โหมดยากคูณ 1.5
-    if (p.res === 'win') {
-      e = 50; if (wins[0] === p) e += 20;
-      if (r.set.time > 0) e += Math.round(30 * Math.max(0, 1 - p.t / (r.set.time * 60000)));
-    }
-    p.earn = Math.round(e * (r.set.mode === 'hard' ? 1.5 : 1));
-  });
-  send(r);
-}
+function finish(r) { r.phase = 'over'; r.players.forEach(p => { if (p.res === 'win') p.wins = (p.wins || 0) + 1; }); send(r); }
 
 setInterval(() => {
   const now = Date.now();
   for (const r of Object.values(rooms)) {
     if (r.phase === 'play') {
       if (!unresolved(r).length) finish(r);
-      else if (r.endsAt && now >= r.endsAt) { r.phase = 'final'; r.finalEnd = now + 30000; send(r); }
+      else if (now >= r.endsAt) { r.phase = 'final'; r.finalEnd = now + 30000; send(r); }
       else send(r);
     } else if (r.phase === 'final') {
       if (!unresolved(r).length) finish(r);
@@ -686,48 +642,15 @@ setInterval(() => {
   }
 }, 1000);
 
-function startCountdown(r) {
-  r.phase = 'countdown'; r.cdEnd = Date.now() + 3500;
-  setTimeout(() => { if (r.phase !== 'countdown') return; r.phase = 'play'; r.startAt = Date.now(); r.endsAt = r.set.time ? r.startAt + r.set.time * 60000 : 0; r.turn = 0; r.cardUsed = false; r.qa = null; send(r); }, 3500);
-}
-function removePlayer(r, p) {     // ตัดผู้เล่นออกจากห้อง/เกม (กดออกเอง หรือหลุดนานเกินกำหนด)
-  const i = r.players.indexOf(p); if (i < 0) return;
-  r.players.splice(i, 1);
-  if (!r.players.length) { delete rooms[r.code]; return; }
-  if (r.owner === p.pid) r.owner = (r.players.find(q => q.sid) || r.players[0]).pid;
-  if (r.qa && r.qa.asker === p.pid) r.qa = null;
-  if (i === r.turn) { r.cardUsed = false; r.qa = null; }
-  if (i < r.turn) r.turn--;
-  if (r.turn >= r.players.length) r.turn = 0;
-  if (!['lobby', 'over'].includes(r.phase) && r.players.length < 2) {
-    r.phase = 'lobby';
-    r.players.forEach(q => { q.ch = null; q.full = null; q.res = null; q.ready = false; q.cards = []; q.hints = []; q.qlog = []; });
-  } else if (r.phase === 'play' && r.players[r.turn] && r.players[r.turn].res) nextTurn(r);
-  else if (r.phase === 'brief' && r.players.every(q => q.ready)) startCountdown(r);
-  send(r);
-}
-setInterval(() => {              // คนหลุด: รอกลับเข้าห้อง / ข้ามตา / ตัดออกเมื่อหลุดนานเกินไป
-  const now = Date.now();
-  for (const r of Object.values(rooms)) {
-    for (const p of [...r.players]) {
-      if (p.off && now - p.off > (['lobby', 'over'].includes(r.phase) ? GRACE_LOBBY : GRACE)) { removePlayer(r, p); if (!rooms[r.code]) break; }
-    }
-    if (!rooms[r.code]) continue;
-    if (!r.players.some(p => p.sid)) { if (now - Math.max(...r.players.map(p => p.off || 0)) > 30 * 60 * 1000) delete rooms[r.code]; continue; }
-    if (r.phase === 'brief') { r.players.forEach(q => { if (!q.sid) q.ready = true; }); if (r.players.every(q => q.ready)) { startCountdown(r); send(r); } }
-    if (r.phase === 'play' && r.players[r.turn] && !r.players[r.turn].sid) { nextTurn(r); send(r); }
-  }
-}, 1000);
-
 io.on('connection', sock => {
-  sock.emit('meta', { v: 5, ver: APP_VERSION, animes: ANIMES, chars: CH.map(c => [c[0], c[2], hasImg(slugOf(c[0])) ? slugOf(c[0]) : '', c[1]]) });
+  sock.emit('meta', { v: 4, animes: ANIMES, chars: CH.map(c => [c[0], c[2], fs.existsSync(path.join(__dirname, 'public', 'img', slugOf(c[0]) + '.jpg')) ? slugOf(c[0]) : '', c[1]]) });
   const find = () => Object.values(rooms).find(r => r.players.some(p => p.sid === sock.id));
   const me = r => r && r.players.find(p => p.sid === sock.id);
   const err = m => sock.emit('err', m);
 
-  sock.on('create', ({ name, pid, set, prof }) => {
+  sock.on('create', ({ name, pid, set }) => {
     let code; do { code = Math.random().toString(36).slice(2, 7).toUpperCase(); } while (rooms[code]);
-    const time = [8, 10, 15, 20, 30, 0].includes(+set.time) ? +set.time : 10;
+    const time = [8, 10, 15, 20].includes(+set.time) ? +set.time : 10;
     const animes = set.animes === 'ALL' ? 'ALL' : (set.animes || []).filter(a => ANIMES.includes(a));
     if (animes !== 'ALL' && animes.length === 0) return err('เลือกอนิเมะอย่างน้อย 1 เรื่อง');
     const r = rooms[code] = {
@@ -735,23 +658,17 @@ io.on('connection', sock => {
       set: { time, max: Math.min(10, Math.max(2, +set.max || 4)), animes, mode: set.mode === 'hard' ? 'hard' : 'easy', cards: !!set.cards, cardCount: Math.min(5, Math.max(1, +set.cardCount || 2)) }
     };
     r.players.push({ pid, name: String(name || '').trim().slice(0, 16) || 'Player ' + (r.players.length + 1), sid: sock.id, cards: [], hints: [], qlog: [], asks: 0, used: 0 });
-    if (prof) applyProf(r.players[0], prof);
     send(r);
   });
 
-  sock.on('join', ({ code, name, pid, prof }) => {
+  sock.on('join', ({ code, name, pid }) => {
     const r = rooms[String(code).toUpperCase()];
     if (!r) return err('ไม่พบห้องนี้');
-    const nm = String(name || '').trim().slice(0, 16);
     const old = r.players.find(p => p.pid === pid);
-    if (old) { old.sid = sock.id; old.off = 0; if (nm) old.name = nm; if (prof) applyProf(old, prof); return send(r); }
-    const ghost = nm ? r.players.find(p => !p.sid && p.name.toLowerCase() === nm.toLowerCase()) : null;   // คนที่หลุดอยู่ ใช้ชื่อเดิมเพื่อกลับเข้าที่เดิม
-    if (ghost) { const op = ghost.pid; ghost.pid = pid; ghost.sid = sock.id; ghost.off = 0; if (r.owner === op) r.owner = pid; if (r.qa && r.qa.asker === op) r.qa.asker = pid; if (prof) applyProf(ghost, prof); return send(r); }
-    if (r.phase !== 'lobby') return err('เกมเริ่มไปแล้ว ถ้าคุณเคยอยู่ในห้องนี้ ให้ใช้ชื่อเดิมเข้าร่วม (ถ้าเพิ่งหลุด รอประมาณ 20 วินาทีแล้วลองใหม่)');
+    if (old) { old.sid = sock.id; if (name && String(name).trim()) old.name = String(name).trim().slice(0, 16); return send(r); }
+    if (r.phase !== 'lobby') return err('เกมเริ่มไปแล้ว');
     if (r.players.length >= r.set.max) return err('ห้องเต็มแล้ว');
-    const np = { pid, name: nm || 'Player ' + (r.players.length + 1), sid: sock.id, cards: [], hints: [], qlog: [], asks: 0, used: 0 };
-    if (prof) applyProf(np, prof);
-    r.players.push(np);
+    r.players.push({ pid, name: String(name || '').trim().slice(0, 16) || 'Player ' + (r.players.length + 1), sid: sock.id, cards: [], hints: [], qlog: [], asks: 0, used: 0 });
     send(r);
   });
 
@@ -767,9 +684,9 @@ io.on('connection', sock => {
       picks.push(c); seen.add(c[2]);
     });
     r.players.forEach((q, i) => {
-      q.full = picks[i]; q.ch = { n: picks[i][0], a: picks[i][2], i: (slug => hasImg(slug) ? slug : '')(picks[i][0].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')) };
+      q.full = picks[i]; q.ch = { n: picks[i][0], a: picks[i][2], i: (slug => fs.existsSync(path.join(__dirname, 'public', 'img', slug + '.jpg')) ? slug : '')(picks[i][0].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')) };
       q.cards = [];
-      q.hints = []; q.qlog = []; q.res = null; q.ready = false; q.asks = 0; q.used = 0; q.t = 0; q.g = null; q.earn = 0;
+      q.hints = []; q.qlog = []; q.res = null; q.ready = false; q.asks = 0; q.used = 0; q.t = 0;
     });
     if (r.set.cards) {
       const cnt = {}; CARDS.forEach(t => cnt[t] = 0);
@@ -787,7 +704,10 @@ io.on('connection', sock => {
     const r = find(), p = me(r);
     if (!r || r.phase !== 'brief') return;
     p.ready = true;
-    if (r.players.every(q => q.ready)) startCountdown(r);
+    if (r.players.every(q => q.ready)) {
+      r.phase = 'countdown'; r.cdEnd = Date.now() + 3500;
+      setTimeout(() => { if (r.phase !== 'countdown') return; r.phase = 'play'; r.startAt = Date.now(); r.endsAt = r.startAt + r.set.time * 60000; r.turn = 0; r.cardUsed = false; r.qa = null; send(r); }, 3500);
+    }
     send(r);
   });
 
@@ -816,29 +736,28 @@ io.on('connection', sock => {
     if (!r || !['play', 'final'].includes(r.phase) || p.res) return;
     p.res = accepts(p.full).has(norm(text)) ? 'win' : 'lose';
     p.t = Date.now() - r.startAt;
-    const gt = String(text == null ? '' : text).trim().slice(0, 60), gn = norm(gt);
-    if (p.res === 'win') p.g = { n: p.ch.n };
-    else {                       // ตอบผิด: หาว่าที่ตอบคือตัวละครตัวไหน จะได้ให้เพื่อนในห้องเห็น
-      const mc = CH.find(c => [norm(c[0]), ...c[1].split('|').map(norm)].includes(gn)) || CH.find(c => accepts(c).has(gn));
-      if (mc) { const sl = slugOf(mc[0]); p.g = { n: mc[0], th: mc[1].split('|')[0], a: mc[2], i: hasImg(sl) ? sl : '' }; }
-      else p.g = { n: gt || '(ไม่ได้พิมพ์)' };
-    }
     const first = p.res === 'win' && !r.players.some(q => q !== p && q.res === 'win');
-    r.players.forEach(q => q.sid && io.to(q.sid).emit('solved', { pid: p.pid, name: p.name, win: p.res === 'win', first, ch: p.ch, g: p.g }));
+    r.players.forEach(q => q.sid && io.to(q.sid).emit('solved', { pid: p.pid, name: p.name, win: p.res === 'win', first, ch: p.ch }));
     if (r.phase === 'play' && r.players[r.turn].pid === p.pid) nextTurn(r);
     send(r);
   });
 
-  sock.on('prof', d => { const r = find(), p = me(r); if (!r || !p) return; if (Date.now() - (p.lp || 0) < 300) return; p.lp = Date.now(); applyProf(p, d); send(r); });
-  sock.on('getav', pids => { const r = find(); if (r) sendAv(sock, r.players, pids); });
   sock.on('rename', n => { const r = find(), p = me(r); if (!r || !p) return; p.name = String(n || '').trim().slice(0, 16) || p.name; send(r); });
 
-  sock.on('leave', () => { const r = find(), p = me(r); if (r && p) removePlayer(r, p); });
-  sock.on('disconnect', () => { const r = find(), p = me(r); if (!r || !p) return; p.sid = null; p.off = Date.now(); send(r); });
-  sock.on('forceFinal', () => {      // เจ้าของห้องจบเกมแบบไม่จำกัดเวลา -> ทุกคนมีเวลาตอบครั้งสุดท้าย 30 วินาที
-    const r = find(), p = me(r);
-    if (!r || !p || r.owner !== p.pid || r.phase !== 'play' || r.set.time !== 0) return;
-    r.phase = 'final'; r.finalEnd = Date.now() + 30000; send(r);
+  sock.on('leave', () => {
+    const r = find(); if (!r) return;
+    const i = r.players.findIndex(p => p.sid === sock.id), p = r.players[i];
+    r.players.splice(i, 1);
+    if (!r.players.length) { delete rooms[r.code]; return; }
+    if (r.owner === p.pid) r.owner = r.players[0].pid;
+    if (i === r.turn) r.cardUsed = false;
+    if (i < r.turn) r.turn--;
+    if (r.turn >= r.players.length) r.turn = 0;
+    if (!['lobby', 'over'].includes(r.phase) && r.players.length < 2) {
+      r.phase = 'lobby';
+      r.players.forEach(q => { q.ch = null; q.full = null; q.res = null; q.ready = false; q.cards = []; q.hints = []; q.qlog = []; });
+    }
+    send(r);
   });
 
   sock.on('react', ans => {
@@ -872,6 +791,12 @@ io.on('connection', sock => {
     r.chat.push(m); if (r.chat.length > 60) r.chat.shift();
     r.players.forEach(q => q.sid && io.to(q.sid).emit('chat', m));
   });
+  sock.on('frame', f => {
+    const r = find(), p = me(r);
+    if (!r || !['', 'gold', 'royal', 'dark', 'tape'].includes(f)) return;
+    p.frame = f; send(r);
+  });
+
   sock.on('emote', e => {
     const r = find(), p = me(r);
     if (!r || !['👏', '😂', '😱', '🤔', '🔥', '❤️', '🙈', '🎉'].includes(e)) return;
@@ -882,162 +807,9 @@ io.on('connection', sock => {
   sock.on('again', () => {
     const r = find(), p = me(r);
     if (!r || r.owner !== p.pid || r.phase !== 'over') return;
-    r.phase = 'lobby'; r.players.forEach(q => { q.ch = null; q.full = null; q.res = null; q.ready = false; q.cards = []; q.hints = []; q.qlog = []; q.g = null; q.earn = 0; });
+    r.phase = 'lobby'; r.players.forEach(q => { q.ch = null; q.full = null; q.res = null; q.ready = false; q.cards = []; q.hints = []; q.qlog = []; });
     send(r);
   });
-});
-
-// ================= โหมดแฟนพันธุ์แท้: ห้องแข่งหลายคน (แยกจากเกมทายตัวละคร ใช้ event qz:*) =================
-const QROOMS = {};
-const QZ_REVEAL_MS = 12000;           // เวลาโชว์เฉลยก่อนข้ามไปข้อถัดไปเอง
-const QZ_COUNTS = [10, 20, 30, 50, 100, 0], QZ_TIMES = [10, 15, 20, 30];
-const qzShuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-let QBANK = [], QBANK_T = 0;
-function qzBank() {
-  try {
-    const fs_ = [WEB, ...CANDS].map(d => path.join(d, 'quiz.json')).filter(x => fs.existsSync(x)).sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
-    const f = fs_[0], m = fs.statSync(f).mtimeMs;
-    if (m !== QBANK_T) {
-      const j = JSON.parse(fs.readFileSync(f, 'utf8'));
-      QBANK = (Array.isArray(j) ? j : []).filter(q => q && q.a && q.q && q.c && Array.isArray(q.w) && q.w.length >= 1);
-      QBANK.forEach((q, i) => { q._id = i; });
-      QBANK_T = m;
-    }
-  } catch (e) { console.log('quiz.json:', e.message); }
-  return QBANK;
-}
-function qzView(r, p) {
-  const v = {
-    code: r.code, phase: r.phase, you: p.pid, rid: r.rid || 0, owner: r.owner === p.pid, ownerPid: r.owner, set: r.set, n: r.qs.length, i: r.i,
-    players: r.players.map(x => ({
-      pid: x.pid, name: x.name, score: x.score, ok: x.ok, streak: x.streak, online: x.online, fr: x.fr || 'none', nf: x.nf || 'none', lv: x.lv || 1, ah: x.ah || 0,
-      answered: r.phase === 'q' ? x.ans !== null : undefined,
-      delta: r.phase === 'reveal' ? x.delta : undefined,
-      pick: r.phase === 'reveal' ? x.ans : undefined
-    }))
-  };
-  if (r.phase === 'lobby') {
-    const by = {};
-    qzBank().forEach(q => { const a = by[q.a] = by[q.a] || { name: q.a, count: 0, img: 0 }; a.count++; if (q.img) a.img++; });
-    v.animes = Object.values(by);
-  }
-  if (r.cur && (r.phase === 'q' || r.phase === 'reveal')) {
-    const c = r.cur;
-    v.q = { text: c.q.q, img: c.q.img || '', t: c.q.t || '', a: c.q.a, opts: c.opts, time: r.set.time, left: Math.max(0, c.end - Date.now()) };
-    v.mine = p.ans;
-    if (r.phase === 'reveal') v.rev = { ci: c.ci, exp: c.q.e || '', nextIn: Math.max(0, r.nextAt - Date.now()) };
-  }
-  return v;
-}
-const qzSend = r => r.players.forEach(p => p.sid && p.online && io.to(p.sid).emit('qz:state', qzView(r, p)));
-function qzAsk(r) {
-  const q = r.qs[r.i], opts = qzShuffle([q.c, ...q.w.slice(0, 3)]);
-  r.seen.add(q._id);
-  r.cur = { q, opts, ci: opts.indexOf(q.c), start: Date.now(), end: Date.now() + r.set.time * 1000 };
-  r.players.forEach(p => { p.ans = null; p.delta = 0; p.ms = 0; });
-  r.phase = 'q'; qzSend(r);
-  clearTimeout(r.timer); r.timer = setTimeout(() => qzReveal(r), r.set.time * 1000 + 400);
-}
-function qzReveal(r) {
-  if (r.phase !== 'q') return;
-  clearTimeout(r.timer);
-  const c = r.cur, total = r.set.time * 1000;
-  r.players.forEach(p => {
-    if (p.ans !== null && p.ans === c.ci) {
-      p.streak++; p.ok++;
-      p.delta = 100 + Math.round(Math.max(0, total - p.ms) / total * 100) + (p.streak >= 3 ? 20 : 0);
-      p.score += p.delta;
-    } else { p.streak = 0; p.delta = 0; }
-  });
-  r.phase = 'reveal'; r.nextAt = Date.now() + QZ_REVEAL_MS; qzSend(r);
-  clearTimeout(r.auto); r.auto = setTimeout(() => qzNext(r), QZ_REVEAL_MS);
-}
-function qzNext(r) {
-  if (r.phase !== 'reveal') return;
-  clearTimeout(r.auto);
-  if (r.i + 1 >= r.qs.length) { r.phase = 'end'; qzSend(r); return; }
-  r.i++; qzAsk(r);
-}
-function qzCheckAll(r) {
-  if (r.phase !== 'q') return;
-  const on = r.players.filter(p => p.online);
-  if (on.length && on.every(p => p.ans !== null)) setTimeout(() => qzReveal(r), 700);
-}
-function qzDrop(r, p) {       // ผู้เล่นออกหรือหลุด
-  if (r.owner === p.pid) { const n = r.players.find(x => x.online && x.pid !== p.pid); if (n) r.owner = n.pid; }
-  if (!r.players.some(x => x.online)) r.emptyAt = Date.now();
-  qzSend(r); qzCheckAll(r);
-}
-setInterval(() => {            // ลบห้องที่ไม่มีใครออนไลน์เกิน 20 นาที
-  Object.keys(QROOMS).forEach(k => { const r = QROOMS[k]; if (!r.players.some(p => p.online) && Date.now() - (r.emptyAt || 0) > 20 * 60 * 1000) { clearTimeout(r.timer); clearTimeout(r.auto); delete QROOMS[k]; } });
-}, 60 * 1000);
-
-io.on('connection', sock => {
-  const qfind = () => Object.values(QROOMS).find(r => r.players.some(p => p.sid === sock.id));
-  const qme = r => r && r.players.find(p => p.sid === sock.id);
-  const qerr = m => sock.emit('qz:err', m);
-  const newPlayer = (pid, name, sid) => ({ pid, name: String(name || '').trim().slice(0, 16) || 'Player', sid, online: true, score: 0, ok: 0, streak: 0, ans: null, delta: 0, ms: 0 });
-
-  sock.on('qz:create', ({ name, pid, prof }) => {
-    if (!pid) return;
-    const old = qfind(); if (old) { const o = qme(old); o.online = false; o.sid = null; qzDrop(old, o); }
-    let code; do { code = Math.random().toString(36).slice(2, 7).toUpperCase(); } while (QROOMS[code]);
-    const r = QROOMS[code] = { code, owner: pid, phase: 'lobby', players: [newPlayer(pid, name, sock.id)], set: { anime: 'ALL', count: 10, time: 20, imgOnly: false }, seen: new Set(), qs: [], i: 0, cur: null };
-    if (prof) applyProf(r.players[0], prof);
-    qzSend(r);
-  });
-  sock.on('qz:join', ({ code, name, pid, prof }) => {
-    const r = QROOMS[String(code || '').trim().toUpperCase()];
-    if (!r || !pid) return qerr('ไม่พบห้องนี้');
-    let p = r.players.find(x => x.pid === pid);
-    if (!p && name) { const g = r.players.find(x => !x.online && x.name.toLowerCase() === String(name).trim().toLowerCase()); if (g) { if (r.owner === g.pid) r.owner = pid; g.pid = pid; p = g; } }   // กลับเข้าด้วยชื่อเดิม
-    if (p) { p.sid = sock.id; p.online = true; if (name) p.name = String(name).trim().slice(0, 16) || p.name; }
-    else { if (r.players.length >= 12) return qerr('ห้องเต็มแล้ว (สูงสุด 12 คน)'); p = newPlayer(pid, name, sock.id); r.players.push(p); }
-    if (prof) applyProf(p, prof);
-    r.emptyAt = 0; qzSend(r);
-  });
-  sock.on('qz:prof', d => { const r = qfind(), p = qme(r); if (!r || !p) return; applyProf(p, d); qzSend(r); });
-  sock.on('qz:getav', pids => { const r = qfind(); if (r) sendAv(sock, r.players, pids); });
-  sock.on('qz:set', d => {
-    const r = qfind(), p = qme(r); if (!r || !p || r.owner !== p.pid || r.phase !== 'lobby') return;
-    const names = new Set(qzBank().map(q => q.a));
-    d = d || {};
-    r.set = {
-      anime: d.anime === 'ALL' || names.has(d.anime) ? d.anime : 'ALL',
-      count: QZ_COUNTS.includes(+d.count) ? +d.count : 10,
-      time: QZ_TIMES.includes(+d.time) ? +d.time : 20,
-      imgOnly: !!d.imgOnly
-    };
-    qzSend(r);
-  });
-  sock.on('qz:start', () => {
-    const r = qfind(), p = qme(r); if (!r || !p || r.owner !== p.pid || r.phase !== 'lobby') return;
-    let pool = qzBank().filter(q => (r.set.anime === 'ALL' || q.a === r.set.anime) && (!r.set.imgOnly || q.img));
-    if (!pool.length) return qerr(r.set.imgOnly ? 'ยังไม่มีคำถามที่มีรูปในหมวดนี้' : 'ไม่มีคำถามในหมวดนี้');
-    const fresh = qzShuffle(pool.filter(q => !r.seen.has(q._id))), old = qzShuffle(pool.filter(q => r.seen.has(q._id)));
-    r.qs = [...fresh, ...old].slice(0, r.set.count || pool.length);   // ข้อที่ยังไม่เคยออกในห้องนี้จะมาก่อนเสมอ
-    r.rid = (r.rid || 0) + 1; r.i = 0; r.players.forEach(x => { x.score = 0; x.ok = 0; x.streak = 0; });
-    qzAsk(r);
-  });
-  sock.on('qz:answer', i => {
-    const r = qfind(), p = qme(r); if (!r || !p || r.phase !== 'q' || p.ans !== null) return;
-    i = Math.floor(+i); if (!(i >= 0 && i < r.cur.opts.length)) return;
-    p.ans = i; p.ms = Math.min(r.set.time * 1000, Date.now() - r.cur.start);
-    qzSend(r); qzCheckAll(r);
-  });
-  sock.on('qz:next', () => { const r = qfind(), p = qme(r); if (r && p && r.owner === p.pid) qzNext(r); });
-  sock.on('qz:again', () => {
-    const r = qfind(), p = qme(r); if (!r || !p || r.owner !== p.pid || r.phase !== 'end') return;
-    r.phase = 'lobby'; r.cur = null; r.qs = []; r.i = 0; r.players.forEach(x => { x.score = 0; x.ok = 0; x.streak = 0; x.ans = null; });
-    qzSend(r);
-  });
-  sock.on('qz:leave', () => {
-    const r = qfind(), p = qme(r); if (!r || !p) return;
-    r.players = r.players.filter(x => x !== p);
-    if (!r.players.length) { clearTimeout(r.timer); clearTimeout(r.auto); delete QROOMS[r.code]; return; }
-    p.online = false; qzDrop(r, p);
-  });
-  sock.on('disconnect', () => { const r = qfind(), p = qme(r); if (!r || !p) return; p.online = false; p.sid = null; qzDrop(r, p); });
 });
 
 srv.listen(process.env.PORT || 3000, () => console.log('ANIME GUESS running on :' + (process.env.PORT || 3000)));
