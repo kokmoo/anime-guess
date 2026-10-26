@@ -610,7 +610,7 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '2.8';
+const APP_VERSION = '2.9';
 const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
 const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
 let CFIDS = new Set(), CFM = 0;
@@ -631,6 +631,42 @@ function applyProf(p, d) {
   const o = cleanProf(d);
   p.fr = o.fr; p.nf = o.nf; p.cf = o.cf; p.lv = o.lv;
   if (o.av !== (p.av || '')) { p.av = o.av; p.ah = o.av ? (p.ah || 0) + 1 : 0; }
+}
+
+// ===== บัญชีผู้เล่น (เก็บบน Upstash Redis ผ่าน REST — ไม่ต้องลงแพ็กเกจเพิ่ม) =====
+// ตั้งค่าบน Render: UPSTASH_REDIS_REST_URL และ UPSTASH_REDIS_REST_TOKEN (ถ้าไม่ตั้ง เกมทำงานแบบแขกเหมือนเดิม)
+const nodeCrypto = require('crypto');
+const RURL = (process.env.UPSTASH_REDIS_REST_URL || '').replace(/\/$/, ''), RTOK = process.env.UPSTASH_REDIS_REST_TOKEN || '';
+const AUTH_ON = !!(RURL && RTOK && typeof fetch === 'function');
+async function rcmd(...c) {
+  const res = await fetch(RURL, { method: 'POST', headers: { Authorization: 'Bearer ' + RTOK, 'Content-Type': 'application/json' }, body: JSON.stringify(c), signal: AbortSignal.timeout(7000) });
+  const j = await res.json(); if (j.error) throw new Error(j.error); return j.result;
+}
+const ukey = n => 'u:' + String(n).normalize('NFKC').toLowerCase();
+const NAME_RE = /^[\p{L}\p{N}_\-.]{3,16}$/u;
+const hashPin = (pin, salt) => new Promise((ok, no) => nodeCrypto.scrypt(pin, salt, 32, (e, k) => e ? no(e) : ok(k.toString('hex'))));
+const FAILS = new Map();
+const tooMany = k => { const f = FAILS.get(k); return !!f && f.n >= 8 && Date.now() - f.t < 600000; };
+const noteFail = k => { const f = FAILS.get(k); if (!f || Date.now() - f.t > 600000) FAILS.set(k, { n: 1, t: Date.now() }); else { f.n++; f.t = Date.now(); } };
+const clampI = (v, a, b) => Math.min(b, Math.max(a, Math.floor(+v) || 0));
+function cleanAcct(d, old) {
+  d = d && typeof d === 'object' ? d : {};
+  const strs = (a, n, len) => (Array.isArray(a) ? a : []).filter(x => typeof x === 'string' && x.length <= len).slice(0, n);
+  const o = {
+    coins: clampI(d.coins, 0, 10000000), xp: clampI(d.xp, 0, 10000000),
+    owned: strs(d.owned, 300, 40), paid: strs(d.paid, 60, 60),
+    fr: FRAMES.has(d.fr) ? d.fr : 'none', nf: NFX.has(d.nf) ? d.nf : 'none',
+    games: clampI(d.games, 0, 1e6), wins: clampI(d.wins, 0, 1e6), qgames: clampI(d.qgames, 0, 1e6),
+    daily: typeof d.daily === 'string' ? d.daily.slice(0, 10) : '',
+    cfo: strs(d.cfo, 200, 40).filter(i => cfIds().has(i)),
+    gp: { s: clampI(d.gp && d.gp.s, 0, 1000), r: clampI(d.gp && d.gp.r, 0, 1000) }
+  };
+  o.cf = typeof d.cf === 'string' && o.cfo.includes(d.cf) ? d.cf : '';
+  o.av = typeof d.av === 'string' && d.av.length <= 24000 && AV_RE.test(d.av) ? d.av : '';
+  // กันการแก้ตัวเลขในเครื่องแบบก้าวกระโดด: เพิ่มได้ไม่เกินโควตาต่อการบันทึกหนึ่งครั้ง
+  o.coins = Math.min(o.coins, old ? old.coins + 6000 : 20000);
+  o.xp = Math.min(o.xp, old ? old.xp + 3000 : 20000);
+  return o;
 }
 const sendAv = (sock, list, pids) => (Array.isArray(pids) ? pids : []).slice(0, 12).forEach(pid => {
   const q = list.find(x => x.pid === pid); if (q && q.av) sock.emit('av', { pid: q.pid, ah: q.ah, src: q.av });
@@ -727,7 +763,7 @@ setInterval(() => {              // คนหลุด: รอกลับเข
 }, 1000);
 
 io.on('connection', sock => {
-  sock.emit('meta', { v: 5, ver: APP_VERSION, animes: ANIMES, chars: CH.map(c => [c[0], c[2], hasImg(slugOf(c[0])) ? slugOf(c[0]) : '', c[1]]) });
+  sock.emit('meta', { v: 5, ver: APP_VERSION, auth: AUTH_ON, animes: ANIMES, chars: CH.map(c => [c[0], c[2], hasImg(slugOf(c[0])) ? slugOf(c[0]) : '', c[1]]) });
   const find = () => Object.values(rooms).find(r => r.players.some(p => p.sid === sock.id));
   const me = r => r && r.players.find(p => p.sid === sock.id);
   const err = m => sock.emit('err', m);
@@ -745,6 +781,61 @@ io.on('connection', sock => {
     if (prof) applyProf(r.players[0], prof);
     send(r);
   });
+
+
+  // ----- บัญชี -----
+  const ipOf = () => String(sock.handshake.headers['x-forwarded-for'] || sock.handshake.address || '').split(',')[0].trim();
+  const aerr = m => sock.emit('auth:err', m);
+  const okAuth = (rec, tok) => { sock.data.acct = ukey(rec.name); sock.data.tok = tok; sock.emit('auth:ok', { name: rec.name, tok, prof: rec.prof, v: rec.v }); };
+  const newTok = async rec => { const tok = nodeCrypto.randomBytes(24).toString('hex'); await rcmd('SET', 't:' + tok, rec.name, 'EX', 7776000); return tok; };
+  sock.on('auth:register', async d => {
+    if (!AUTH_ON) return aerr('ระบบบัญชียังไม่เปิดใช้งาน');
+    try {
+      const name = String((d && d.name) || '').trim(), pin = String((d && d.pin) || '');
+      if (!NAME_RE.test(name)) return aerr('ชื่อบัญชี 3-16 ตัว ใช้ตัวอักษร ตัวเลข _ - . เท่านั้น');
+      if (pin.length < 4 || pin.length > 32) return aerr('PIN ต้องยาว 4-32 ตัว');
+      const fk = ipOf() + '|reg'; if (tooMany(fk)) return aerr('สมัครบ่อยเกินไป รอสักครู่แล้วลองใหม่'); noteFail(fk);
+      const salt = nodeCrypto.randomBytes(16).toString('hex');
+      const rec = { name, salt, hash: await hashPin(pin, salt), prof: cleanAcct(d.prof, null), v: 1, created: Date.now() };
+      if (!(await rcmd('SET', ukey(name), JSON.stringify(rec), 'NX'))) return aerr('ชื่อบัญชีนี้มีคนใช้แล้ว');
+      okAuth(rec, await newTok(rec));
+    } catch (e) { console.log('auth:register', e.message); aerr('ระบบบัญชีขัดข้อง ลองใหม่อีกครั้ง'); }
+  });
+  sock.on('auth:login', async d => {
+    if (!AUTH_ON) return aerr('ระบบบัญชียังไม่เปิดใช้งาน');
+    try {
+      const name = String((d && d.name) || '').trim(), pin = String((d && d.pin) || '');
+      if (!name || !pin) return aerr('ใส่ชื่อบัญชีและ PIN');
+      const fk = ipOf() + '|' + ukey(name); if (tooMany(fk)) return aerr('ใส่ผิดหลายครั้งเกินไป รอ 10 นาทีแล้วลองใหม่');
+      const raw = await rcmd('GET', ukey(name));
+      const rec = raw ? JSON.parse(raw) : null;
+      const h = await hashPin(pin, rec ? rec.salt : 'x'.repeat(32));
+      if (!rec || !nodeCrypto.timingSafeEqual(Buffer.from(h), Buffer.from(rec.hash))) { noteFail(fk); return aerr('ชื่อบัญชีหรือ PIN ไม่ถูกต้อง'); }
+      FAILS.delete(fk);
+      okAuth(rec, await newTok(rec));
+    } catch (e) { console.log('auth:login', e.message); aerr('ระบบบัญชีขัดข้อง ลองใหม่อีกครั้ง'); }
+  });
+  sock.on('auth:token', async tok => {
+    if (!AUTH_ON || typeof tok !== 'string' || !/^[a-f0-9]{48}$/.test(tok)) return;
+    try {
+      const name = await rcmd('GET', 't:' + tok); if (!name) return sock.emit('auth:bad');
+      const raw = await rcmd('GET', ukey(name)); if (!raw) return sock.emit('auth:bad');
+      rcmd('EXPIRE', 't:' + tok, 7776000).catch(() => {});
+      okAuth(JSON.parse(raw), tok);
+    } catch (e) { console.log('auth:token', e.message); }
+  });
+  sock.on('auth:save', async d => {
+    if (!sock.data.acct || !d) return;
+    try {
+      const raw = await rcmd('GET', sock.data.acct); if (!raw) return;
+      const rec = JSON.parse(raw);
+      if (d.base !== rec.v) return sock.emit('auth:stale', { prof: rec.prof, v: rec.v });
+      rec.prof = cleanAcct(d.prof, rec.prof); rec.v++;
+      await rcmd('SET', sock.data.acct, JSON.stringify(rec));
+      sock.emit('auth:saved', { v: rec.v, prof: rec.prof });
+    } catch (e) { console.log('auth:save', e.message); }
+  });
+  sock.on('auth:logout', () => { if (sock.data.tok && AUTH_ON) rcmd('DEL', 't:' + sock.data.tok).catch(() => {}); sock.data.acct = ''; sock.data.tok = ''; });
 
   sock.on('setset', set => {
     const r = find(), p = me(r); if (!r || !p || r.owner !== p.pid || r.phase !== 'lobby') return;

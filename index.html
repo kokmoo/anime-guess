@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- ag-build:20261035 -->
+<!-- ag-build:20261036 -->
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ANIME GUESS</title>
@@ -282,7 +282,7 @@ body.bgi::before{animation:kb 55s ease-in-out infinite alternate;will-change:tra
 const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิดตัวอักษร'],era:['📅','ใบ้ยุค'],ability:['⚡','ความสามารถ'],side:['🏴','ฝ่าย'],role:['⭐','บทบาท']};
 const s=io(),$=id=>document.getElementById(id);
 const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
-const VER=5,APPV='2.8',BUILD='20261035';let CF=[],CFM={};let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
+const VER=5,APPV='2.9',BUILD='20261036';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
 const pre=new URLSearchParams(location.search).get('room')||'';
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
@@ -478,6 +478,35 @@ function openSet(){const dk=document.documentElement.dataset.theme==='dark';$('s
  <small>ANIME GUESS v${APPV} (build ${BUILD}) · เซิร์ฟเวอร์ ${SRVV?'v'+SRVV:'เก่า'}</small>
  <button class="b" onclick="closeSet()">ปิด</button>`;$('set').style.display='flex'}
 
+
+// ================= v2.9: บัญชีผู้เล่น (เก็บเหรียญ/กรอบบนเซิร์ฟเวอร์) =================
+const getTok=()=>{try{return localStorage.tok||''}catch(e){return ''}};
+function accSave(){if(!ACC)return;accDirty=true;clearTimeout(accTimer);accTimer=setTimeout(accFlush,1500)}
+function accFlush(){if(!ACC||accBusy||!accDirty)return;accBusy=true;accDirty=false;s.emit('auth:save',{prof:PF,base:ACC.v});setTimeout(()=>{accBusy=false},8000)}
+function accApply(p){Object.keys(PF).forEach(k=>delete PF[k]);Object.assign(PF,pfNorm(p));pfLocal()}
+s.on('meta',m=>{AUTHON=!!m.auth;const t=getTok();if(AUTHON&&t)s.emit('auth:token',t);if($('set').style.display==='flex'&&pTab==='me')openProf('me');if(!st&&!QM&&mode==='home')render()});
+s.on('auth:ok',d=>{try{localStorage.tok=d.tok}catch(e){}
+ const same=ACC&&ACC.name===d.name&&ACC.v===d.v;ACC={name:d.name,v:d.v};
+ if(!same){accApply(d.prof);if(!name){name=d.name;try{localStorage.name=name}catch(e){}}syncProf();flash('☁️ เข้าสู่ระบบ: '+d.name)}else if(accDirty)accFlush();
+ if($('set').style.display==='flex'&&pTab==='me')openProf('me');if(!st&&!QM)render()});
+s.on('auth:saved',d=>{if(ACC)ACC.v=d.v;accBusy=false;if(d.prof&&(d.prof.coins!==PF.coins||d.prof.xp!==PF.xp)&&!accDirty){accApply(d.prof);syncProf()}if(accDirty)accFlush()});
+s.on('auth:stale',d=>{if(!ACC)return;ACC.v=d.v;accBusy=false;accDirty=false;accApply(d.prof);syncProf();flash('🔄 ซิงก์ข้อมูลล่าสุดจากบัญชีแล้ว');if($('set').style.display==='flex')openProf(pTab)});
+s.on('auth:bad',()=>{try{localStorage.removeItem('tok')}catch(e){}ACC=null});
+s.on('auth:err',m=>say(m));
+function accBox(){if(!AUTHON)return '';
+ if(ACC)return `<div class="box">☁️ <b>บัญชี: ${esc(ACC.name)}</b><br><small>เหรียญ กรอบ และเลเวลบันทึกอัตโนมัติ เข้าจากเครื่องไหนก็ใช้ชื่อบัญชีกับ PIN เดิมได้</small><button class="g" onclick="accLogout()">ออกจากระบบ</button></div>`;
+ return `<div class="box"><b>☁️ บัญชีผู้เล่น</b> <small>(ยังไม่ได้ล็อกอิน)</small><br><small>ล็อกอินเพื่อเก็บเหรียญ กรอบที่สุ่มได้ และเลเวลไว้ถาวร ใช้ข้ามเครื่องได้ ไม่ต้องใช้อีเมล · จำ PIN ไว้ให้ดี ลืมแล้วกู้คืนไม่ได้</small>
+  <input id="an" maxlength="16" placeholder="ชื่อบัญชี (3-16 ตัว)" autocomplete="username"><input id="ap" type="password" maxlength="32" placeholder="PIN (4 ตัวขึ้นไป)" autocomplete="current-password">
+  <button class="b" onclick="accReg()">✨ สมัคร (เก็บข้อมูลในเครื่องนี้ขึ้นบัญชี)</button><button class="g" onclick="accLogin()">🔑 เข้าสู่ระบบด้วยบัญชีที่มีอยู่</button></div>`}
+const accIn=()=>[($('an')||{}).value||'',($('ap')||{}).value||''];
+function accReg(){const [n,p]=accIn();if(!n.trim()||!p)return say('ใส่ชื่อบัญชีและ PIN');s.emit('auth:register',{name:n,pin:p,prof:PF})}
+async function accLogin(){const [n,p]=accIn();if(!n.trim()||!p)return say('ใส่ชื่อบัญชีและ PIN');
+ if((PF.coins>0||PF.xp>0)&&!await ask('เข้าสู่ระบบแล้วจะใช้ข้อมูลจากบัญชี <b>แทน</b>ข้อมูลในเครื่องนี้ (ตอนนี้มี 🪙 '+PF.coins+')<br><small>ถ้าอยากเก็บข้อมูลเครื่องนี้ ให้กด "สมัคร" เพื่อสร้างบัญชีใหม่แทน</small>','เข้าสู่ระบบ'))return;
+ s.emit('auth:login',{name:n,pin:p})}
+async function accLogout(){if(!await ask('ออกจากระบบ?<br><small>ข้อมูลเหรียญในเครื่องนี้จะถูกล้าง แต่ยังเก็บอยู่ในบัญชี เข้าสู่ระบบใหม่ได้ทุกเมื่อ</small>','ออกจากระบบ','r'))return;
+ clearTimeout(accTimer);if(accDirty&&ACC)s.emit('auth:save',{prof:PF,base:ACC.v});s.emit('auth:logout');try{localStorage.removeItem('tok')}catch(e){}ACC=null;accDirty=false;accApply({});syncProf();openProf('me');if(!st&&!QM)render()}
+window.addEventListener('pagehide',()=>{if(ACC&&accDirty)s.emit('auth:save',{prof:PF,base:ACC.v})});
+
 // ===== ตั้งค่าห้องระหว่างรอเพื่อน (เจ้าของห้อง) =====
 function openRoomSet(){if(!st||!st.owner||st.phase!=='lobby')return;const c=st.set,all=c.animes==='ALL';
  $('sc').innerHTML=`<h2>⚙️ ตั้งค่าห้อง</h2>
@@ -508,7 +537,7 @@ function draw(){
   <div class="or"><span>หรือ ใส่รหัสห้องที่เพื่อนส่งให้</span></div>
   <div class="joinrow"><input id="cd" placeholder="รหัสห้อง เช่น A7K9P" value="${esc(pre)}" style="text-transform:uppercase"><button class="b" onclick="joinRoom()">🔑 เข้าร่วม</button></div></div>
   <div class="box feat" onclick="quizHome()" role="button" tabindex="0"><div class="ft">🧠 โหมดแฟนพันธุ์แท้</div><small>ตอบคำถามเฉพาะเรื่อง แข่งคะแนนกับเพื่อนในห้อง หรือเล่นคนเดียว</small><button class="r big">เข้าโหมดแฟนพันธุ์แท้ →</button></div>
-  <div class="mini2"><button class="g" onclick="openLib()">📚 ตัวละครในเกม</button><button class="g" onclick="openProf('me')">👤 โปรไฟล์ & ร้านค้า<br><small>🪙 ${PF.coins}</small></button></div>
+  <div class="mini2"><button class="g" onclick="openLib()">📚 ตัวละครในเกม</button><button class="g" onclick="openProf('me')">👤 โปรไฟล์ & ร้านค้า<br><small>🪙 ${PF.coins}</small>${AUTHON&&!ACC?'<br><small>⚠ ยังไม่ได้ล็อกอิน</small>':''}</button></div>
   <div class="box"><h2>เล่นยังไง?</h2><ol class="steps"><li>สร้างห้อง แล้วส่งรหัสให้เพื่อน</li><li>ทุกคนสุ่มได้ตัวละคร เห็นแค่ของเพื่อน</li><li>ถามเพื่อนผ่าน Discord ตอบได้แค่ ใช่/ไม่</li><li>ถึงตาคุณใช้การ์ดถามคำถามปลายเปิดได้ 1 ใบ เพื่อนช่วยตอบ</li><li>ทายชื่อตัวละครให้ถูกก่อนหมดเวลา!</li></ol></div><p class="ver">ANIME GUESS v${APPV} · เซิร์ฟเวอร์ <span id="sv">${SRVV?'v'+SRVV:'…'}</span> · <a href="#" onclick="openNews();return false">มีอะไรใหม่</a></p></div></div>`;
   else A.innerHTML=`<h2>ตั้งค่าห้อง</h2><div class="box">
   เวลาเกม (นาที)<select id="tm0"><option>8</option><option selected>10</option><option>15</option><option>20</option><option>30</option><option value="0">ไม่จำกัดเวลา (เจ้าของห้องกดจบเกมเอง)</option></select>
@@ -676,9 +705,11 @@ if(pqroom)quizHome();
 // ================= โปรไฟล์ / เหรียญ / ร้านค้า / มีอะไรใหม่ =================
 const FR=[['none','ไม่มีกรอบ',0],['gold','กรอบทอง',150],['sakura','กรอบซากุระ',200],['ice','กรอบน้ำแข็ง',250],['emerald','กรอบมรกต',300],['neon','กรอบนีออน',400],['fire','กรอบเปลวไฟ',500],['royal','กรอบราชวงศ์',600],['rainbow','กรอบสายรุ้ง',800],['galaxy','กรอบกาแล็กซี่',1000]];
 const NF=[['none','ชื่อปกติ',0],['gold','ชื่อสีทอง',100],['ice','ชื่อน้ำแข็ง',150],['neon','ชื่อนีออน',250],['fire','ชื่อเปลวไฟ',300],['sparkle','ชื่อประกาย',400],['rainbow','ชื่อสายรุ้ง',500]];
-function pfLoad(){const d={coins:0,xp:0,owned:[],fr:'none',nf:'none',av:'',games:0,wins:0,qgames:0,daily:'',paid:[],cf:'',cfo:[],gp:{s:0,r:0}};try{Object.assign(d,JSON.parse(localStorage.prof||'{}'))}catch(e){}
+function pfNorm(src){const d={coins:0,xp:0,owned:[],fr:'none',nf:'none',av:'',games:0,wins:0,qgames:0,daily:'',paid:[],cf:'',cfo:[],gp:{s:0,r:0}};try{Object.assign(d,src||{})}catch(e){}
  if(!Array.isArray(d.cfo))d.cfo=[];if(!d.gp||typeof d.gp!=='object')d.gp={s:0,r:0};d.gp.s=+d.gp.s||0;d.gp.r=+d.gp.r||0;if(!Array.isArray(d.owned))d.owned=[];if(!Array.isArray(d.paid))d.paid=[];return d}
-const pfSave=()=>{try{localStorage.prof=JSON.stringify(PF)}catch(e){}};
+function pfLoad(){try{return pfNorm(JSON.parse(localStorage.prof||'{}'))}catch(e){return pfNorm({})}}
+const pfLocal=()=>{try{localStorage.prof=JSON.stringify(PF)}catch(e){}};
+const pfSave=()=>{pfLocal();accSave()};
 const lvOf=xp=>Math.floor(Math.sqrt(Math.max(0,xp)/40))+1;
 const profOut=()=>({fr:PF.fr,nf:PF.nf,lv:lvOf(PF.xp),av:PF.av||'',cf:(PF.cf&&PF.cfo.includes(PF.cf))?PF.cf:''});
 const owns=(k,id)=>id==='none'||PF.owned.includes(k+':'+id);
@@ -704,7 +735,7 @@ function openProf(tab){pTab=tab||pTab;const lv=lvOf(PF.xp),a=40*(lv-1)*(lv-1),b=
  const head=`<h2>👤 โปรไฟล์</h2><div class="row" style="justify-content:flex-start;gap:14px">${av(name||'?',me,1)}<div style="flex:1"><b style="font-size:18px">${pnm({...me,lv:0,name:name||'ผู้เล่น'})}</b><br><small>Lv.${lv} · ${PF.xp} XP</small></div><b style="font-size:18px">🪙 ${PF.coins}</b></div><div class="xpbar"><i style="width:${pc}%"></i></div><small>อีก ${b-PF.xp} XP จะขึ้นเลเวลถัดไป</small>
  <div class="row" style="margin-top:8px"><button class="${pTab==='me'?'b':'g'}" onclick="openProf('me')">ข้อมูล</button><button class="${pTab==='shop'?'b':'g'}" onclick="openProf('shop')">🛒 ร้านค้า</button><button class="${pTab==='gacha'?'b':'g'}" onclick="openProf('gacha')">🎰 สุ่มกรอบ</button></div>`;
  let body='';
- if(pTab==='me')body=`<div class="box">ชื่อผู้เล่น<input id="pn" maxlength="16" value="${esc(name)}" onchange="setPName(this.value)">
+ if(pTab==='me')body=accBox()+`<div class="box">ชื่อผู้เล่น<input id="pn" maxlength="16" value="${esc(name)}" onchange="setPName(this.value)">
   <b>รูปโปรไฟล์</b><br><small>เลือกรูปจากเครื่อง ระบบจะตัดเป็นสี่เหลี่ยมจัตุรัสและย่อให้อัตโนมัติ</small>
   <input id="pf" type="file" accept="image/*" style="display:none" onchange="pickAv(this)"><div class="row"><button class="b" onclick="$('pf').click()">📷 เลือกรูป</button>${PF.av?'<button class="g" onclick="delAv()">ลบรูป</button>':''}</div></div>
   <div class="box"><b>สถิติ</b><br>🎮 เกมทายตัวละคร: ${PF.games} รอบ · ชนะ ${PF.wins}${PF.games?` (${Math.round(PF.wins/PF.games*100)}%)`:''}<br>🧠 แฟนพันธุ์แท้ (ห้อง/เดี่ยว): ${PF.qgames} รอบ<br><small>เหรียญ: ชนะ +50 (เร็วสุด +20, โบนัสความเร็วสูงสุด +30, โหมดยากคูณ 1.5) · แพ้ +10 · แฟนพันธุ์แท้ ≈ คะแนน÷10 · เข้าเล่นรายวัน +30<br>ข้อมูลโปรไฟล์เก็บในเบราว์เซอร์เครื่องนี้ ถ้าล้างข้อมูลเบราว์เซอร์หรือเปลี่ยนเครื่อง เหรียญจะหายไป</small></div>
@@ -762,7 +793,7 @@ SFX.gacha=t=>{const i=TORD.indexOf(t);
  if(i>=2)setTimeout(()=>seq([659,784,988,1319],'triangle',.18,.1),380);
  if(i>=3)setTimeout(()=>{seq([784,988,1175,1568,1976],'sawtooth',.2,.07);[523,784,1047].forEach(f=>tone(f,1.1,'sine',.08,.55))},800);
  if(i>=4)setTimeout(()=>{[0,1,2,3,4,5].forEach(k=>tone(1047*Math.pow(1.122,k*2),.5,'sine',.07,k*.09));[262,330,392,523].forEach(f=>tone(f,1.6,'sine',.09,.3))},1400)};
-NEWS.unshift('🏠 หน้าแรกจัดลำดับใหม่ (สร้างห้อง/เข้าร่วม → โหมดแฟนพันธุ์แท้ → เมนูรอง) และช่องพิมพ์ชื่อตัวละครเลื่อนดูรายชื่อบนมือถือได้โดยไม่เผลอเลือก');NEWS.unshift('⚙️ เจ้าของห้องแก้ตั้งค่า (เวลา/ความยาก/อนิเมะ/การ์ด/จำนวนคน) ได้ตอนรอเพื่อน และปุ่ม 📚 คลังตัวละครย้ายมาอยู่เรียงกับปุ่มแชท');NEWS.unshift('✨ ปรับแอนิเมชันทั้งเกมให้ลื่นขึ้น: ปุ่มกดมีคลื่นและเด้ง หน้าต่างเปิด-ปิดนุ่ม การ์ดตัวละครเด้งเข้า ตอบถูก/ผิดมีอนุภาคและแฟลช สุ่มกรอบมีช่วงรวมพลังก่อนเปิดผล พื้นหลังขยับช้า ๆ (ปิดได้ที่ ตั้งค่า → ลดการเคลื่อนไหว)');NEWS.unshift('🎰 ระบบสุ่มกรอบการ์ดตัวละครใหม่! ใช้เหรียญสุ่มกรอบ 5 ระดับ C/B/A/S/SSR ยิ่งสูงยิ่งสุ่มยาก มีระบบการันตี สุ่ม ×10 และเหรียญคืนเมื่อซ้ำ ดูที่ โปรไฟล์ → 🎰 สุ่มกรอบ');
+NEWS.unshift('☁️ ระบบบัญชีผู้เล่น: สมัครด้วยชื่อกับ PIN (ไม่ต้องใช้อีเมล) เหรียญ กรอบที่สุ่มได้ และเลเวลจะถูกเก็บบนเซิร์ฟเวอร์ ใช้ข้ามเครื่องได้ ดูที่ โปรไฟล์ → ข้อมูล');NEWS.unshift('🏠 หน้าแรกจัดลำดับใหม่ (สร้างห้อง/เข้าร่วม → โหมดแฟนพันธุ์แท้ → เมนูรอง) และช่องพิมพ์ชื่อตัวละครเลื่อนดูรายชื่อบนมือถือได้โดยไม่เผลอเลือก');NEWS.unshift('⚙️ เจ้าของห้องแก้ตั้งค่า (เวลา/ความยาก/อนิเมะ/การ์ด/จำนวนคน) ได้ตอนรอเพื่อน และปุ่ม 📚 คลังตัวละครย้ายมาอยู่เรียงกับปุ่มแชท');NEWS.unshift('✨ ปรับแอนิเมชันทั้งเกมให้ลื่นขึ้น: ปุ่มกดมีคลื่นและเด้ง หน้าต่างเปิด-ปิดนุ่ม การ์ดตัวละครเด้งเข้า ตอบถูก/ผิดมีอนุภาคและแฟลช สุ่มกรอบมีช่วงรวมพลังก่อนเปิดผล พื้นหลังขยับช้า ๆ (ปิดได้ที่ ตั้งค่า → ลดการเคลื่อนไหว)');NEWS.unshift('🎰 ระบบสุ่มกรอบการ์ดตัวละครใหม่! ใช้เหรียญสุ่มกรอบ 5 ระดับ C/B/A/S/SSR ยิ่งสูงยิ่งสุ่มยาก มีระบบการันตี สุ่ม ×10 และเหรียญคืนเมื่อซ้ำ ดูที่ โปรไฟล์ → 🎰 สุ่มกรอบ');
 
 setTimeout(()=>{dailyBonus();if(localStorage.seenVer!==APPV){try{localStorage.seenVer=APPV}catch(e){}openNews()}},900);
 
