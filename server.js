@@ -613,7 +613,7 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '3.1';
+const APP_VERSION = '3.3';
 const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
 const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
 let CFIDS = new Set(), CFM = 0;
@@ -633,8 +633,10 @@ function cleanProf(d) {
   if (typeof d.av === 'string' && d.av.length <= 24000 && AV_RE.test(d.av)) o.av = d.av;
   return o;
 }
+const NOAVPID = new Set(); // ผู้เล่นแขกที่แอดมินปิดรูปโปรไฟล์ (เก็บในหน่วยความจำ)
+const avBlocked = p => NOAVPID.has(p.pid) || !!(p.sid && (io.sockets.sockets.get(p.sid) || { data: {} }).data.noav);
 function applyProf(p, d) {
-  const o = cleanProf(d);
+  const o = cleanProf(d); if (avBlocked(p)) o.av = '';
   p.fr = o.fr; p.nf = o.nf; p.cf = o.cf; p.tt = o.tt; p.lv = o.lv;
   if (o.av !== (p.av || '')) { p.av = o.av; p.ah = o.av ? (p.ah || 0) + 1 : 0; }
 }
@@ -654,6 +656,8 @@ const hashPin = (pin, salt) => new Promise((ok, no) => nodeCrypto.scrypt(pin, sa
 const metaChars = () => CH.map(c => [c[0], c[2], hasImg(slugOf(c[0])) ? slugOf(c[0]) : '', c[1]]);
 // ===== เพื่อนเสนอตัวละคร -> คิวรอแอดมินอนุมัติ (เก็บบน Upstash; ต้องตั้ง ADMIN_KEY บน Render ถึงจะเปิดหน้าแอดมินได้) =====
 const ADMIN_KEY = String(process.env.ADMIN_KEY || '');
+// ADMIN_USERS = ชื่อบัญชีแอดมิน (คั่นด้วย , ได้หลายคน) ล็อกอินด้วยบัญชีนี้แล้วเป็นแอดมินอัตโนมัติ ไม่ต้องใส่รหัส
+const ADMIN_USERS = new Set(String(process.env.ADMIN_USERS || '').split(',').map(x => x.trim()).filter(Boolean).map(x => 'u:' + x.normalize('NFKC').toLowerCase()));
 const CX_IMG_MAX = 120000, CX_PEND_MAX = 400, CX_DAY_MAX = 100;
 const cxClean = (s, n) => String(s == null ? '' : s).normalize('NFKC').replace(/[\u0000-\u001f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, n);
 const cxAnime = a => { const k = norm(a); return ANIMES.find(x => norm(x) === k) || a; };
@@ -681,9 +685,27 @@ async function cxLoad(tries) {
       const b64 = await rcmd('GET', 'cx:img:' + e.id); if (!b64) continue;
       CXOK.set(e.id, e); cxAdd(e, Buffer.from(b64, 'base64'));
     }
+    const ov = await rcmd('HGETALL', 'cx:ov') || [];
+    for (let i = 1; i < ov.length; i += 2) { try { const v = JSON.parse(ov[i]); if (v && v.o && !OVR.has(v.o)) { OVR.set(v.o, v); ovApply(v); } } catch (e) {} }
+    animesFix();
     console.log('cx loaded', CXOK.size); io.emit('chars:update', { animes: ANIMES, chars: metaChars() });
   } catch (e) { console.log('cxLoad', e.message); if ((tries || 0) < 4) setTimeout(() => cxLoad((tries || 0) + 1), 5000 * ((tries || 0) + 1)); }
 }
+// ----- แอดมิน: แก้/ซ่อนตัวละครเดิม (เก็บเป็น override บน Redis ไม่ต้องแก้ไฟล์) -----
+const OVR = new Map();      // ชื่อเดิม -> {o,n,a,al,h}
+const HIDDEN = new Map();   // ชื่อเดิม -> แถว CH ที่ถูกซ่อน
+const animesFix = () => { const a = [...new Set(CH.map(c => c[2]))]; ANIMES.length = 0; ANIMES.push(...a); };
+const ovOrig = n => { for (const [o, v] of OVR) if ((v.n || o) === n) return o; return n; };
+function ovApply(v) {
+  const i = CH.findIndex(c => c[0] === v.o); if (i < 0) return; const c = CH[i];
+  const sl = slugOf(c[0]); if (v.n && v.n !== c[0]) { SLUGX.set(v.n, sl); c[0] = v.n; } if (v.a) c[2] = v.a; if (v.al != null) c[1] = v.al;
+  if (v.h) { HIDDEN.set(v.o, c); CH.splice(i, 1); }
+}
+const CXNOTE = async (by, note) => {   // แจ้งผลให้คนเสนอ (ถ้าออนไลน์ส่งเลย ไม่งั้นเก็บรอตอนล็อกอิน)
+  const k = ukey(by), on = ONLINE.get(k);
+  if (on && on.size) { on.forEach(x => x.emit('cx:notes', [note])); return; }
+  try { await rcmd('RPUSH', 'cx:n:' + k, JSON.stringify(note)); await rcmd('LTRIM', 'cx:n:' + k, -30, -1); } catch (e) {}
+};
 const FAILS = new Map();
 const tooMany = k => { const f = FAILS.get(k); return !!f && f.n >= 8 && Date.now() - f.t < 600000; };
 const noteFail = k => { const f = FAILS.get(k); if (!f || Date.now() - f.t > 600000) FAILS.set(k, { n: 1, t: Date.now() }); else { f.n++; f.t = Date.now(); } };
@@ -836,7 +858,11 @@ io.on('connection', sock => {
   const okAuth = (rec, tok) => {
     presDel(); sock.data.acct = ukey(rec.name); sock.data.un = rec.name; sock.data.tok = tok;
     let s = ONLINE.get(sock.data.acct); if (!s) ONLINE.set(sock.data.acct, s = new Set()); s.add(sock);
-    sock.emit('auth:ok', { name: rec.name, tok, prof: rec.prof, v: rec.v }); refreshRooms();
+    sock.data.noav = !!rec.noav;
+    if (ADMIN_USERS.has(sock.data.acct)) { sock.data.adm = true; sock.data.admAcct = true; rcmd('HLEN', 'cx:pi').then(n => sock.emit('adm:on', { on: true, pending: +n || 0 })).catch(() => sock.emit('adm:on', { on: true, pending: 0 })); }
+    else if (sock.data.admAcct) { sock.data.adm = false; sock.data.admAcct = false; sock.emit('adm:on', { on: false }); }
+    sock.emit('auth:ok', { name: rec.name, tok, prof: rec.prof, v: rec.v, noav: !!rec.noav }); refreshRooms();
+    rcmd('LRANGE', 'cx:n:' + sock.data.acct, 0, -1).then(l => { if (l && l.length) { rcmd('DEL', 'cx:n:' + sock.data.acct).catch(() => {}); sock.emit('cx:notes', l.map(x => { try { return JSON.parse(x); } catch (e) { return null; } }).filter(Boolean)); } }).catch(() => {});
   };
   const newTok = async rec => { const tok = nodeCrypto.randomBytes(24).toString('hex'); await rcmd('SET', 't:' + tok, rec.name, 'EX', 7776000); return tok; };
   sock.on('auth:register', async d => {
@@ -862,6 +888,7 @@ io.on('connection', sock => {
       const rec = raw ? JSON.parse(raw) : null;
       const h = await hashPin(pin, rec ? rec.salt : 'x'.repeat(32));
       if (!rec || !nodeCrypto.timingSafeEqual(Buffer.from(h), Buffer.from(rec.hash))) { noteFail(fk); return aerr('ชื่อบัญชีหรือ PIN ไม่ถูกต้อง'); }
+      if (rec.ban) { FAILS.delete(fk); return aerr('บัญชีนี้ถูกระงับการใช้งาน' + (rec.ban.why ? ': ' + rec.ban.why : '')); }
       FAILS.delete(fk);
       okAuth(rec, await newTok(rec));
     } catch (e) { console.log('auth:login', e.message); aerr('ระบบบัญชีขัดข้อง ลองใหม่อีกครั้ง'); }
@@ -872,7 +899,8 @@ io.on('connection', sock => {
       const name = await rcmd('GET', 't:' + tok); if (!name) return sock.emit('auth:bad');
       const raw = await rcmd('GET', ukey(name)); if (!raw) return sock.emit('auth:bad');
       rcmd('EXPIRE', 't:' + tok, 7776000).catch(() => {});
-      okAuth(JSON.parse(raw), tok);
+      const rec0 = JSON.parse(raw); if (rec0.ban) { sock.emit('auth:banned', { why: rec0.ban.why || '' }); return; }
+      okAuth(rec0, tok);
     } catch (e) { console.log('auth:token', e.message); }
   });
   sock.on('auth:save', async d => {
@@ -886,7 +914,7 @@ io.on('connection', sock => {
       sock.emit('auth:saved', { v: rec.v, prof: rec.prof });
     } catch (e) { console.log('auth:save', e.message); }
   });
-  sock.on('auth:logout', () => { if (sock.data.tok && AUTH_ON) rcmd('DEL', 't:' + sock.data.tok).catch(() => {}); presDel(); sock.data.acct = ''; sock.data.un = ''; sock.data.tok = ''; refreshRooms(); });
+  sock.on('auth:logout', () => { if (sock.data.tok && AUTH_ON) rcmd('DEL', 't:' + sock.data.tok).catch(() => {}); presDel(); sock.data.acct = ''; sock.data.un = ''; sock.data.tok = ''; if (sock.data.admAcct) { sock.data.adm = false; sock.data.admAcct = false; sock.emit('adm:on', { on: false }); } refreshRooms(); });
   sock.on('disconnect', presDel);
   const CXRATE = {};
   const cxRes = (ok, msg) => sock.emit('cx:res', { ok, msg });
@@ -917,18 +945,20 @@ io.on('connection', sock => {
     for (let i = 1; i < h.length; i += 2) { try { items.push(JSON.parse(h[i])); } catch (e) {} }
     items.sort((x, y) => x.t - y.t); const top = items.slice(0, 30);
     await Promise.all(top.map(async e => { const b = await rcmd('GET', 'cx:pimg:' + e.id); e.img = b ? 'data:image/jpeg;base64,' + b : ''; }));
-    sock.emit('cx:list', { items: top, total: items.length, ok: [...CXOK.values()].map(e => ({ id: e.id, n: e.n, a: e.a, by: e.by })) });
+    sock.emit('cx:list', { items: top, total: items.length, ok: [...CXOK.values()].map(e => ({ id: e.id, n: e.n, a: e.a, al: e.al || '', by: e.by })) });
   };
   sock.on('cx:admin', async key => {
     const fk = 'adm:' + ipOf();
     try {
       if (!AUTH_ON || !ADMIN_KEY) return sock.emit('cx:admin', { err: 'ยังไม่ได้ตั้ง ADMIN_KEY บน Render' });
+      if (sock.data.adm) return sock.emit('cx:admin', { ok: true }), cxList();
       if (tooMany(fk)) return sock.emit('cx:admin', { err: 'ลองผิดหลายครั้งเกินไป รอสักครู่' });
       const a = Buffer.from(String(key || '')), b = Buffer.from(ADMIN_KEY);
       if (a.length !== b.length || !nodeCrypto.timingSafeEqual(a, b)) { noteFail(fk); return sock.emit('cx:admin', { err: 'รหัสไม่ถูกต้อง' }); }
-      FAILS.delete(fk); sock.data.adm = true; sock.emit('cx:admin', { ok: true }); await cxList();
+      FAILS.delete(fk); sock.data.adm = true; sock.emit('cx:admin', { ok: true }); sock.emit('adm:on', { on: true }); await cxList();
     } catch (e) { console.log('cx:admin', e.message); }
   });
+  sock.on('cx:refresh', () => { if (sock.data.adm) cxList().catch(() => {}); });
   sock.on('cx:review', async d => {
     try {
       if (!sock.data.adm || !d || typeof d.id !== 'string' || !/^[a-f0-9]{10}$/.test(d.id)) return;
@@ -939,10 +969,11 @@ io.on('connection', sock => {
         if (!e.n || !e.a) return sock.emit('cx:res', { ok: false, msg: 'ชื่อหรือเรื่องว่าง' });
         if (cxDup(e.n)) return sock.emit('cx:res', { ok: false, msg: 'ชื่อซ้ำกับตัวละครที่มีอยู่แล้ว' });
         const b64 = await rcmd('GET', 'cx:pimg:' + e.id); if (!b64) { await rcmd('HDEL', 'cx:pi', e.id); return cxList(); }
-        await rcmd('SET', 'cx:img:' + e.id, b64); await rcmd('HSET', 'cx:ok', e.id, JSON.stringify(e));
+        await rcmd('SET', 'cx:img:' + e.id, b64); await rcmd('HSET', 'cx:ok', e.id, JSON.stringify(e)); CXNOTE(e.by, { ok: true, n: e.n });
         CXOK.set(e.id, e); cxAdd(e, Buffer.from(b64, 'base64'));
         io.emit('chars:update', { animes: ANIMES, chars: metaChars() });
       }
+      if (!d.ok) CXNOTE(e.by, { ok: false, n: e.n, why: cxClean(d.why, 80) });
       await rcmd('HDEL', 'cx:pi', e.id); rcmd('DEL', 'cx:pimg:' + e.id).catch(() => {});
       await cxList();
     } catch (e) { console.log('cx:review', e.message); }
@@ -953,6 +984,135 @@ io.on('connection', sock => {
       CXOK.delete(id); cxDel(e); await rcmd('HDEL', 'cx:ok', id); rcmd('DEL', 'cx:img:' + id).catch(() => {});
       io.emit('chars:update', { animes: ANIMES, chars: metaChars() }); await cxList();
     } catch (e) { console.log('cx:remove', e.message); }
+  });
+
+  // ===== แอดมิน: ผู้เล่น / ห้อง / ตัวละครเดิม =====
+  const adm = () => !!sock.data.adm;
+  const admMsg = (ok, msg) => sock.emit('adm:msg', { ok, msg });
+  const getRec = async name => { name = String(name || '').trim(); if (!name || name.length > 40) return null; const raw = await rcmd('GET', ukey(name)); return raw ? JSON.parse(raw) : null; };
+  const recInfo = rec => ({ name: rec.name, coins: (rec.prof && rec.prof.coins) || 0, xp: (rec.prof && rec.prof.xp) || 0, games: (rec.prof && rec.prof.games) || 0, wins: (rec.prof && rec.prof.wins) || 0, qgames: (rec.prof && rec.prof.qgames) || 0, created: rec.created || 0, ban: rec.ban || null, noav: !!rec.noav, online: ONLINE.has(ukey(rec.name)) });
+  const dropOnline = (k, ev, data) => { const on = ONLINE.get(k); if (on) { on.forEach(x => { x.emit(ev, data); x.data.acct = ''; x.data.un = ''; x.data.tok = ''; }); ONLINE.delete(k); } };
+  const clearAvSid = sid => {
+    Object.values(rooms).forEach(r => r.players.forEach(p => { if (p.sid === sid && p.av) { p.av = ''; p.ah = 0; send(r); } }));
+    Object.values(QROOMS).forEach(r => r.players.forEach(p => { if (p.sid === sid && p.av) { p.av = ''; p.ah = 0; qzSend(r); } }));
+  };
+  const admRoom = (k, code) => k === 'q' ? QROOMS[code] : rooms[code];
+  sock.on('adm:state', () => {
+    if (!adm()) return;
+    const rl = [];
+    Object.values(rooms).forEach(r => rl.push({ k: 'g', code: r.code, phase: r.phase, players: r.players.map(p => ({ pid: p.pid, name: p.name, un: unOf(p.sid), on: !!p.sid, av: !!p.av })), chat: r.chat.slice(-40) }));
+    Object.values(QROOMS).forEach(r => rl.push({ k: 'q', code: r.code, phase: r.phase, players: r.players.map(p => ({ pid: p.pid, name: p.name, un: unOf(p.sid), on: !!p.online, av: !!p.av })), chat: [] }));
+    sock.emit('adm:state', { socks: io.engine.clientsCount, accts: ONLINE.size, users: [...ONLINE.keys()].map(k => k.slice(2)), rooms: rl });
+  });
+  sock.on('adm:user', async name => {
+    if (!adm()) return;
+    try { const rec = await getRec(name); sock.emit('adm:user', rec ? { info: recInfo(rec) } : { err: 'ไม่พบบัญชีนี้' }); } catch (e) { console.log('adm:user', e.message); }
+  });
+  sock.on('adm:coins', async d => {
+    if (!adm() || !d) return;
+    try {
+      const rec = await getRec(d.name); if (!rec) return sock.emit('adm:user', { err: 'ไม่พบบัญชีนี้' });
+      const n = clampI(d.n, -10000000, 10000000), cur = rec.prof.coins || 0;
+      rec.prof.coins = clampI(d.mode === 'set' ? n : cur + n, 0, 10000000); rec.v = (rec.v || 0) + 1;
+      await rcmd('SET', ukey(rec.name), JSON.stringify(rec));
+      const on = ONLINE.get(ukey(rec.name)); if (on) on.forEach(x => x.emit('auth:stale', { prof: rec.prof, v: rec.v }));
+      sock.emit('adm:user', { info: recInfo(rec) }); admMsg(true, 'เหรียญของ ' + rec.name + ' ตอนนี้ ' + rec.prof.coins);
+    } catch (e) { console.log('adm:coins', e.message); }
+  });
+  sock.on('adm:ban', async d => {
+    if (!adm() || !d) return;
+    try {
+      const rec = await getRec(d.name); if (!rec) return sock.emit('adm:user', { err: 'ไม่พบบัญชีนี้' });
+      if (d.on) { rec.ban = { why: cxClean(d.why, 60), t: Date.now() }; } else delete rec.ban;
+      await rcmd('SET', ukey(rec.name), JSON.stringify(rec));
+      if (d.on) dropOnline(ukey(rec.name), 'auth:banned', { why: rec.ban.why });
+      sock.emit('adm:user', { info: recInfo(rec) }); admMsg(true, (d.on ? 'ระงับ ' : 'ปลดระงับ ') + rec.name + ' แล้ว');
+    } catch (e) { console.log('adm:ban', e.message); }
+  });
+  sock.on('adm:delacct', async name => {
+    if (!adm()) return;
+    try {
+      const rec = await getRec(name); if (!rec) return sock.emit('adm:user', { err: 'ไม่พบบัญชีนี้' });
+      await rcmd('DEL', ukey(rec.name)); dropOnline(ukey(rec.name), 'auth:banned', { why: 'บัญชีถูกลบโดยแอดมิน' });
+      sock.emit('adm:user', { err: 'ลบบัญชี ' + rec.name + ' แล้ว' }); admMsg(true, 'ลบบัญชีแล้ว');
+    } catch (e) { console.log('adm:delacct', e.message); }
+  });
+  sock.on('adm:noav', async d => {
+    if (!adm() || !d) return;
+    try {
+      const on = !!d.on;
+      if (d.name) {
+        const rec = await getRec(d.name); if (!rec) return sock.emit('adm:user', { err: 'ไม่พบบัญชีนี้' });
+        if (on) rec.noav = 1; else delete rec.noav; await rcmd('SET', ukey(rec.name), JSON.stringify(rec));
+        const so = ONLINE.get(ukey(rec.name)); if (so) so.forEach(x => { x.data.noav = on; x.emit('adm:noav', { on }); if (on) clearAvSid(x.id); });
+        sock.emit('adm:user', { info: recInfo(rec) }); admMsg(true, (on ? 'ปิดรูปโปรไฟล์ ' : 'เปิดรูปโปรไฟล์ ') + rec.name);
+      } else if (typeof d.pid === 'string') {
+        if (on) NOAVPID.add(d.pid); else NOAVPID.delete(d.pid);
+        const all = [...Object.values(rooms), ...Object.values(QROOMS)];
+        all.forEach(r => r.players.forEach(p => { if (p.pid === d.pid && p.sid) { io.to(p.sid).emit('adm:noav', { on }); if (on) clearAvSid(p.sid); } }));
+        admMsg(true, on ? 'ปิดรูปโปรไฟล์ผู้เล่นแล้ว' : 'เปิดรูปโปรไฟล์ผู้เล่นแล้ว'); sock.emit('adm:refresh');
+      }
+    } catch (e) { console.log('adm:noav', e.message); }
+  });
+  sock.on('adm:kick', d => {
+    if (!adm() || !d) return;
+    const r = admRoom(d.k, d.code); if (!r) return; const p = r.players.find(x => x.pid === d.pid); if (!p) return; const sid = p.sid;
+    if (d.k === 'q') { r.players = r.players.filter(x => x !== p); if (!r.players.length) { clearTimeout(r.timer); clearTimeout(r.auto); delete QROOMS[r.code]; } else { p.online = false; qzDrop(r, p); } }
+    else { removePlayer(r, p); if (rooms[r.code]) send(r); }
+    if (sid) io.to(sid).emit('adm:kicked', { msg: 'คุณถูกแอดมินเชิญออกจากห้อง' });
+    admMsg(true, 'เชิญออกแล้ว'); sock.emit('adm:refresh');
+  });
+  sock.on('adm:closeroom', d => {
+    if (!adm() || !d) return;
+    const r = admRoom(d.k, d.code); if (!r) return;
+    r.players.forEach(p => { if (p.sid) io.to(p.sid).emit('adm:kicked', { msg: 'ห้องถูกปิดโดยแอดมิน' }); });
+    clearTimeout(r.timer); clearTimeout(r.auto); if (d.k === 'q') delete QROOMS[r.code]; else delete rooms[r.code];
+    admMsg(true, 'ปิดห้องแล้ว'); sock.emit('adm:refresh');
+  });
+  sock.on('adm:delchat', d => {
+    if (!adm() || !d) return;
+    const r = rooms[d.code]; if (!r) return;
+    r.chat = r.chat.filter(m => !(m.t === d.t && m.pid === d.pid));
+    r.players.forEach(q => q.sid && io.to(q.sid).emit('chatdel', { t: d.t, pid: d.pid }));
+    sock.emit('adm:refresh');
+  });
+  sock.on('adm:chars', q => {
+    if (!adm()) return;
+    const k = norm(q || ''), out = [];
+    for (const c of CH) { if (out.length >= 40) break; if (!k || norm(c[0]).includes(k) || norm(c[2]).includes(k) || c[1].split('|').some(x => norm(x).includes(k))) out.push({ n: c[0], a: c[2], al: c[1], u: [...CXOK.values()].some(e => e.n === c[0]) ? 1 : 0 }); }
+    sock.emit('adm:chars', { items: out, hidden: [...HIDDEN.keys()], total: CH.length });
+  });
+  const charsPush = () => io.emit('chars:update', { animes: ANIMES, chars: metaChars() });
+  sock.on('adm:charhide', async d => {
+    if (!adm() || !d) return;
+    try {
+      if (d.on) {
+        const n = String(d.n || ''), i = CH.findIndex(c => c[0] === n); if (i < 0) return;
+        if ([...CXOK.values()].some(e => e.n === n)) return admMsg(false, 'ตัวละครที่ผู้เล่นเสนอ ให้ใช้ปุ่มลบแทน');
+        const o = ovOrig(n), v = Object.assign({}, OVR.get(o) || {}, { o, h: 1 }); OVR.set(o, v); HIDDEN.set(o, CH[i]); CH.splice(i, 1);
+        await rcmd('HSET', 'cx:ov', o, JSON.stringify(v));
+      } else {
+        const o = String(d.n || ''), row = HIDDEN.get(o); if (!row) return;
+        CH.push(row); HIDDEN.delete(o); const v = OVR.get(o) || { o }; delete v.h;
+        if (v.n || v.a || v.al != null) { OVR.set(o, v); await rcmd('HSET', 'cx:ov', o, JSON.stringify(v)); } else { OVR.delete(o); await rcmd('HDEL', 'cx:ov', o); }
+      }
+      animesFix(); charsPush(); admMsg(true, d.on ? 'ซ่อนตัวละครแล้ว' : 'นำกลับแล้ว'); sock.emit('adm:refresh');
+    } catch (e) { console.log('adm:charhide', e.message); admMsg(false, 'ผิดพลาด'); }
+  });
+  sock.on('adm:charedit', async d => {
+    if (!adm() || !d) return;
+    try {
+      const n = String(d.n || ''), nn = cxClean(d.nn, 40), a = cxAnime(cxClean(d.a, 40)), al = cxClean(d.al, 60);
+      if (!nn || !a) return admMsg(false, 'ชื่อหรือเรื่องว่าง');
+      const c = CH.find(x => x[0] === n); if (!c) return admMsg(false, 'ไม่พบตัวละคร');
+      if (nn !== n && cxDup(nn)) return admMsg(false, 'ชื่อซ้ำกับตัวละครอื่น');
+      const sl = slugOf(n), ue = [...CXOK.values()].find(e => e.n === n);
+      if (nn !== n) { SLUGX.delete(n); SLUGX.set(nn, sl); }
+      c[0] = nn; c[2] = a; c[1] = al;
+      if (ue) { ue.n = nn; ue.a = a; ue.al = al; await rcmd('HSET', 'cx:ok', ue.id, JSON.stringify(ue)); }
+      else { const o = ovOrig(n), v = Object.assign({}, OVR.get(o) || {}, { o, n: nn, a, al }); OVR.set(o, v); await rcmd('HSET', 'cx:ov', o, JSON.stringify(v)); }
+      animesFix(); charsPush(); admMsg(true, 'บันทึกแล้ว'); sock.emit('adm:chars', { items: [{ n: nn, a, al, u: ue ? 1 : 0 }], hidden: [...HIDDEN.keys()], total: CH.length });
+    } catch (e) { console.log('adm:charedit', e.message); admMsg(false, 'ผิดพลาด'); }
   });
   // ----- ชวนเพื่อนเข้าห้อง -----
   const INVRATE = {};

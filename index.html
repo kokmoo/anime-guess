@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- ag-build:20261038 -->
+<!-- ag-build:20261040 -->
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ANIME GUESS</title>
@@ -284,7 +284,7 @@ body.bgi::before{animation:kb 55s ease-in-out infinite alternate;will-change:tra
 const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิดตัวอักษร'],era:['📅','ใบ้ยุค'],ability:['⚡','ความสามารถ'],side:['🏴','ฝ่าย'],role:['⭐','บทบาท']};
 const s=io(),$=id=>document.getElementById(id);
 const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
-const VER=5,APPV='3.1',BUILD='20261038';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
+const VER=5,APPV='3.3',BUILD='20261040';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
 const pre=new URLSearchParams(location.search).get('room')||'';
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
@@ -397,7 +397,7 @@ function sendGuess(){const v=$('gs').value.trim();if(!v)return;ask(`ตอบว
 s.on('react',({name,ans})=>{SFX[ans]();const d=document.createElement('div');d.className='bub '+ans;d.textContent=(ans==='yes'?'✅ ใช่':'❌ ไม่')+' · '+name;d.style.top=(70+document.querySelectorAll('.bub').length*54)+'px';document.body.appendChild(d);setTimeout(()=>d.remove(),2600)});
 s.on('kicked',()=>{st=null;lastKey='';chatMsgs=[];unread=0;closeChat();updBadge();sessionStorage.removeItem('room');mode='home';render();say('คุณถูกเจ้าของห้องเชิญออกจากห้อง')});
 function kick(p){ask('เตะผู้เล่นคนนี้ออกจากห้อง?','เตะออก','r').then(ok=>ok&&act('kick',p))}
-function openLib(){if(libLocked()){closeSet();return say('โหมดยาก: ห้ามเปิดดูคลังตัวละครระหว่างเกม 🔒')}closeSet();libQ='';$('lc').innerHTML=`<div class="row"><h2>📚 ตัวละครในเกม (${chars.length})</h2><button class="g" style="width:auto" onclick="closeLib()">ปิด ✕</button></div><button class="b" style="margin:0 0 8px" onclick="openCx()">➕ เสนอตัวละครใหม่ (ชื่อ + เรื่อง + รูป)</button><input id="lq" placeholder="ค้นหาชื่อตัวละคร หรือชื่อเรื่อง" oninput="libQ=this.value;drawLib()"><div id="lr"></div>`;$('lib').style.display='flex';drawLib()}
+function openLib(){if(libLocked()){closeSet();return say('โหมดยาก: ห้ามเปิดดูคลังตัวละครระหว่างเกม 🔒')}closeSet();libQ='';$('lc').innerHTML=`<div class="row"><h2>📚 ตัวละครในเกม (${chars.length})</h2><button class="g" style="width:auto" onclick="closeLib()">ปิด ✕</button></div><button class="b" style="margin:0 0 8px" onclick="openCx()">➕ เสนอตัวละครใหม่ (ชื่อ + เรื่อง + รูป)</button>${ADMIN?'<button class="g" style="margin:0 0 8px" onclick="cxAdmin()">🛡️ หน้าแอดมิน</button>':''}<input id="lq" placeholder="ค้นหาชื่อตัวละคร หรือชื่อเรื่อง" oninput="libQ=this.value;drawLib()"><div id="lr"></div>`;$('lib').style.display='flex';drawLib()}
 function closeLib(){$('lib').style.display='none'}
 function drawLib(){const q=libQ.trim().toLowerCase(),by={};chars.forEach(c=>{if(!q||c[0].toLowerCase().includes(q)||c[1].toLowerCase().includes(q))(by[c[1]]=by[c[1]]||[]).push(c)});
  $('lr').innerHTML=Object.keys(by).sort().map(a=>`<details ${q?'open':''}><summary><b>${esc(a)}</b> (${by[a].length})</summary><div class="lg">${by[a].map(c=>`<div class="lt">${c[2]?`<img loading="lazy" src="/img/${c[2]}.jpg" alt="">`:'<div class="ph0">?</div>'}<small>${esc(c[0])}</small></div>`).join('')}</div></details>`).join('')||'<p>ไม่พบตัวละคร</p>'}
@@ -586,17 +586,66 @@ function openCx(){cxImg='';
  `<div style="margin-top:14px"><button class="g" style="width:auto;margin:0;font-size:12px" onclick="cxAdmin()">🛡️ แอดมิน</button></div>`}
 function cxSend(){const n=$('cxn').value.trim(),a=$('cxa').value.trim();if(!n||!a)return flash('กรอกชื่อตัวละครและชื่อเรื่อง');if(!cxImg)return flash('เลือกรูปตัวละครก่อน');s.emit('cx:submit',{n,a,al:$('cxal').value.trim(),img:cxImg})}
 s.on('cx:res',d=>{flash((d.ok?'✅ ':'⚠️ ')+d.msg);if(d.ok&&$('cxn')){cxImg='';openCx()}});
-async function cxAdmin(){const k=prompt('รหัสแอดมิน');if(k)s.emit('cx:admin',k)}
+// ===== แอดมิน (v3.2): คำขอ · ผู้เล่น · ห้อง · ตัวละคร =====
+let admTab='req',admU=null,admS=null,admC=null,admQ='',admUQ='';
+let ADMIN=false;
+async function cxAdmin(){if(ADMIN){s.emit('cx:refresh');return}const k=prompt('รหัสแอดมิน');if(k)s.emit('cx:admin',k)}
+s.on('adm:on',d=>{ADMIN=!!d.on;if(ADMIN&&d.pending!=null)setTimeout(()=>flash('🛡️ คุณเป็นแอดมิน'+(d.pending?' · มีคำขอรอตรวจ '+d.pending+' ตัว':'')),800)});
 s.on('cx:admin',d=>{if(d.err)flash('⚠️ '+d.err)});
-s.on('cx:list',d=>{cxAdm=d;if($('lib').style.display!=='flex')$('lib').style.display='flex';cxAdmDraw()});
-function cxAdmDraw(){const d=cxAdm;if(!d)return;
- $('lc').innerHTML=`<div class="row"><h2>🛡️ แอดมิน · รอตรวจ ${d.total}</h2><button class="g" style="width:auto" onclick="openLib()">ปิด ✕</button></div>`+
- (d.items.length?d.items.map(e=>`<div class="box" data-id="${e.id}"><img src="${e.img}" style="max-width:100%;max-height:200px;border:3px solid var(--line)"><br><small>เสนอโดย ${esc(e.by)}</small>
-  <input class="rn" maxlength="40" value="${esc(e.n)}"><input class="ra" maxlength="40" list="cxl" value="${esc(e.a)}"><input class="rl" maxlength="60" placeholder="ชื่อเรียกอื่น" value="${esc(e.al||'')}">
+s.on('cx:list',d=>{cxAdm=d;if($('lib').style.display!=='flex')$('lib').style.display='flex';if(admTab==='req'||!admS)admTab='req';admDraw()});
+s.on('adm:msg',d=>flash((d.ok?'✅ ':'⚠️ ')+d.msg));
+s.on('adm:user',d=>{admU=d;if(admTab==='usr')admDraw()});
+s.on('adm:state',d=>{admS=d;if(admTab==='room'||admTab==='usr')admDraw()});
+s.on('adm:chars',d=>{admC=d;if(admTab==='chr')admDraw()});
+s.on('adm:refresh',()=>admLoad());
+function admLoad(){if(admTab==='req')s.emit('cx:refresh');else if(admTab==='room'||admTab==='usr')s.emit('adm:state');else if(admTab==='chr')s.emit('adm:chars',admQ)}
+function admGo(t){admTab=t;admDraw();admLoad()}
+function admDraw(){const T=[['req','📥 คำขอ'+(cxAdm?' '+cxAdm.total:'')],['usr','👥 ผู้เล่น'],['room','🏠 ห้อง'],['chr','🎭 ตัวละคร']];
+ let b='';
+ if(admTab==='req'&&cxAdm){const d=cxAdm;b=(d.items.length?d.items.map(e=>`<div class="box" data-id="${e.id}"><img src="${e.img}" style="max-width:100%;max-height:200px;border:3px solid var(--line)"><br><small>เสนอโดย ${esc(e.by)}</small>
+  <input class="rn" maxlength="40" value="${esc(e.n)}"><input class="ra" maxlength="40" list="cxl" value="${esc(e.a)}"><input class="rl" maxlength="60" placeholder="ชื่อเรียกอื่น" value="${esc(e.al||'')}"><input class="rw" maxlength="80" placeholder="เหตุผลที่ปฏิเสธ (ไม่บังคับ)">
   <div class="row"><button class="b" onclick="cxRev('${e.id}',1)">✓ อนุมัติ</button><button class="g" onclick="cxRev('${e.id}',0)">✕ ปฏิเสธ</button></div></div>`).join(''):'<div class="box">ไม่มีคำขอรอตรวจ</div>')+
- `<datalist id="cxl">${animes.map(a=>`<option value="${esc(a)}">`).join('')}</datalist><details><summary><b>ตัวละครที่ผู้เล่นเสนอและอนุมัติแล้ว (${d.ok.length})</b></summary>${d.ok.map(e=>`<div class="row" style="margin:4px 0"><span>${esc(e.n)} <small>· ${esc(e.a)} · ${esc(e.by)}</small></span><button class="g" style="width:auto;margin:0" onclick="cxRm('${e.id}')">ลบ</button></div>`).join('')||'<small>ยังไม่มี</small>'}</details>`}
-function cxRev(id,ok){const b=document.querySelector(`[data-id="${id}"]`);if(!b)return;s.emit('cx:review',{id,ok:!!ok,n:b.querySelector('.rn').value,a:b.querySelector('.ra').value,al:b.querySelector('.rl').value})}
+  `<datalist id="cxl">${animes.map(a=>`<option value="${esc(a)}">`).join('')}</datalist><small>ผู้เสนอจะได้รับแจ้งผลเมื่อออนไลน์/ล็อกอินครั้งถัดไป</small>`}
+ else if(admTab==='usr'){const u=admU&&admU.info;
+  b=`<div class="box"><input id="aun" maxlength="40" placeholder="ชื่อบัญชีผู้เล่น" value="${esc(admUQ)}"><button class="b" onclick="admFind()">ค้นหา</button></div>`+
+  (admU&&admU.err?`<div class="box">${esc(admU.err)}</div>`:'')+
+  (u?`<div class="box"><b>${esc(u.name)}</b> ${u.online?'🟢 ออนไลน์':'⚪ ออฟไลน์'}${u.ban?' <b style="color:#e5484d">🚫 ถูกระงับ'+(u.ban.why?': '+esc(u.ban.why):'')+'</b>':''}${u.noav?' <b>🖼️ ปิดรูปโปรไฟล์</b>':''}<br>
+   🪙 ${u.coins} · ⭐ XP ${u.xp} · 🎮 ${u.games} (ชนะ ${u.wins}) · 🧠 ${u.qgames}${u.created?'<br><small>สมัครเมื่อ '+new Date(u.created).toLocaleDateString('th-TH')+'</small>':''}
+   <div class="row"><input id="aco" type="number" placeholder="จำนวนเหรียญ" style="margin:0"><button class="b" style="width:auto;margin:0" onclick="admCoin('add')">+/-</button><button class="g" style="width:auto;margin:0" onclick="admCoin('set')">ตั้งเป็น</button></div>
+   <small>ใส่ติดลบเพื่อหักเหรียญ (+/-) หรือกด "ตั้งเป็น" เพื่อกำหนดยอดตรงๆ</small>
+   <div class="row">${u.ban?`<button class="b" onclick="admBan(0)">ปลดระงับ</button>`:`<button class="r" onclick="admBan(1)">🚫 ระงับบัญชี</button>`}<button class="g" onclick="admNoav(${u.noav?0:1})">${u.noav?'เปิดรูปโปรไฟล์':'ปิดรูปโปรไฟล์'}</button></div>
+   <button class="r" onclick="admDel()">ลบบัญชีถาวร</button></div>`:'')+
+  `<div class="box"><b>ออนไลน์ตอนนี้</b> ${admS?`<small>(${admS.socks} การเชื่อมต่อ · ${admS.accts} บัญชี)</small><br>${admS.users.map(n=>`<button class="g" style="width:auto;display:inline-block;margin:2px" onclick="admUser('${esc(n)}')">${esc(n)}</button>`).join('')||'<small>ไม่มีใครล็อกอิน</small>'}`:'<small>กำลังโหลด…</small>'}</div>`}
+ else if(admTab==='room'){b=admS?(admS.rooms.length?admS.rooms.map((r,ri)=>`<div class="box"><b>${r.k==='q'?'🧠':'🎮'} ห้อง ${esc(r.code)}</b> <small>${esc(r.phase)}</small><button class="r" style="width:auto;margin:0 0 0 8px;float:right" onclick="admClose(${ri})">ปิดห้อง</button>
+   ${r.players.map((p,pi)=>`<div class="row" style="margin:3px 0"><span>${p.on?'🟢':'⚪'} ${esc(p.name)}${p.un?` <small>@${esc(p.un)}</small>`:' <small>(แขก)</small>'}</span><span><button class="g" style="width:auto;margin:0" onclick="admKickP(${ri},${pi})">เชิญออก</button>${p.av?` <button class="g" style="width:auto;margin:0" onclick="admNoavP(${ri},${pi})">ปิดรูป</button>`:''}</span></div>`).join('')}
+   ${r.chat.length?`<details><summary><small>แชท (${r.chat.length})</small></summary>${r.chat.map((m,mi)=>`<div class="row" style="margin:2px 0"><small><b>${esc(m.name)}</b>: ${esc(m.text)}</small><button class="g" style="width:auto;margin:0" onclick="admDelChat(${ri},${mi})">✕</button></div>`).join('')}</details>`:''}</div>`).join(''):'<div class="box">ไม่มีห้องที่เปิดอยู่</div>'):'<div class="box">กำลังโหลด…</div>'}
+ else if(admTab==='chr'){const c=admC;b=`<div class="box"><input id="acq" placeholder="ค้นหาชื่อตัวละคร หรือชื่อเรื่อง" value="${esc(admQ)}" onkeydown="if(event.key==='Enter')admSearch()"><button class="b" onclick="admSearch()">ค้นหา</button></div>`+
+  (c?(c.items.map((e,i)=>`<div class="box" data-ci="${i}"><small>${e.u?'ผู้เล่นเสนอ':'ตัวละครเดิม'}</small><input class="cn" maxlength="40" value="${esc(e.n)}"><input class="ca" maxlength="40" list="cxl" value="${esc(e.a)}"><input class="cl" maxlength="60" placeholder="ชื่อเรียกอื่น" value="${esc(e.al)}">
+   <div class="row"><button class="b" onclick="admCharSave(${i})">บันทึก</button>${e.u?'':`<button class="g" onclick="admHide(${i})">ซ่อนจากเกม</button>`}</div></div>`).join('')||'<div class="box">ไม่พบ</div>')+
+  `<datalist id="cxl">${animes.map(a=>`<option value="${esc(a)}">`).join('')}</datalist>`+(c.hidden.length?`<details open><summary><b>ตัวละครที่ซ่อนอยู่ (${c.hidden.length})</b></summary>${c.hidden.map((n,i)=>`<div class="row" style="margin:3px 0"><span>${esc(n)}</span><button class="g" style="width:auto;margin:0" onclick="admUnhide(${i})">นำกลับ</button></div>`).join('')}</details>`:'')+`<small>ทั้งหมด ${c.total} ตัว · ตัวที่ผู้เล่นเสนอและอนุมัติแล้วลบได้ที่แท็บคำขอ ด้านล่าง</small>`:'<div class="box">กำลังโหลด…</div>')+(cxAdm&&cxAdm.ok.length?`<details><summary><b>ผู้เล่นเสนอและอนุมัติแล้ว (${cxAdm.ok.length})</b></summary>${cxAdm.ok.map(e=>`<div class="row" style="margin:3px 0"><span>${esc(e.n)} <small>· ${esc(e.a)} · ${esc(e.by)}</small></span><button class="g" style="width:auto;margin:0" onclick="cxRm('${e.id}')">ลบ</button></div>`).join('')}</details>`:'')}
+ $('lc').innerHTML=`<div class="row"><h2>🛡️ แอดมิน</h2><button class="g" style="width:auto" onclick="openLib()">ปิด ✕</button></div><div class="row tabs4">${T.map(t=>`<button class="${admTab===t[0]?'b':'g'}" onclick="admGo('${t[0]}')">${t[1]}</button>`).join('')}</div>`+b}
+function cxRev(id,ok){const b=document.querySelector(`[data-id="${id}"]`);if(!b)return;s.emit('cx:review',{id,ok:!!ok,n:b.querySelector('.rn').value,a:b.querySelector('.ra').value,al:b.querySelector('.rl').value,why:b.querySelector('.rw').value})}
 async function cxRm(id){if(await ask('ลบตัวละครนี้ออกจากเกม?','ลบ','r'))s.emit('cx:remove',id)}
+function admFind(){admUQ=$('aun').value.trim();if(admUQ)s.emit('adm:user',admUQ)}
+function admUser(n){admUQ=n;s.emit('adm:user',n)}
+function admCoin(mode){const n=parseInt($('aco').value);if(isNaN(n)||!admU||!admU.info)return flash('ใส่จำนวนเหรียญเป็นตัวเลข');s.emit('adm:coins',{name:admU.info.name,mode,n})}
+function admBan(on){const u=admU.info;const why=on?(prompt('เหตุผลที่ระงับ (ไม่บังคับ)')||''):'';if(on&&why===null)return;s.emit('adm:ban',{name:u.name,on:!!on,why})}
+async function admDel(){const u=admU.info;if(await ask('ลบบัญชี <b>'+esc(u.name)+'</b> ถาวร?<br><small>ลบแล้วกู้คืนไม่ได้</small>','ลบบัญชี','r'))s.emit('adm:delacct',u.name)}
+function admNoav(on){s.emit('adm:noav',{name:admU.info.name,on:!!on})}
+function admClose(ri){const r=admS.rooms[ri];s.emit('adm:closeroom',{k:r.k,code:r.code})}
+function admKickP(ri,pi){const r=admS.rooms[ri];s.emit('adm:kick',{k:r.k,code:r.code,pid:r.players[pi].pid})}
+function admNoavP(ri,pi){const r=admS.rooms[ri],p=r.players[pi];if(p.un)s.emit('adm:noav',{name:p.un,on:true});else s.emit('adm:noav',{pid:p.pid,on:true})}
+function admDelChat(ri,mi){const r=admS.rooms[ri],m=r.chat[mi];s.emit('adm:delchat',{code:r.code,t:m.t,pid:m.pid})}
+function admSearch(){admQ=$('acq').value.trim();s.emit('adm:chars',admQ)}
+function admCharSave(i){const b=document.querySelector(`[data-ci="${i}"]`),e=admC.items[i];s.emit('adm:charedit',{n:e.n,nn:b.querySelector('.cn').value,a:b.querySelector('.ca').value,al:b.querySelector('.cl').value});setTimeout(admSearch,500)}
+function admHide(i){s.emit('adm:charhide',{n:admC.items[i].n,on:true})}
+function admUnhide(i){s.emit('adm:charhide',{n:admC.hidden[i],on:false})}
+// ฝั่งผู้เล่น: ผลการเสนอตัวละคร / ถูกระงับ / ถูกเชิญออก / ปิดรูปโปรไฟล์ / แชทถูกลบ
+s.on('cx:notes',l=>{(l||[]).slice(0,5).forEach((x,i)=>setTimeout(()=>flash(x.ok?'✅ ตัวละคร "'+x.n+'" ผ่านแล้ว เข้าเกมแล้ว!':'❌ ตัวละคร "'+x.n+'" ไม่ผ่าน'+(x.why?': '+x.why:'')),i*1500))});
+s.on('auth:banned',d=>{try{localStorage.removeItem('tok')}catch(e){}ACC=null;if($('set').style.display==='flex'&&pTab==='me')openProf('me');say('🚫 บัญชีถูกระงับ'+(d&&d.why?': '+d.why:''))});
+s.on('adm:noav',d=>{if(d.on){PF.av='';pfSave();syncProf();flash('🖼️ รูปโปรไฟล์ถูกแอดมินปิดการใช้งาน')}else flash('🖼️ เปิดใช้รูปโปรไฟล์ได้อีกครั้ง')});
+s.on('adm:kicked',d=>{if(st){st=null;lastKey='';chatMsgs=[];unread=0;closeChat();updBadge();sessionStorage.removeItem('room')}if(QM){QM=null;clearInterval(qmTick);sessionStorage.removeItem('qroom')}mode='home';render();say(d&&d.msg||'คุณถูกเชิญออกจากห้อง')});
+s.on('chatdel',d=>{chatMsgs=chatMsgs.filter(m=>!(m.t===d.t&&m.pid===d.pid));if(chatOpen)renderChat()});
 
 // ===== ตั้งค่าห้องระหว่างรอเพื่อน (เจ้าของห้อง) =====
 function openRoomSet(){if(!st||!st.owner||st.phase!=='lobby')return;const c=st.set,all=c.animes==='ALL';
@@ -885,7 +934,7 @@ SFX.gacha=t=>{const i=TORD.indexOf(t);
  if(i>=2)setTimeout(()=>seq([659,784,988,1319],'triangle',.18,.1),380);
  if(i>=3)setTimeout(()=>{seq([784,988,1175,1568,1976],'sawtooth',.2,.07);[523,784,1047].forEach(f=>tone(f,1.1,'sine',.08,.55))},800);
  if(i>=4)setTimeout(()=>{[0,1,2,3,4,5].forEach(k=>tone(1047*Math.pow(1.122,k*2),.5,'sine',.07,k*.09));[262,330,392,523].forEach(f=>tone(f,1.6,'sine',.09,.3))},1400)};
-NEWS.unshift('➕ เสนอตัวละครใหม่ได้แล้ว: เปิดคลังตัวละคร 📚 → เสนอตัวละครใหม่ ใส่ชื่อ เรื่อง และรูป (ต้องล็อกอิน) แอดมินตรวจแล้วเข้าเกมทันที');NEWS.unshift('🎯 ภารกิจรายวัน 3 ข้อ (รับเหรียญ) + โบนัสเข้าเล่นต่อเนื่องหลายวัน + ฉายา 10 แบบ แสดงข้างชื่อ + รายชื่อคนที่เพิ่งเล่นด้วยกัน กดชวนกลับเข้าห้องได้ (ต้องล็อกอินทั้งสองฝ่าย) ดูที่ โปรไฟล์ → ภารกิจ');NEWS.unshift('☁️ ระบบบัญชีผู้เล่น: สมัครด้วยชื่อกับ PIN (ไม่ต้องใช้อีเมล) เหรียญ กรอบที่สุ่มได้ และเลเวลจะถูกเก็บบนเซิร์ฟเวอร์ ใช้ข้ามเครื่องได้ ดูที่ โปรไฟล์ → ข้อมูล');NEWS.unshift('🏠 หน้าแรกจัดลำดับใหม่ (สร้างห้อง/เข้าร่วม → โหมดแฟนพันธุ์แท้ → เมนูรอง) และช่องพิมพ์ชื่อตัวละครเลื่อนดูรายชื่อบนมือถือได้โดยไม่เผลอเลือก');NEWS.unshift('⚙️ เจ้าของห้องแก้ตั้งค่า (เวลา/ความยาก/อนิเมะ/การ์ด/จำนวนคน) ได้ตอนรอเพื่อน และปุ่ม 📚 คลังตัวละครย้ายมาอยู่เรียงกับปุ่มแชท');NEWS.unshift('✨ ปรับแอนิเมชันทั้งเกมให้ลื่นขึ้น: ปุ่มกดมีคลื่นและเด้ง หน้าต่างเปิด-ปิดนุ่ม การ์ดตัวละครเด้งเข้า ตอบถูก/ผิดมีอนุภาคและแฟลช สุ่มกรอบมีช่วงรวมพลังก่อนเปิดผล พื้นหลังขยับช้า ๆ (ปิดได้ที่ ตั้งค่า → ลดการเคลื่อนไหว)');NEWS.unshift('🎰 ระบบสุ่มกรอบการ์ดตัวละครใหม่! ใช้เหรียญสุ่มกรอบ 5 ระดับ C/B/A/S/SSR ยิ่งสูงยิ่งสุ่มยาก มีระบบการันตี สุ่ม ×10 และเหรียญคืนเมื่อซ้ำ ดูที่ โปรไฟล์ → 🎰 สุ่มกรอบ');
+NEWS.unshift('🛡️ ระบบแอดมินครบขึ้น: ผู้เสนอตัวละครได้รับแจ้งผล, ระงับบัญชี/ปรับเหรียญ, ดูห้อง ลบแชท เชิญออก ปิดรูปโปรไฟล์ได้');NEWS.unshift('➕ เสนอตัวละครใหม่ได้แล้ว: เปิดคลังตัวละคร 📚 → เสนอตัวละครใหม่ ใส่ชื่อ เรื่อง และรูป (ต้องล็อกอิน) แอดมินตรวจแล้วเข้าเกมทันที');NEWS.unshift('🎯 ภารกิจรายวัน 3 ข้อ (รับเหรียญ) + โบนัสเข้าเล่นต่อเนื่องหลายวัน + ฉายา 10 แบบ แสดงข้างชื่อ + รายชื่อคนที่เพิ่งเล่นด้วยกัน กดชวนกลับเข้าห้องได้ (ต้องล็อกอินทั้งสองฝ่าย) ดูที่ โปรไฟล์ → ภารกิจ');NEWS.unshift('☁️ ระบบบัญชีผู้เล่น: สมัครด้วยชื่อกับ PIN (ไม่ต้องใช้อีเมล) เหรียญ กรอบที่สุ่มได้ และเลเวลจะถูกเก็บบนเซิร์ฟเวอร์ ใช้ข้ามเครื่องได้ ดูที่ โปรไฟล์ → ข้อมูล');NEWS.unshift('🏠 หน้าแรกจัดลำดับใหม่ (สร้างห้อง/เข้าร่วม → โหมดแฟนพันธุ์แท้ → เมนูรอง) และช่องพิมพ์ชื่อตัวละครเลื่อนดูรายชื่อบนมือถือได้โดยไม่เผลอเลือก');NEWS.unshift('⚙️ เจ้าของห้องแก้ตั้งค่า (เวลา/ความยาก/อนิเมะ/การ์ด/จำนวนคน) ได้ตอนรอเพื่อน และปุ่ม 📚 คลังตัวละครย้ายมาอยู่เรียงกับปุ่มแชท');NEWS.unshift('✨ ปรับแอนิเมชันทั้งเกมให้ลื่นขึ้น: ปุ่มกดมีคลื่นและเด้ง หน้าต่างเปิด-ปิดนุ่ม การ์ดตัวละครเด้งเข้า ตอบถูก/ผิดมีอนุภาคและแฟลช สุ่มกรอบมีช่วงรวมพลังก่อนเปิดผล พื้นหลังขยับช้า ๆ (ปิดได้ที่ ตั้งค่า → ลดการเคลื่อนไหว)');NEWS.unshift('🎰 ระบบสุ่มกรอบการ์ดตัวละครใหม่! ใช้เหรียญสุ่มกรอบ 5 ระดับ C/B/A/S/SSR ยิ่งสูงยิ่งสุ่มยาก มีระบบการันตี สุ่ม ×10 และเหรียญคืนเมื่อซ้ำ ดูที่ โปรไฟล์ → 🎰 สุ่มกรอบ');
 
 setTimeout(()=>{dailyBonus();if(localStorage.seenVer!==APPV){try{localStorage.seenVer=APPV}catch(e){}openNews()}},900);
 
