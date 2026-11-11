@@ -1,8 +1,13 @@
 <!doctype html>
-<!-- ag-build:20261040 -->
+<!-- ag-build:20261041 -->
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ANIME GUESS</title>
+<meta name="description" content="เกมทายตัวละครอนิเมะ เล่นกับเพื่อนได้ทุกคน มีโหมดแฟนพันธุ์แท้ สุ่มกรอบการ์ด ภารกิจรายวัน">
+<meta property="og:type" content="website"><meta property="og:site_name" content="ANIME GUESS">
+<meta property="og:title" content="ANIME GUESS · เกมทายตัวละครอนิเมะ"><meta property="og:description" content="ชวนเพื่อนมาทายตัวละครอนิเมะ มีโหมดแฟนพันธุ์แท้ สุ่มกรอบการ์ด ภารกิจรายวัน เล่นฟรีบนมือถือ">
+<meta property="og:image" content="https://anime-guess-ehad.onrender.com/og.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:url" content="https://anime-guess-ehad.onrender.com/">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://anime-guess-ehad.onrender.com/og.jpg">
 <script>document.documentElement.dataset.theme=localStorage.theme||'light';if(localStorage.calm==='1')document.documentElement.setAttribute('data-calm','')</script>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -284,7 +289,7 @@ body.bgi::before{animation:kb 55s ease-in-out infinite alternate;will-change:tra
 const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิดตัวอักษร'],era:['📅','ใบ้ยุค'],ability:['⚡','ความสามารถ'],side:['🏴','ฝ่าย'],role:['⭐','บทบาท']};
 const s=io(),$=id=>document.getElementById(id);
 const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
-const VER=5,APPV='3.3',BUILD='20261040';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
+const VER=5,APPV='3.3',BUILD='20261041';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
 const pre=new URLSearchParams(location.search).get('room')||'';
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
