@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- ag-build:20261036 -->
+<!-- ag-build:20261038 -->
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ANIME GUESS</title>
@@ -263,6 +263,8 @@ body.bgi::before{animation:kb 55s ease-in-out infinite alternate;will-change:tra
 .feat .ft{font-size:22px;font-weight:800;margin-bottom:2px}.feat small{display:block;margin-bottom:8px;opacity:.85}.feat button{margin:0;padding:14px;font-size:18px}
 .mini2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}.mini2 button{margin:0;padding:12px 8px;font-size:15px}.mini2 small{font-size:13px;opacity:.85}
 .sgl{touch-action:pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.ttl{font-size:11px;font-weight:800;color:#14142b;background:linear-gradient(90deg,#ffd23f,#ffb020);padding:0 6px;border-radius:2px;white-space:nowrap}
+.tabs4 button{padding:8px 2px;font-size:13px}.ms.cl{opacity:.6}.ms .qbar{margin:6px 0}.pl.rp{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:6px 0}.shop.tt{grid-template-columns:repeat(auto-fill,minmax(105px,1fr))}.shop.tt .it{padding:6px 4px}
 </style></head><body>
 <div class="top"><div class="logo"><b>ANIME</b> GUESS</div><div class="tr"><button class="gear g mt" id="mt" onclick="toggleMute()" aria-label="เปิด/ปิดเสียง">🔊</button><button class="gear g" onclick="openSet()" aria-label="ตั้งค่า">⚙️</button></div></div><div id="cn">กำลังเชื่อมต่อเซิร์ฟเวอร์ใหม่… (เซิร์ฟเวอร์ฟรีอาจใช้เวลาตื่นราว 30 วินาที) เกมของคุณยังอยู่ ไม่ต้องรีเฟรช</div>
 <div id="bg"></div><main id="app"></main>
@@ -282,14 +284,14 @@ body.bgi::before{animation:kb 55s ease-in-out infinite alternate;will-change:tra
 const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิดตัวอักษร'],era:['📅','ใบ้ยุค'],ability:['⚡','ความสามารถ'],side:['🏴','ฝ่าย'],role:['⭐','บทบาท']};
 const s=io(),$=id=>document.getElementById(id);
 const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
-const VER=5,APPV='2.9',BUILD='20261036';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
+const VER=5,APPV='3.1',BUILD='20261038';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
 const pre=new URLSearchParams(location.search).get('room')||'';
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
 const AVC={},avAsk=new Map(),AVOK=/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/;
 const avSrc=p=>{if(!p)return '';if(!p.pid)return p.av||'';if((st&&p.pid===st.you)||(QM&&p.pid===QM.you))return PF.av||'';const c=AVC[p.pid];return c&&c.ah===p.ah?c.src:''};
 const av=(n,p,big)=>{p=p||{};const src=avSrc(p),f=p.fr&&p.fr!=='none'?' fr-'+p.fr:'';return `<span class="avw${f}${big?' big':''}"><span class="av" style="background:hsl(${[...n].reduce((a,c)=>a+c.charCodeAt(0),0)*47%360} 85% 65%)">${src?`<img src="${src}" alt="">`:esc([...n][0]||'?')}</span></span>`};
-const pnm=p=>{const n=esc(p.name);return (p.nf&&p.nf!=='none'?`<span class="nf nf-${p.nf}">${n}</span>`:n)+(p.lv>1?` <small class="lvb">Lv${p.lv}</small>`:'')};
+const pnm=p=>{const n=esc(p.name);return (p.nf&&p.nf!=='none'?`<span class="nf nf-${p.nf}">${n}</span>`:n)+(p.tt&&TTM[p.tt]?` <small class="ttl">${TTM[p.tt].i}${TTM[p.tt].n}</small>`:'')+(p.lv>1?` <small class="lvb">Lv${p.lv}</small>`:'')};
 const gline=(p,big)=>{if(!p||p.res!=='lose'||!p.g)return '';const g=p.g,t=esc(g.th||g.n)+(g.th?` <small>(${esc(g.n)})</small>`:'');return `<div class="wg${big?' big':''}">${g.i?`<img src="/img/${g.i}.jpg" alt="" onerror="this.remove()">`:''}❌ ${big?esc(p.name)+' ':''}ตอบ: ${t}</div>`};
 function needAv(list){const now=Date.now(),need=list.filter(p=>p.ah&&!((st&&p.pid===st.you)||(QM&&p.pid===QM.you))&&!(AVC[p.pid]&&AVC[p.pid].ah===p.ah)&&!(now-(avAsk.get(p.pid+':'+p.ah)||0)<2500));if(need.length){need.forEach(p=>avAsk.set(p.pid+':'+p.ah,now));s.emit(st?'getav':'qz:getav',need.map(p=>p.pid))}}
 setInterval(()=>{const l=(st&&st.players)||(QM&&QM.players);if(l)needAv(l)},3000);s.on('connect',()=>avAsk.clear());
@@ -356,7 +358,7 @@ s.on('meta',m=>{animes=m.animes;chars=m.chars||[];SRVV=m.ver||'';heroPick();if(H
 s.on('state',x=>{
  const k=JSON.stringify({...x,left:0}),same=st&&k===lastKey,o=st;lastKey=k;st=x;t0=Date.now();sessionStorage.room=x.code;
  if(!o||o.code!==x.code){chatMsgs=[];act('getchat');act('prof',profOut())}
- needAv(x.players);if(x.phase==='over')awardGuess(x);
+ needAv(x.players);noteRecent(x.code,x.players,x.you);if(x.phase==='over')awardGuess(x);
  if(same)return;
  if(libLocked())closeLib();
  if(o){
@@ -395,7 +397,7 @@ function sendGuess(){const v=$('gs').value.trim();if(!v)return;ask(`ตอบว
 s.on('react',({name,ans})=>{SFX[ans]();const d=document.createElement('div');d.className='bub '+ans;d.textContent=(ans==='yes'?'✅ ใช่':'❌ ไม่')+' · '+name;d.style.top=(70+document.querySelectorAll('.bub').length*54)+'px';document.body.appendChild(d);setTimeout(()=>d.remove(),2600)});
 s.on('kicked',()=>{st=null;lastKey='';chatMsgs=[];unread=0;closeChat();updBadge();sessionStorage.removeItem('room');mode='home';render();say('คุณถูกเจ้าของห้องเชิญออกจากห้อง')});
 function kick(p){ask('เตะผู้เล่นคนนี้ออกจากห้อง?','เตะออก','r').then(ok=>ok&&act('kick',p))}
-function openLib(){if(libLocked()){closeSet();return say('โหมดยาก: ห้ามเปิดดูคลังตัวละครระหว่างเกม 🔒')}closeSet();libQ='';$('lc').innerHTML=`<div class="row"><h2>📚 ตัวละครในเกม (${chars.length})</h2><button class="g" style="width:auto" onclick="closeLib()">ปิด ✕</button></div><input id="lq" placeholder="ค้นหาชื่อตัวละคร หรือชื่อเรื่อง" oninput="libQ=this.value;drawLib()"><div id="lr"></div>`;$('lib').style.display='flex';drawLib()}
+function openLib(){if(libLocked()){closeSet();return say('โหมดยาก: ห้ามเปิดดูคลังตัวละครระหว่างเกม 🔒')}closeSet();libQ='';$('lc').innerHTML=`<div class="row"><h2>📚 ตัวละครในเกม (${chars.length})</h2><button class="g" style="width:auto" onclick="closeLib()">ปิด ✕</button></div><button class="b" style="margin:0 0 8px" onclick="openCx()">➕ เสนอตัวละครใหม่ (ชื่อ + เรื่อง + รูป)</button><input id="lq" placeholder="ค้นหาชื่อตัวละคร หรือชื่อเรื่อง" oninput="libQ=this.value;drawLib()"><div id="lr"></div>`;$('lib').style.display='flex';drawLib()}
 function closeLib(){$('lib').style.display='none'}
 function drawLib(){const q=libQ.trim().toLowerCase(),by={};chars.forEach(c=>{if(!q||c[0].toLowerCase().includes(q)||c[1].toLowerCase().includes(q))(by[c[1]]=by[c[1]]||[]).push(c)});
  $('lr').innerHTML=Object.keys(by).sort().map(a=>`<details ${q?'open':''}><summary><b>${esc(a)}</b> (${by[a].length})</summary><div class="lg">${by[a].map(c=>`<div class="lt">${c[2]?`<img loading="lazy" src="/img/${c[2]}.jpg" alt="">`:'<div class="ph0">?</div>'}<small>${esc(c[0])}</small></div>`).join('')}</div></details>`).join('')||'<p>ไม่พบตัวละคร</p>'}
@@ -507,6 +509,95 @@ async function accLogout(){if(!await ask('ออกจากระบบ?<br><sm
  clearTimeout(accTimer);if(accDirty&&ACC)s.emit('auth:save',{prof:PF,base:ACC.v});s.emit('auth:logout');try{localStorage.removeItem('tok')}catch(e){}ACC=null;accDirty=false;accApply({});syncProf();openProf('me');if(!st&&!QM)render()}
 window.addEventListener('pagehide',()=>{if(ACC&&accDirty)s.emit('auth:save',{prof:PF,base:ACC.v})});
 
+// ================= v3.0: ภารกิจรายวัน · ฉายา · ชวนเพื่อน =================
+const TT=[
+ {id:'first',i:'🌱',n:'มือใหม่',d:'เล่นครบ 1 เกม',pr:()=>[PF.games+PF.qgames,1]},
+ {id:'win10',i:'🏆',n:'ผู้ชนะ',d:'ชนะเกมทายตัวละคร 10 ครั้ง',pr:()=>[PF.wins,10]},
+ {id:'win50',i:'👑',n:'จอมทาย',d:'ชนะเกมทายตัวละคร 50 ครั้ง',pr:()=>[PF.wins,50]},
+ {id:'quiz20',i:'🧠',n:'แฟนพันธุ์แท้',d:'เล่นโหมดแฟนพันธุ์แท้ 20 รอบ',pr:()=>[PF.qgames,20]},
+ {id:'lv10',i:'⭐',n:'ระดับสิบ',d:'ถึงเลเวล 10',pr:()=>[lvOf(PF.xp),10]},
+ {id:'lv25',i:'🌟',n:'ตำนาน',d:'ถึงเลเวล 25',pr:()=>[lvOf(PF.xp),25]},
+ {id:'collector',i:'🖼️',n:'นักสะสมกรอบ',d:'สะสมกรอบการ์ดครบ 10 แบบ',pr:()=>[PF.cfo.length,10]},
+ {id:'ssr',i:'💎',n:'ผู้โชคดี',d:'สุ่มได้กรอบระดับ SSR',pr:()=>[PF.cfo.some(i=>CFM[i]&&CFM[i].t==='SSR')?1:0,1]},
+ {id:'streak7',i:'🔥',n:'ขยันสุดๆ',d:'เข้าเล่นต่อเนื่อง 7 วัน',pr:()=>[PF.sk.n,7]},
+ {id:'missions',i:'🎯',n:'นักภารกิจ',d:'ทำภารกิจรายวันสำเร็จ 15 ครั้ง',pr:()=>[PF.mc,15]}];
+const TTM={};TT.forEach(t=>TTM[t.id]=t);
+// ปรับรางวัล/เป้าหมายภารกิจได้ที่นี่ (วันละ 3 ภารกิจ สุ่มจากรายการนี้ ทุกเครื่องได้ชุดเดียวกันในวันเดียวกัน)
+const MP=[
+ {id:'play',n:'เล่นเกมทายตัวละคร 1 เกม',t:1,c:30},
+ {id:'win',n:'ชนะเกมทายตัวละคร 1 เกม',t:1,c:60},
+ {id:'crowd',n:'เล่นเกมทายตัวละครกับเพื่อน 3 คนขึ้นไป 1 เกม',t:1,c:40},
+ {id:'quiz',n:'เล่นแฟนพันธุ์แท้ 2 รอบ',t:2,c:40},
+ {id:'qok',n:'ตอบควิซถูกรวม 10 ข้อ',t:10,c:50},
+ {id:'gacha',n:'สุ่มกรอบ 3 ครั้ง',t:3,c:30}];
+const MP_ALL_BONUS=50;
+const dayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+function dmGet(){const d=dayStr();if(!PF.dm||PF.dm.d!==d)PF.dm={d,p:{},c:{},b:0};return PF.dm}
+function dmPick(){let h=0;for(const ch of dayStr())h=(Math.imul(h,31)+ch.charCodeAt(0))>>>0;const a=[...MP],o=[];while(o.length<3){h=(Math.imul(h,1664525)+1013904223)>>>0;o.push(a.splice((h>>>8)%a.length,1)[0])}return o}
+function mp(k,n){const m=dmGet();m.p[k]=Math.min(999,(m.p[k]||0)+(n||1));pfSave()}
+const dmReady=()=>{const m=dmGet();return dmPick().filter(x=>(m.p[x.id]||0)>=x.t&&!m.c[x.id]).length};
+function claimM(id){const m=dmGet(),x=dmPick().find(y=>y.id===id);if(!x||m.c[id]||(m.p[id]||0)<x.t)return;
+ m.c[id]=1;PF.mc++;gain(x.c,Math.round(x.c/2),null,'🎯 ภารกิจสำเร็จ');
+ if(!m.b&&dmPick().every(y=>m.c[y.id])){m.b=1;setTimeout(()=>gain(MP_ALL_BONUS,20,null,'🎉 ครบทุกภารกิจวันนี้'),700)}
+ const b=document.activeElement&&document.activeElement.getBoundingClientRect?document.activeElement.getBoundingClientRect():null;if(b)burst(b.left+b.width/2,b.top+b.height/2,'#ffd23f',22);
+ pfSave();checkTitles();setTimeout(()=>openProf('task'),250)}
+function checkTitles(){let n=0;TT.forEach(t=>{if(!PF.tt.includes(t.id)){const [a,b]=t.pr();if(a>=b){PF.tt.push(t.id);n++;setTimeout(()=>{flash('🏅 ปลดล็อกฉายา: '+t.n);SFX.levelup()},500+n*1000)}}});if(n)pfSave()}
+function equipTt(id){if(id&&!PF.tt.includes(id))return;PF.tu=id;pfSave();syncProf();openProf('task')}
+function taskBody(){const m=dmGet(),ms=dmPick(),sk=PF.sk.n,nx=30+Math.min(sk,6)*10;
+ let h=`<div class="box">🔥 เข้าเล่นต่อเนื่อง <b>${sk}</b> วัน<br><small>โบนัสเข้าเล่นครั้งต่อไป +${nx} 🪙 (ยิ่งเข้าติดกันหลายวัน โบนัสยิ่งเพิ่ม สูงสุด +90)</small></div><b>🎯 ภารกิจวันนี้</b> <small>(รีเซ็ตเที่ยงคืน)</small>`;
+ h+=ms.map(x=>{const p=Math.min(x.t,m.p[x.id]||0),done=p>=x.t,cl=m.c[x.id];
+  return `<div class="box ms ${cl?'cl':''}"><div class="row"><span>${x.n}</span><b>🪙${x.c}</b></div><div class="qbar"><i style="width:${p/x.t*100}%"></i></div><div class="row"><small>${p}/${x.t}</small>${cl?'<b>✓ รับแล้ว</b>':done?`<button class="b hot" style="width:auto;margin:0" onclick="claimM('${x.id}')">รับรางวัล</button>`:''}</div></div>`}).join('');
+ h+=`<small>ทำครบทั้ง 3 ภารกิจ รับโบนัสเพิ่ม +${MP_ALL_BONUS} 🪙 ${m.b?'(รับแล้ว)':''}</small><br><br><b>🏅 ฉายา</b> <small>(เลือกแสดงข้างชื่อ)</small><div class="shop gal tt">${TT.map(t=>{const ow=PF.tt.includes(t.id),on=PF.tu===t.id,[a,b]=t.pr();
+  return `<div class="it ${on?'on':''}" style="${ow?'':'opacity:.55'}"><div style="font-size:22px">${t.i}</div><b>${t.n}</b>${ow?'':`<small>${t.d} (${Math.min(a,b)}/${b})</small>`}${on?'<b>✓ ใช้อยู่</b>':ow?`<button class="b" onclick="equipTt('${t.id}')">ใช้</button>`:''}</div>`}).join('')}</div>`;
+ if(PF.tu)h+=`<button class="g" onclick="equipTt('')">ถอดฉายา</button>`;return h}
+function dailyBonus(){const d=dayStr();if(PF.daily===d)return;const y=new Date(Date.now()-864e5),ys=y.getFullYear()+'-'+String(y.getMonth()+1).padStart(2,'0')+'-'+String(y.getDate()).padStart(2,'0');
+ PF.sk.n=PF.sk.last===ys?PF.sk.n+1:1;PF.sk.last=d;PF.daily=d;const b=30+Math.min(PF.sk.n-1,6)*10;gain(b,10,null,'🎁 โบนัสเข้าเล่นรายวัน (ติดต่อกัน '+PF.sk.n+' วัน)');checkTitles()}
+// ----- คนที่เพิ่งเล่นด้วยกัน + ชวนเข้าห้อง -----
+const rpSeen=new Set();let INVON=new Set(),invAt=0;
+function noteRecent(code,players,you){if(!ACC||!players)return;let ch=0;players.forEach(p=>{if(!p.un||p.pid===you||p.un===ACC.name)return;const k=code+':'+p.un;if(rpSeen.has(k))return;rpSeen.add(k);PF.rp=PF.rp.filter(r=>r.u!==p.un);PF.rp.unshift({u:p.un,n:p.name,t:Date.now()});ch=1});if(ch){PF.rp=PF.rp.slice(0,12);pfSave()}}
+function invPoll(){if(!ACC||!PF.rp.length||Date.now()-invAt<6000)return;invAt=Date.now();s.emit('inv:status',PF.rp.map(r=>r.u))}
+s.on('inv:online',a=>{const n=new Set(a),ch=[...n].sort().join()!==[...INVON].sort().join();INVON=n;if(ch&&((st&&st.phase==='lobby')||(QM&&QM.phase==='lobby')))render()});
+function recentBox(players){if(!AUTHON)return '';
+ if(!ACC)return `<div class="box"><small>👥 ล็อกอินเพื่อชวนคนที่เคยเล่นด้วยกันกลับเข้าห้องได้ (โปรไฟล์ → ข้อมูล)</small></div>`;
+ invPoll();const inRoom=new Set(players.map(p=>p.un).filter(Boolean)),L=PF.rp.filter(r=>!inRoom.has(r.u));
+ if(!L.length)return PF.rp.length?'':`<div class="box"><small>👥 พอได้เล่นกับเพื่อนที่ล็อกอินแล้ว รายชื่อจะมาอยู่ตรงนี้ ให้ชวนกลับเข้าห้องได้เร็ว ๆ</small></div>`;
+ return `<div class="box"><b>👥 คนที่เพิ่งเล่นด้วยกัน</b>${L.map(r=>{const on=INVON.has(r.u);return `<div class="pl rp"><span class="gr">${on?'🟢':'⚪'} ${esc(r.n)} <small>@${esc(r.u)}</small></span><button class="${on?'b':'g'}" style="width:auto;margin:0" ${on?'':'disabled'} onclick="invite('${esc(r.u)}')">${on?'✉️ ชวน':'ออฟไลน์'}</button></div>`}).join('')}</div>`}
+function invite(u){s.emit('inv:send',u)}
+s.on('inv:res',d=>flash((d.ok?'✉️ ':'⚠️ ')+d.msg));
+s.on('inv:got',async d=>{if(st||QM){flash('✉️ '+d.from+' ชวนเข้าห้อง '+d.code+' (ออกจากห้องนี้ก่อนถึงจะเข้าได้)');return}
+ try{SFX.ready()}catch(e){}
+ if(!await ask('✉️ <b>'+esc(d.from)+'</b> ชวนคุณเข้าห้อง <b>'+esc(d.code)+'</b><br><small>'+(d.kind==='q'?'โหมดแฟนพันธุ์แท้':'เกมทายตัวละคร')+'</small>','เข้าร่วม'))return;
+ const n=name||(ACC&&ACC.name)||'Player';name=n;try{localStorage.name=n}catch(e){}
+ if(d.kind==='q')s.emit('qz:join',{code:d.code,name:n,pid,prof:profOut()});else act('join',{code:d.code,name:n,pid,prof:profOut()})});
+
+// ================= v3.1: เสนอตัวละคร + หน้าแอดมิน =================
+s.on('chars:update',m=>{animes=m.animes||animes;chars=m.chars||chars;if($('lib').style.display==='flex'&&$('lr'))drawLib();if(!st&&!QM&&mode==='home')render()});
+let cxImg='',cxAdm=null;
+function cxImgPick(inp){const f=inp.files&&inp.files[0];if(!f)return;const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const M=512,k=Math.min(1,M/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);let q=.85,d=c.toDataURL('image/jpeg',q);while(d.length>110000&&q>.35){q-=.1;d=c.toDataURL('image/jpeg',q)}cxImg=d;$('cxp').innerHTML=`<img src="${d}" style="max-width:100%;max-height:220px;border:3px solid var(--line)">`};im.onerror=()=>flash('อ่านรูปไม่ได้');im.src=fr.result};fr.readAsDataURL(f)}
+function openCx(){cxImg='';
+ $('lc').innerHTML=`<div class="row"><h2>➕ เสนอตัวละคร</h2><button class="g" style="width:auto" onclick="openLib()">← กลับ</button></div>`+
+ (!AUTHON?`<div class="box">ระบบนี้ยังไม่เปิดใช้งานบนเซิร์ฟเวอร์นี้</div>`:!ACC?`<div class="box">ต้องล็อกอินบัญชีก่อนถึงจะเสนอตัวละครได้<br><small>เข้าที่ โปรไฟล์ → ข้อมูล</small><br><br><button class="b" onclick="closeLib();openProf('me')">ไปล็อกอิน</button></div>`:
+ `<div class="box"><small>เสนอตัวละครที่อยากให้มีในเกม แอดมินจะตรวจก่อน ถ้าผ่านจะเข้าเกมอัตโนมัติ (เสนอได้วันละ 100 ตัว)</small>
+ <input id="cxn" maxlength="40" placeholder="ชื่อตัวละคร (เช่น Gojo Satoru)">
+ <input id="cxa" maxlength="40" list="cxl" placeholder="ชื่อเรื่อง (เช่น Jujutsu Kaisen)"><datalist id="cxl">${animes.map(a=>`<option value="${esc(a)}">`).join('')}</datalist>
+ <input id="cxal" maxlength="60" placeholder="ชื่อเรียกอื่น เช่น ชื่อไทย (ไม่บังคับ แยกด้วย |)">
+ <input id="cxf" type="file" accept="image/*" style="display:none" onchange="cxImgPick(this)"><div class="row"><button class="g" onclick="$('cxf').click()">🖼️ เลือกรูปตัวละคร</button></div><div id="cxp"></div>
+ <small>ใช้รูปตัวละครที่เห็นหน้าชัดเจน รูปจะถูกย่อให้อัตโนมัติ</small><br><button class="b" onclick="cxSend()">ส่งให้แอดมินตรวจ</button></div>`)+
+ `<div style="margin-top:14px"><button class="g" style="width:auto;margin:0;font-size:12px" onclick="cxAdmin()">🛡️ แอดมิน</button></div>`}
+function cxSend(){const n=$('cxn').value.trim(),a=$('cxa').value.trim();if(!n||!a)return flash('กรอกชื่อตัวละครและชื่อเรื่อง');if(!cxImg)return flash('เลือกรูปตัวละครก่อน');s.emit('cx:submit',{n,a,al:$('cxal').value.trim(),img:cxImg})}
+s.on('cx:res',d=>{flash((d.ok?'✅ ':'⚠️ ')+d.msg);if(d.ok&&$('cxn')){cxImg='';openCx()}});
+async function cxAdmin(){const k=prompt('รหัสแอดมิน');if(k)s.emit('cx:admin',k)}
+s.on('cx:admin',d=>{if(d.err)flash('⚠️ '+d.err)});
+s.on('cx:list',d=>{cxAdm=d;if($('lib').style.display!=='flex')$('lib').style.display='flex';cxAdmDraw()});
+function cxAdmDraw(){const d=cxAdm;if(!d)return;
+ $('lc').innerHTML=`<div class="row"><h2>🛡️ แอดมิน · รอตรวจ ${d.total}</h2><button class="g" style="width:auto" onclick="openLib()">ปิด ✕</button></div>`+
+ (d.items.length?d.items.map(e=>`<div class="box" data-id="${e.id}"><img src="${e.img}" style="max-width:100%;max-height:200px;border:3px solid var(--line)"><br><small>เสนอโดย ${esc(e.by)}</small>
+  <input class="rn" maxlength="40" value="${esc(e.n)}"><input class="ra" maxlength="40" list="cxl" value="${esc(e.a)}"><input class="rl" maxlength="60" placeholder="ชื่อเรียกอื่น" value="${esc(e.al||'')}">
+  <div class="row"><button class="b" onclick="cxRev('${e.id}',1)">✓ อนุมัติ</button><button class="g" onclick="cxRev('${e.id}',0)">✕ ปฏิเสธ</button></div></div>`).join(''):'<div class="box">ไม่มีคำขอรอตรวจ</div>')+
+ `<datalist id="cxl">${animes.map(a=>`<option value="${esc(a)}">`).join('')}</datalist><details><summary><b>ตัวละครที่ผู้เล่นเสนอและอนุมัติแล้ว (${d.ok.length})</b></summary>${d.ok.map(e=>`<div class="row" style="margin:4px 0"><span>${esc(e.n)} <small>· ${esc(e.a)} · ${esc(e.by)}</small></span><button class="g" style="width:auto;margin:0" onclick="cxRm('${e.id}')">ลบ</button></div>`).join('')||'<small>ยังไม่มี</small>'}</details>`}
+function cxRev(id,ok){const b=document.querySelector(`[data-id="${id}"]`);if(!b)return;s.emit('cx:review',{id,ok:!!ok,n:b.querySelector('.rn').value,a:b.querySelector('.ra').value,al:b.querySelector('.rl').value})}
+async function cxRm(id){if(await ask('ลบตัวละครนี้ออกจากเกม?','ลบ','r'))s.emit('cx:remove',id)}
+
 // ===== ตั้งค่าห้องระหว่างรอเพื่อน (เจ้าของห้อง) =====
 function openRoomSet(){if(!st||!st.owner||st.phase!=='lobby')return;const c=st.set,all=c.animes==='ALL';
  $('sc').innerHTML=`<h2>⚙️ ตั้งค่าห้อง</h2>
@@ -537,7 +628,7 @@ function draw(){
   <div class="or"><span>หรือ ใส่รหัสห้องที่เพื่อนส่งให้</span></div>
   <div class="joinrow"><input id="cd" placeholder="รหัสห้อง เช่น A7K9P" value="${esc(pre)}" style="text-transform:uppercase"><button class="b" onclick="joinRoom()">🔑 เข้าร่วม</button></div></div>
   <div class="box feat" onclick="quizHome()" role="button" tabindex="0"><div class="ft">🧠 โหมดแฟนพันธุ์แท้</div><small>ตอบคำถามเฉพาะเรื่อง แข่งคะแนนกับเพื่อนในห้อง หรือเล่นคนเดียว</small><button class="r big">เข้าโหมดแฟนพันธุ์แท้ →</button></div>
-  <div class="mini2"><button class="g" onclick="openLib()">📚 ตัวละครในเกม</button><button class="g" onclick="openProf('me')">👤 โปรไฟล์ & ร้านค้า<br><small>🪙 ${PF.coins}</small>${AUTHON&&!ACC?'<br><small>⚠ ยังไม่ได้ล็อกอิน</small>':''}</button></div>
+  <div class="mini2"><button class="g" onclick="openLib()">📚 ตัวละครในเกม</button><button class="g" onclick="openProf('me')">👤 โปรไฟล์ & ร้านค้า<br><small>🪙 ${PF.coins}</small>${AUTHON&&!ACC?'<br><small>⚠ ยังไม่ได้ล็อกอิน</small>':''}${dmReady()?'<br><small>🎯 มีภารกิจรอรับรางวัล</small>':''}</button></div>
   <div class="box"><h2>เล่นยังไง?</h2><ol class="steps"><li>สร้างห้อง แล้วส่งรหัสให้เพื่อน</li><li>ทุกคนสุ่มได้ตัวละคร เห็นแค่ของเพื่อน</li><li>ถามเพื่อนผ่าน Discord ตอบได้แค่ ใช่/ไม่</li><li>ถึงตาคุณใช้การ์ดถามคำถามปลายเปิดได้ 1 ใบ เพื่อนช่วยตอบ</li><li>ทายชื่อตัวละครให้ถูกก่อนหมดเวลา!</li></ol></div><p class="ver">ANIME GUESS v${APPV} · เซิร์ฟเวอร์ <span id="sv">${SRVV?'v'+SRVV:'…'}</span> · <a href="#" onclick="openNews();return false">มีอะไรใหม่</a></p></div></div>`;
   else A.innerHTML=`<h2>ตั้งค่าห้อง</h2><div class="box">
   เวลาเกม (นาที)<select id="tm0"><option>8</option><option selected>10</option><option>15</option><option>20</option><option>30</option><option value="0">ไม่จำกัดเวลา (เจ้าของห้องกดจบเกมเอง)</option></select>
@@ -557,7 +648,7 @@ function draw(){
   <div class="box"><div class="row"><b>ผู้เล่น ${st.players.length}/${st.set.max}</b><small>${st.players.length<2?'ต้องมีอย่างน้อย 2 คนถึงจะเริ่มได้':'พร้อมเริ่มได้เลย'}</small></div>
   <div class="seats">${list(p=>`<div class="seat ${p.pid===st.you?'me':''} ${p.off?'off':''}">${av(p.name,p,1)}<div class="sn">${pnm(p)}${p.pid===st.you?' (คุณ)':''}</div><small>${p.off?'📴 หลุด รอกลับ':(p.wins?'🏆 ชนะ '+p.wins:'พร้อม')}</small>${st.owner&&p.pid===st.you?'<span class="bd">👑</span>':''}${st.owner&&p.pid!==st.you?`<button class="r" onclick="kick('${p.pid}')">เตะ</button>`:''}</div>`)}${Array.from({length:Math.max(0,st.set.max-st.players.length)},()=>'<div class="seat empty"><div class="av0">+</div><small>รอเพื่อน…</small></div>').join('')}</div>
   <small style="display:block;margin-top:10px">ชื่อของคุณ</small><input id="rn" maxlength="16" value="${esc(me.name)}" onchange="rename(this.value)"></div>
-  <div class="box chips"><span>${st.set.mode==='hard'?'🔴 ยาก':'🟢 ง่าย'}</span><span>⏱️ ${st.set.time?st.set.time+' นาที':'ไม่จำกัดเวลา'}</span><span>📚 ${st.set.animes==='ALL'?'ทุกเรื่อง':esc(st.set.animes.join(', '))}</span><span>🃏 ${st.set.cards?st.set.cardCount+' ใบ/คน':'ไม่มีการ์ด'}</span><span>👥 สูงสุด ${st.set.max} คน</span></div>${st.owner?'<button class="g" onclick="openRoomSet()">⚙️ ตั้งค่าห้อง (เวลา · ความยาก · อนิเมะ · การ์ด)</button>':''}
+  ${recentBox(st.players)}<div class="box chips"><span>${st.set.mode==='hard'?'🔴 ยาก':'🟢 ง่าย'}</span><span>⏱️ ${st.set.time?st.set.time+' นาที':'ไม่จำกัดเวลา'}</span><span>📚 ${st.set.animes==='ALL'?'ทุกเรื่อง':esc(st.set.animes.join(', '))}</span><span>🃏 ${st.set.cards?st.set.cardCount+' ใบ/คน':'ไม่มีการ์ด'}</span><span>👥 สูงสุด ${st.set.max} คน</span></div>${st.owner?'<button class="g" onclick="openRoomSet()">⚙️ ตั้งค่าห้อง (เวลา · ความยาก · อนิเมะ · การ์ด)</button>':''}
   ${st.owner?'<button class="b hot" onclick="act(\'start\')">▶ START</button>':'<p style="text-align:center">รอเจ้าของห้องกดเริ่ม…</p>'}
   <button class="g" onclick="leave()">← ออกจากห้อง</button>`;
  else if(ph==='brief')A.innerHTML=`<h2>พร้อมหรือยัง?</h2><div class="box">ตัวละครของคุณถูกสุ่มแล้ว แต่คุณจะมองไม่เห็น<br>ถามคำถามผ่าน Discord ตอบได้แค่ ใช่ / ไม่<br>พิมพ์ชื่อตัวละครเมื่อมั่นใจ ตอบได้ครั้งเดียว ผิดคือแพ้</div>
@@ -653,7 +744,7 @@ const mpBox=()=>`<div class="box"><h2 style="margin-top:0">👥 แข่งก�
  <button class="b" onclick="qzCreate()">🏠 สร้างห้องแข่ง</button>
  <input id="qc" placeholder="รหัสห้อง เช่น A7K9P" value="${esc(pqroom)}" style="text-transform:uppercase">
  <button class="g" onclick="qzJoin()">🔑 เข้าร่วมห้อง</button></div>`;
-s.on('qz:state',x=>{const was=QM&&QM.phase;if(!QM||QM.code!==x.code)s.emit('qz:prof',profOut());QM=x;needAv(x.players);if(x.phase==='end')awardQz(x);QM._t=Date.now();sessionStorage.qroom=x.code;mode='qm';render();qmRun();
+s.on('qz:state',x=>{const was=QM&&QM.phase;if(!QM||QM.code!==x.code)s.emit('qz:prof',profOut());QM=x;needAv(x.players);noteRecent(x.code,x.players,x.you);if(x.phase==='end')awardQz(x);QM._t=Date.now();sessionStorage.qroom=x.code;mode='qm';render();qmRun();
  if(x.phase==='end'&&was!=='end'){confetti();const rk=[...x.players].sort((a,b)=>b.score-a.score);rk[0]&&rk[0].pid===x.you?SFX.win():SFX.gameover()}
  if(x.phase==='reveal'&&was!=='reveal'){if(x.mine===x.rev.ci){const mp=x.players.find(p=>p.pid===x.you);mp&&mp.streak>=3?SFX.combo(mp.streak-2):SFX.ding()}else SFX.buzz()}});
 s.on('qz:err',m=>{if(!QM)sessionStorage.removeItem('qroom');say(m)});
@@ -679,6 +770,7 @@ function drawQM(A){
   A.innerHTML=`<h2>🧠 ห้องแฟนพันธุ์แท้</h2><div class="code">${esc(QM.code)}</div>
   <button class="g" onclick="copy(location.origin+'/?qroom='+QM.code)">🔗 คัดลอกลิงก์เชิญเพื่อน</button>
   <div class="box"><b>ผู้เล่น (${QM.players.length})</b>${QM.players.map(p=>`<div class="pl">${av(p.name,p)}<span class="gr">${pnm(p)}${p.pid===QM.you?' (คุณ)':''}${p.pid===QM.ownerPid?' 👑':''}${p.online?'':' <small>(หลุด)</small>'}</span></div>`).join('')}</div>
+  ${recentBox(QM.players)}
   <div class="box"><b>ตั้งค่า</b>${QM.owner?`
    <select id="qa" onchange="qzSet()"><option value="ALL" ${all?'selected':''}>ทุกเรื่อง</option>${an.map(a=>`<option value="${esc(a.name)}" ${S.anime===a.name?'selected':''}>${esc(a.name)} (${a.count} ข้อ${a.img?` · 📷${a.img}`:''})</option>`).join('')}</select>
    จำนวนข้อ<select id="qcn" onchange="qzSet()">${opt([[10,'10 ข้อ'],[20,'20 ข้อ'],[30,'30 ข้อ'],[50,'50 ข้อ'],[100,'100 ข้อ'],[0,'ทั้งหมดในหมวด']],S.count)}</select>
@@ -705,23 +797,22 @@ if(pqroom)quizHome();
 // ================= โปรไฟล์ / เหรียญ / ร้านค้า / มีอะไรใหม่ =================
 const FR=[['none','ไม่มีกรอบ',0],['gold','กรอบทอง',150],['sakura','กรอบซากุระ',200],['ice','กรอบน้ำแข็ง',250],['emerald','กรอบมรกต',300],['neon','กรอบนีออน',400],['fire','กรอบเปลวไฟ',500],['royal','กรอบราชวงศ์',600],['rainbow','กรอบสายรุ้ง',800],['galaxy','กรอบกาแล็กซี่',1000]];
 const NF=[['none','ชื่อปกติ',0],['gold','ชื่อสีทอง',100],['ice','ชื่อน้ำแข็ง',150],['neon','ชื่อนีออน',250],['fire','ชื่อเปลวไฟ',300],['sparkle','ชื่อประกาย',400],['rainbow','ชื่อสายรุ้ง',500]];
-function pfNorm(src){const d={coins:0,xp:0,owned:[],fr:'none',nf:'none',av:'',games:0,wins:0,qgames:0,daily:'',paid:[],cf:'',cfo:[],gp:{s:0,r:0}};try{Object.assign(d,src||{})}catch(e){}
- if(!Array.isArray(d.cfo))d.cfo=[];if(!d.gp||typeof d.gp!=='object')d.gp={s:0,r:0};d.gp.s=+d.gp.s||0;d.gp.r=+d.gp.r||0;if(!Array.isArray(d.owned))d.owned=[];if(!Array.isArray(d.paid))d.paid=[];return d}
+function pfNorm(src){const d={coins:0,xp:0,owned:[],fr:'none',nf:'none',av:'',games:0,wins:0,qgames:0,daily:'',paid:[],cf:'',cfo:[],gp:{s:0,r:0},dm:{d:'',p:{},c:{},b:0},sk:{n:0,last:''},tt:[],tu:'',mc:0,rp:[]};try{Object.assign(d,src||{})}catch(e){}
+ if(!d.dm||typeof d.dm!=='object')d.dm={d:'',p:{},c:{},b:0};d.dm.p=d.dm.p||{};d.dm.c=d.dm.c||{};if(!d.sk||typeof d.sk!=='object')d.sk={n:0,last:''};d.sk.n=+d.sk.n||0;if(!Array.isArray(d.tt))d.tt=[];if(!Array.isArray(d.rp))d.rp=[];d.mc=+d.mc||0;if(!Array.isArray(d.cfo))d.cfo=[];if(!d.gp||typeof d.gp!=='object')d.gp={s:0,r:0};d.gp.s=+d.gp.s||0;d.gp.r=+d.gp.r||0;if(!Array.isArray(d.owned))d.owned=[];if(!Array.isArray(d.paid))d.paid=[];return d}
 function pfLoad(){try{return pfNorm(JSON.parse(localStorage.prof||'{}'))}catch(e){return pfNorm({})}}
 const pfLocal=()=>{try{localStorage.prof=JSON.stringify(PF)}catch(e){}};
 const pfSave=()=>{pfLocal();accSave()};
 const lvOf=xp=>Math.floor(Math.sqrt(Math.max(0,xp)/40))+1;
-const profOut=()=>({fr:PF.fr,nf:PF.nf,lv:lvOf(PF.xp),av:PF.av||'',cf:(PF.cf&&PF.cfo.includes(PF.cf))?PF.cf:''});
+const profOut=()=>({fr:PF.fr,nf:PF.nf,lv:lvOf(PF.xp),av:PF.av||'',cf:(PF.cf&&PF.cfo.includes(PF.cf))?PF.cf:'',tt:(PF.tu&&PF.tt.includes(PF.tu))?PF.tu:''});
 const owns=(k,id)=>id==='none'||PF.owned.includes(k+':'+id);
 function syncProf(){const o=profOut();if(st)act('prof',o);if(QM)s.emit('qz:prof',o)}
 function gain(coins,xp,key,msg){if(key){if(PF.paid.includes(key))return false;PF.paid.push(key);if(PF.paid.length>60)PF.paid.shift()}
  const l0=lvOf(PF.xp);PF.coins+=coins;PF.xp+=xp;pfSave();const l1=lvOf(PF.xp);if(msg)flash(msg+' +'+coins+' 🪙');if(l1>l0){SFX.levelup();flash('⭐ เลเวลอัป! Lv.'+l1)}else if(coins>0)SFX.coin();return true}
 function awardGuess(x){const m=x.players.find(p=>p.pid===x.you);if(!m||!m.earn)return;const k='g:'+x.code+':'+x.rid;if(PF.paid.includes(k))return;
- PF.games++;if(m.res==='win')PF.wins++;gain(m.earn,m.earn,k,m.res==='win'?'🏆 ชนะ!':'จบเกม')}
+ PF.games++;if(m.res==='win')PF.wins++;mp('play');if(m.res==='win')mp('win');if(x.players.length>=3)mp('crowd');gain(m.earn,m.earn,k,m.res==='win'?'🏆 ชนะ!':'จบเกม');checkTitles()}
 function awardQz(x){const m=x.players.find(p=>p.pid===x.you);if(!m)return;const rk=[...x.players].sort((a,b)=>b.score-a.score),k='q:'+x.code+':'+x.rid;if(PF.paid.includes(k))return;
- const c=Math.round(m.score/10)+(x.players.length>1&&rk[0].pid===m.pid&&rk[0].score>0?20:0)+5;PF.qgames++;gain(c,c,k,'จบเกมแฟนพันธุ์แท้')}
-function awardSolo(){if(!QS)return;const c=QS.ok*4+(QS.ok===QS.qs.length?20:0);if(c>0){PF.qgames++;gain(c,Math.round(c/2),'s:'+Date.now(),'จบควิซ')}}
-function dailyBonus(){const d=new Date().toISOString().slice(0,10);if(PF.daily===d)return;PF.daily=d;gain(30,10,null,'🎁 โบนัสเข้าเล่นรายวัน')}
+ const c=Math.round(m.score/10)+(x.players.length>1&&rk[0].pid===m.pid&&rk[0].score>0?20:0)+5;PF.qgames++;mp('quiz');mp('qok',m.ok||0);gain(c,c,k,'จบเกมแฟนพันธุ์แท้');checkTitles()}
+function awardSolo(){if(!QS)return;const c=QS.ok*4+(QS.ok===QS.qs.length?20:0);if(c>0){PF.qgames++;mp('quiz');mp('qok',QS.ok);gain(c,Math.round(c/2),'s:'+Date.now(),'จบควิซ');checkTitles()}}
 function avCrop(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onerror=rej;fr.onload=()=>{const im=new Image();im.onerror=rej;im.onload=()=>{const c=document.createElement('canvas');c.width=c.height=96;const x=c.getContext('2d'),m=Math.min(im.width,im.height);x.fillStyle='#fff';x.fillRect(0,0,96,96);x.drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,96,96);let q=.8,d=c.toDataURL('image/jpeg',q);while(d.length>20000&&q>.3){q-=.1;d=c.toDataURL('image/jpeg',q)}res(d)};im.src=fr.result};fr.readAsDataURL(file)})}
 async function pickAv(inp){const f=inp.files&&inp.files[0];if(!f)return;if(!/^image\//.test(f.type))return say('เลือกไฟล์รูปภาพเท่านั้น');
  try{PF.av=await avCrop(f);pfSave();syncProf();openProf('me')}catch(e){say('อ่านรูปไม่สำเร็จ ลองรูปอื่น')}}
@@ -729,11 +820,11 @@ function delAv(){PF.av='';pfSave();syncProf();openProf('me')}
 function setPName(v){v=v.trim().slice(0,16);if(!v)return;name=v;localStorage.name=v;if(st)act('rename',v)}
 function equip(k,id){if(!owns(k,id))return;PF[k]=id;pfSave();syncProf();openProf('shop')}
 async function buy(k,id,price,label){if(PF.coins<price)return say('เหรียญไม่พอ ต้องการ '+price+' 🪙 (คุณมี '+PF.coins+')\nเล่นเกมเพื่อสะสมเหรียญเพิ่มได้เลย');
- if(!await ask('ซื้อ <b>'+esc(label)+'</b> ราคา '+price+' 🪙 ?','ซื้อ'))return;PF.coins-=price;PF.owned.push(k+':'+id);pfSave();SFX.buy();equip(k,id)}
+ if(!await ask('ซื้อ <b>'+esc(label)+'</b> ราคา '+price+' 🪙 ?','ซื้อ'))return;PF.coins-=price;mp('gacha',n);PF.owned.push(k+':'+id);pfSave();SFX.buy();equip(k,id)}
 function openProf(tab){pTab=tab||pTab;const lv=lvOf(PF.xp),a=40*(lv-1)*(lv-1),b=40*lv*lv,pc=Math.min(100,Math.round((PF.xp-a)/(b-a)*100));
  const me={name,fr:PF.fr,nf:PF.nf,lv,av:PF.av};
  const head=`<h2>👤 โปรไฟล์</h2><div class="row" style="justify-content:flex-start;gap:14px">${av(name||'?',me,1)}<div style="flex:1"><b style="font-size:18px">${pnm({...me,lv:0,name:name||'ผู้เล่น'})}</b><br><small>Lv.${lv} · ${PF.xp} XP</small></div><b style="font-size:18px">🪙 ${PF.coins}</b></div><div class="xpbar"><i style="width:${pc}%"></i></div><small>อีก ${b-PF.xp} XP จะขึ้นเลเวลถัดไป</small>
- <div class="row" style="margin-top:8px"><button class="${pTab==='me'?'b':'g'}" onclick="openProf('me')">ข้อมูล</button><button class="${pTab==='shop'?'b':'g'}" onclick="openProf('shop')">🛒 ร้านค้า</button><button class="${pTab==='gacha'?'b':'g'}" onclick="openProf('gacha')">🎰 สุ่มกรอบ</button></div>`;
+ <div class="row tabs4" style="margin-top:8px"><button class="${pTab==='me'?'b':'g'}" onclick="openProf('me')">ข้อมูล</button><button class="${pTab==='shop'?'b':'g'}" onclick="openProf('shop')">🛒 ร้านค้า</button><button class="${pTab==='gacha'?'b':'g'}" onclick="openProf('gacha')">🎰 สุ่มกรอบ</button><button class="${pTab==='task'?'b':'g'}" onclick="openProf('task')">🎯 ภารกิจ${dmReady()?' ❗':''}</button></div>`;
  let body='';
  if(pTab==='me')body=accBox()+`<div class="box">ชื่อผู้เล่น<input id="pn" maxlength="16" value="${esc(name)}" onchange="setPName(this.value)">
   <b>รูปโปรไฟล์</b><br><small>เลือกรูปจากเครื่อง ระบบจะตัดเป็นสี่เหลี่ยมจัตุรัสและย่อให้อัตโนมัติ</small>
@@ -741,6 +832,7 @@ function openProf(tab){pTab=tab||pTab;const lv=lvOf(PF.xp),a=40*(lv-1)*(lv-1),b=
   <div class="box"><b>สถิติ</b><br>🎮 เกมทายตัวละคร: ${PF.games} รอบ · ชนะ ${PF.wins}${PF.games?` (${Math.round(PF.wins/PF.games*100)}%)`:''}<br>🧠 แฟนพันธุ์แท้ (ห้อง/เดี่ยว): ${PF.qgames} รอบ<br><small>เหรียญ: ชนะ +50 (เร็วสุด +20, โบนัสความเร็วสูงสุด +30, โหมดยากคูณ 1.5) · แพ้ +10 · แฟนพันธุ์แท้ ≈ คะแนน÷10 · เข้าเล่นรายวัน +30<br>ข้อมูลโปรไฟล์เก็บในเบราว์เซอร์เครื่องนี้ ถ้าล้างข้อมูลเบราว์เซอร์หรือเปลี่ยนเครื่อง เหรียญจะหายไป</small></div>
   <button class="g" onclick="openNews()">📜 มีอะไรใหม่ในเวอร์ชัน ${APPV}</button>`;
  else if(pTab==='gacha')body=gachaBody();
+ else if(pTab==='task')body=taskBody();
  else{const it=(k,L)=>L.map(([id,lb,pr])=>{const on=PF[k]===id,ow=owns(k,id);
    const pv=k==='fr'?av(name||'?',{...me,fr:id}):`<div style="min-height:40px;display:flex;align-items:center;justify-content:center">${pnm({name:name||'ชื่อ',nf:id,lv:0})}</div>`;
    return `<div class="it ${on?'on':''}">${pv}<div>${lb}</div>${on?'<b>✓ ใช้งานอยู่</b>':ow?`<button class="b" onclick="equip('${k}','${id}')">ใช้</button>`:`<button class="${PF.coins>=pr?'b':'g'}" onclick="buy('${k}','${id}',${pr},'${lb}')">🪙 ${pr}</button>`}</div>`}).join('');
@@ -767,7 +859,7 @@ function rollOne(){const g=PF.gp;g.s++;g.r++;let t='C';
  return {f,dup,t}}
 async function doRoll(n){if(!CF.length)return say('กำลังโหลดข้อมูลกรอบ ลองใหม่อีกครั้ง');
  const price=n===10?GA.cost10:GA.cost;if(PF.coins<price)return say('เหรียญไม่พอ ต้องการ '+price+' 🪙 (คุณมี '+PF.coins+')');
- PF.coins-=price;const rs=[];for(let i=0;i<n;i++)rs.push(rollOne());pfSave();syncProf();
+ PF.coins-=price;const rs=[];for(let i=0;i<n;i++)rs.push(rollOne());pfSave();syncProf();checkTitles();
  const best=rs.reduce((m,r)=>Math.max(m,TORD.indexOf(r.t)),0),bt=TORD[best];SFX.charge();
  setTimeout(()=>{SFX.gacha(bt);vib(bt==='SSR'?[40,60,40,60,140]:bt==='S'?[30,50,70]:12);const d=$('dc').getBoundingClientRect();if(best>=3){burst(d.left+d.width/2,d.top+d.height*.4,TCOL[bt],bt==='SSR'?70:36);vflash(TCOL[bt]+'aa')}},1000);
  const back=rs.reduce((s,r)=>s+(r.dup?GA.refund[r.t]:0),0);
@@ -793,7 +885,7 @@ SFX.gacha=t=>{const i=TORD.indexOf(t);
  if(i>=2)setTimeout(()=>seq([659,784,988,1319],'triangle',.18,.1),380);
  if(i>=3)setTimeout(()=>{seq([784,988,1175,1568,1976],'sawtooth',.2,.07);[523,784,1047].forEach(f=>tone(f,1.1,'sine',.08,.55))},800);
  if(i>=4)setTimeout(()=>{[0,1,2,3,4,5].forEach(k=>tone(1047*Math.pow(1.122,k*2),.5,'sine',.07,k*.09));[262,330,392,523].forEach(f=>tone(f,1.6,'sine',.09,.3))},1400)};
-NEWS.unshift('☁️ ระบบบัญชีผู้เล่น: สมัครด้วยชื่อกับ PIN (ไม่ต้องใช้อีเมล) เหรียญ กรอบที่สุ่มได้ และเลเวลจะถูกเก็บบนเซิร์ฟเวอร์ ใช้ข้ามเครื่องได้ ดูที่ โปรไฟล์ → ข้อมูล');NEWS.unshift('🏠 หน้าแรกจัดลำดับใหม่ (สร้างห้อง/เข้าร่วม → โหมดแฟนพันธุ์แท้ → เมนูรอง) และช่องพิมพ์ชื่อตัวละครเลื่อนดูรายชื่อบนมือถือได้โดยไม่เผลอเลือก');NEWS.unshift('⚙️ เจ้าของห้องแก้ตั้งค่า (เวลา/ความยาก/อนิเมะ/การ์ด/จำนวนคน) ได้ตอนรอเพื่อน และปุ่ม 📚 คลังตัวละครย้ายมาอยู่เรียงกับปุ่มแชท');NEWS.unshift('✨ ปรับแอนิเมชันทั้งเกมให้ลื่นขึ้น: ปุ่มกดมีคลื่นและเด้ง หน้าต่างเปิด-ปิดนุ่ม การ์ดตัวละครเด้งเข้า ตอบถูก/ผิดมีอนุภาคและแฟลช สุ่มกรอบมีช่วงรวมพลังก่อนเปิดผล พื้นหลังขยับช้า ๆ (ปิดได้ที่ ตั้งค่า → ลดการเคลื่อนไหว)');NEWS.unshift('🎰 ระบบสุ่มกรอบการ์ดตัวละครใหม่! ใช้เหรียญสุ่มกรอบ 5 ระดับ C/B/A/S/SSR ยิ่งสูงยิ่งสุ่มยาก มีระบบการันตี สุ่ม ×10 และเหรียญคืนเมื่อซ้ำ ดูที่ โปรไฟล์ → 🎰 สุ่มกรอบ');
+NEWS.unshift('➕ เสนอตัวละครใหม่ได้แล้ว: เปิดคลังตัวละคร 📚 → เสนอตัวละครใหม่ ใส่ชื่อ เรื่อง และรูป (ต้องล็อกอิน) แอดมินตรวจแล้วเข้าเกมทันที');NEWS.unshift('🎯 ภารกิจรายวัน 3 ข้อ (รับเหรียญ) + โบนัสเข้าเล่นต่อเนื่องหลายวัน + ฉายา 10 แบบ แสดงข้างชื่อ + รายชื่อคนที่เพิ่งเล่นด้วยกัน กดชวนกลับเข้าห้องได้ (ต้องล็อกอินทั้งสองฝ่าย) ดูที่ โปรไฟล์ → ภารกิจ');NEWS.unshift('☁️ ระบบบัญชีผู้เล่น: สมัครด้วยชื่อกับ PIN (ไม่ต้องใช้อีเมล) เหรียญ กรอบที่สุ่มได้ และเลเวลจะถูกเก็บบนเซิร์ฟเวอร์ ใช้ข้ามเครื่องได้ ดูที่ โปรไฟล์ → ข้อมูล');NEWS.unshift('🏠 หน้าแรกจัดลำดับใหม่ (สร้างห้อง/เข้าร่วม → โหมดแฟนพันธุ์แท้ → เมนูรอง) และช่องพิมพ์ชื่อตัวละครเลื่อนดูรายชื่อบนมือถือได้โดยไม่เผลอเลือก');NEWS.unshift('⚙️ เจ้าของห้องแก้ตั้งค่า (เวลา/ความยาก/อนิเมะ/การ์ด/จำนวนคน) ได้ตอนรอเพื่อน และปุ่ม 📚 คลังตัวละครย้ายมาอยู่เรียงกับปุ่มแชท');NEWS.unshift('✨ ปรับแอนิเมชันทั้งเกมให้ลื่นขึ้น: ปุ่มกดมีคลื่นและเด้ง หน้าต่างเปิด-ปิดนุ่ม การ์ดตัวละครเด้งเข้า ตอบถูก/ผิดมีอนุภาคและแฟลช สุ่มกรอบมีช่วงรวมพลังก่อนเปิดผล พื้นหลังขยับช้า ๆ (ปิดได้ที่ ตั้งค่า → ลดการเคลื่อนไหว)');NEWS.unshift('🎰 ระบบสุ่มกรอบการ์ดตัวละครใหม่! ใช้เหรียญสุ่มกรอบ 5 ระดับ C/B/A/S/SSR ยิ่งสูงยิ่งสุ่มยาก มีระบบการันตี สุ่ม ×10 และเหรียญคืนเมื่อซ้ำ ดูที่ โปรไฟล์ → 🎰 สุ่มกรอบ');
 
 setTimeout(()=>{dailyBonus();if(localStorage.seenVer!==APPV){try{localStorage.seenVer=APPV}catch(e){}openNews()}},900);
 

@@ -7,7 +7,9 @@ const CANDS = [PUB, __dirname];
 const buildOf = d => { try { const m = /ag-build:(\d+)/.exec(fs.readFileSync(path.join(d, 'index.html'), 'utf8')); return m ? +m[1] : 0; } catch (e) { return -1; } };
 const WEB = (CANDS.map(d => [d, buildOf(d)]).filter(x => x[1] >= 0).sort((a, b) => b[1] - a[1])[0] || [__dirname])[0];
 const IMGDIRS = [path.join(WEB, 'img'), path.join(PUB, 'img'), __dirname];
-const hasImg = slug => IMGDIRS.some(d => fs.existsSync(path.join(d, slug + '.jpg')));
+const CXIMG = new Map(); // รูปตัวละครที่ผู้เล่นเสนอและอนุมัติแล้ว: slug -> Buffer(jpeg)
+const hasImg = slug => CXIMG.has(slug) || IMGDIRS.some(d => fs.existsSync(path.join(d, slug + '.jpg')));
+app.get('/img/:f', (req, res, next) => { const m = /^([a-z0-9-]+)\.jpg$/.exec(req.params.f), b = m && CXIMG.get(m[1]); if (!b) return next(); res.set('Cache-Control', 'public, max-age=86400').type('jpeg').send(b); });
 IMGDIRS.forEach(d => app.use('/img', express.static(d)));
 app.use(express.static(WEB));
 CANDS.filter(d => d !== WEB).forEach(d => app.use(express.static(d)));
@@ -597,20 +599,21 @@ const CH = [
   ["Gon Freecss", "กอน|กอน ฟรีคส์|gon", "Hunter x Hunter", "2010s", "", "ใช้พลังพิเศษเฉพาะตัว", "ฝ่ายพระเอก", "ตัวเอก"]
 ];
 const ANIMES = [...new Set(CH.map(c => c[2]))];
-const slugOf = n => n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const SLUGX = new Map(); // ชื่อตัวละครที่ผู้เล่นเสนอ -> slug รูป
+const slugOf = n => SLUGX.get(n) || n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const CARDS = ['world','letter','era','ability','side','role'];
 const WORLD = {'Naruto':'โลกที่ผู้คนฝึกวิชาต่อสู้แบบลับๆ','One Piece':'โลกที่ส่วนใหญ่เป็นทะเลและเกาะ','Jujutsu Kaisen':'โลกปัจจุบันที่มีสิ่งเหนือธรรมชาติซ่อนอยู่','Demon Slayer':'โลกยุคเก่าที่มีสิ่งลึกลับออกหากินตอนกลางคืน','Bleach':'โลกที่มีทั้งคนเป็นและวิญญาณอยู่ร่วมกัน','My Hero Academia':'โลกยุคใหม่ที่คนส่วนใหญ่มีความสามารถแปลกๆ','Dragon Ball':'โลกที่มีนักสู้แกร่งและของวิเศษให้ตามหา','Attack on Titan':'โลกที่ผู้คนอยู่อย่างหวาดกลัวภัยคุกคาม','Death Note':'โลกปัจจุบันที่มีของแปลกบางอย่างโผล่เข้ามา','Fullmetal Alchemist':'โลกที่วิทยาศาสตร์กับสิ่งลึกลับปนกัน','Re:Zero':'โลกแฟนตาซีที่มีคนข้ามมาจากอีกโลกหนึ่ง','Tokyo Ghoul':'โลกปัจจุบันที่มีสิ่งมีชีวิตแฝงตัวอยู่ในเมือง','Code Geass':'โลกที่มหาอำนาจแย่งชิงดินแดนกัน','Hunter x Hunter':'โลกกว้างที่มีนักล่าและการผจญภัยหลายรูปแบบ','Blue Lock':'โลกปัจจุบันที่การแข่งขันกีฬาดุเดือดมาก','Seven Deadly Sins':'โลกแฟนตาซียุคกลางที่มีอาณาจักรและอัศวินศักดิ์สิทธิ์','Berserk':'โลกยุคกลางมืดมนที่มีสิ่งชั่วร้ายแฝงตัวอยู่','Haikyuu':'โลกปัจจุบันที่ทีมกีฬาแข่งขันกันเข้มข้น','Chainsaw Man':'โลกปัจจุบันที่มีปีศาจปะปนกับมนุษย์','Crayon Shin-chan':'โลกชีวิตประจำวันของครอบครัวและเพื่อนบ้าน','Detective Conan':'โลกปัจจุบันที่มีคดีปริศนาเกิดขึ้นเสมอ','Fate Series':'โลกปัจจุบันที่มีผู้วิเศษเรียกวิญญาณวีรบุรุษมาต่อสู้','The Way of the Househusband':'โลกชีวิตประจำวันที่อดีตผู้มีอิทธิพลหันมาทำงานบ้าน','Kimi ni Todoke':'โลกโรงเรียนที่เต็มไปด้วยมิตรภาพและความรักวัยรุ่น','Another':'โลกโรงเรียนที่มีเรื่องลึกลับและคำสาปซ่อนอยู่','That Time I Got Reincarnated as a Slime':'โลกแฟนตาซีที่มีอาณาจักรของเผ่าอสูรหลายเผ่า','Tokyo Revengers':'โลกปัจจุบันที่มีแก๊งเด็กแว้นต่อสู้กัน','JoJo\'s Bizarre Adventure':'โลกที่ผู้คนมีพลังพิเศษแบบวิญญาณคู่กาย','Mob Psycho 100':'โลกปัจจุบันที่มีผู้มีพลังจิตและวิญญาณ','Black Clover':'โลกเวทมนตร์ที่ทุกคนมีพลังเวทของตัวเอง','Violet Evergarden':'โลกยุคหลังสงครามที่ผู้คนเขียนจดหมายถึงกัน','Neon Genesis Evangelion':'โลกอนาคตที่มนุษย์ต่อสู้กับสิ่งมีชีวิตปริศนา','One Punch Man':'โลกที่มีฮีโร่อาชีพและสัตว์ประหลาดโผล่มาบ่อย','The Disastrous Life of Saiki K.':'โลกโรงเรียนสุดป่วนที่มีเด็กพลังจิตซ่อนตัวอยู่','Kaiju No. 8':'โลกที่ต้องรับมือกับสัตว์ประหลาดยักษ์','Fairy Tail':'โลกแฟนตาซีที่มีกิลด์นักเวทรับภารกิจ','Spy x Family':'โลกยุคสงครามเย็นที่ครอบครัวปลอมซ่อนความลับ','The Quintessential Quintuplets':'โลกโรงเรียนที่ติวเตอร์ดูแลพี่น้องฝาแฝด','The Apothecary Diaries':'โลกยุคโบราณในวังหลวง','Chi\'s Sweet Home':'โลกชีวิตประจำวันของครอบครัวกับสัตว์เลี้ยง','Beastars':'โลกที่สัตว์กินเนื้อกับกินพืชอยู่ร่วมกัน','Sword Art Online':'โลกเกมเสมือนจริงที่ออกไม่ได้','Dororo':'โลกยุคสงครามเก่าที่เต็มไปด้วยปีศาจ','Miss Kobayashi\'s Dragon Maid':'โลกปัจจุบันที่มีมังกรมาอาศัยกับมนุษย์','Your Name':'โลกปัจจุบันที่มีปรากฏการณ์แปลกเกี่ยวกับความฝัน','A Silent Voice':'โลกโรงเรียนที่มีเรื่องการกลั่นแกล้งและการให้อภัย','Gintama':'โลกญี่ปุ่นยุคเก่าที่มีมนุษย์ต่างดาวปะปน','Assassination Classroom':'โลกโรงเรียนที่มีครูประหลาดและนักเรียนนักฆ่า','Himouto! Umaru-chan':'โลกชีวิตประจำวันของสาวสองบุคลิก','Overlord':'โลกแฟนตาซีในเกมออนไลน์ที่กลายเป็นความจริง','Danganronpa':'โลกโรงเรียนปิดตายที่ต้องเอาชีวิตรอด','Doraemon':'โลกชีวิตประจำวันที่มีของวิเศษจากอนาคต','Pokemon':'โลกที่ผู้คนจับและฝึกสัตว์วิเศษ','Spirited Away':'โลกที่มีเทพและวิญญาณมาอาบน้ำ','Yo-kai Watch':'โลกปัจจุบันที่มีภูตผีมาป่วน','Hamtaro':'โลกชีวิตประจำวันของสัตว์เลี้ยงตัวเล็ก','Howl\'s Moving Castle':'โลกแฟนตาซีที่มีปราสาทเดินได้','My Neighbor Totoro':'โลกชนบทที่มีวิญญาณป่า','Keroro Gunso':'โลกปัจจุบันที่มีมนุษย์ต่างดาวมาอาศัย','Cyberpunk: Edgerunners':'โลกอนาคตมืดมนที่มีเทคโนโลยีดัดแปลงร่างกาย','Record of Ragnarok':'โลกที่เทพกับมนุษย์ต่อสู้กันตัวต่อตัวเพื่อชะตาของมนุษยชาติ','Sakamoto Days':'โลกปัจจุบันที่อดีตนักฆ่าในตำนานใช้ชีวิตเป็นเจ้าของร้านค้า','The Misfit of Demon King Academy':'โลกแฟนตาซีที่ราชาปีศาจกลับมาเกิดใหม่ในยุคที่พลังอ่อนลง','The Eminence in Shadow':'โลกแฟนตาซีที่มีผู้ทรงอิทธิพลอยู่เบื้องหลังเงามืด','Ao Haru Ride':'โลกโรงเรียนที่มีความรักวัยรุ่นและการพบกันอีกครั้ง','The Millionaire Detective - Balance: UNLIMITED':'โลกปัจจุบันที่นักสืบมหาเศรษฐีใช้เงินไขคดี','Hotarubi no Mori e':'โลกชนบทที่มีป่าลึกลับและวิญญาณซ่อนอยู่','The Daily Life of the Immortal King':'โลกกำลังภายในที่ผู้ฝึกตนใช้ชีวิตประจำวันอย่างสบายๆ','Plunderer':'โลกแฟนตาซีที่นักล่าสมบัติแข่งกันหาของวิเศษ','Dandadan':'โลกปัจจุบันที่ปีศาจกับมนุษย์ต่างดาวโผล่มาปะทะกัน','My Dress-Up Darling':'โลกโรงเรียนที่งานคอสเพลย์เป็นศูนย์กลางเรื่องราว','Horimiya':'โลกโรงเรียนที่เพื่อนร่วมชั้นมีด้านที่ซ่อนอยู่','Gokyoudai Monogatari':'โลกชีวิตประจำวันของพี่น้องห้าคน','Solo Leveling':'โลกที่มีประตูมิติและนักล่าที่ต่อสู้กับมอนสเตอร์'};
 const vAbility = c => /ฟุตบอล|กีฬา/.test(c[5]) ? 'ถนัดทักษะกีฬาและการแข่งขัน' : /ดาบ|อาวุธ|ลูกตุ้ม/.test(c[5]) ? 'ถนัดการใช้อาวุธ' : /สมุด|สติปัญญา|สืบสวน/.test(c[5]) ? 'ใช้สมองมากกว่ากำลัง' : /ยืด|แปลงร่าง|ร่างกาย|กาย/.test(c[5]) ? 'มีความสามารถทางร่างกายที่ไม่ธรรมดา' : 'ใช้พลังพิเศษที่ไม่ใช่แค่หมัดกับดาบ';
 const QUESTION = { world: 'โลกหรือสถานที่ในเรื่องของฉันเป็นยังไง?', letter: 'ชื่อของฉันขึ้นต้นด้วยตัวอักษรอะไร?', era: 'เรื่องของฉันออกฉายครั้งแรกเมื่อไหร่?', ability: 'ฉันเก่งหรือโดดเด่นเรื่องอะไร?', side: 'ฉันอยู่ฝ่ายไหนในเรื่อง?', role: 'ฉันมีบทบาทอะไรในเรื่อง?' };
 const hint = (t, c) => ({
   world: `โลกในเรื่อง: ${WORLD[c[2]] || 'ไม่ใช่โลกธรรมดา'}`, letter: `ชื่อตัวละครขึ้นต้นด้วย ${c[0][0].toUpperCase()}`,
-  era: `อนิเมะเรื่องนี้ฉายครั้งแรก${parseInt(c[3]) < 2000 ? 'ก่อน' : 'หลัง'}ปี 2000`,
+  era: c[3] ? `อนิเมะเรื่องนี้ฉายครั้งแรก${parseInt(c[3]) < 2000 ? 'ก่อน' : 'หลัง'}ปี 2000` : 'ไม่มีข้อมูลปีที่ฉาย',
   ability: `ความสามารถ: ${vAbility(c)}`, side: `ฝ่าย: ${c[6]}`, role: `บทบาท: ${c[7]}`
 })[t];
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '2.9';
+const APP_VERSION = '3.1';
 const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
 const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
 let CFIDS = new Set(), CFM = 0;
@@ -620,16 +623,19 @@ function cfIds() {
   } catch (e) { console.log('frames.json:', e.message); }
   return CFIDS;
 }
+const TTIDS = new Set(['first','win10','win50','quiz20','lv10','lv25','collector','ssr','streak7','missions']);
+const ONLINE = new Map();   // ชื่อบัญชี(ตัวพิมพ์เล็ก) -> Set ของ socket ที่ออนไลน์ (ใช้ส่งคำชวน)
+const unOf = sid => { const s = sid && io.sockets.sockets.get(sid); return (s && s.data && s.data.un) || ''; };
 const AV_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/;
 function cleanProf(d) {
   d = d && typeof d === 'object' ? d : {};
-  const o = { fr: FRAMES.has(d.fr) ? d.fr : 'none', nf: NFX.has(d.nf) ? d.nf : 'none', cf: (typeof d.cf === 'string' && cfIds().has(d.cf)) ? d.cf : '', lv: Math.min(99, Math.max(1, parseInt(d.lv) || 1)), av: '' };
+  const o = { fr: FRAMES.has(d.fr) ? d.fr : 'none', nf: NFX.has(d.nf) ? d.nf : 'none', cf: (typeof d.cf === 'string' && cfIds().has(d.cf)) ? d.cf : '', tt: TTIDS.has(d.tt) ? d.tt : '', lv: Math.min(99, Math.max(1, parseInt(d.lv) || 1)), av: '' };
   if (typeof d.av === 'string' && d.av.length <= 24000 && AV_RE.test(d.av)) o.av = d.av;
   return o;
 }
 function applyProf(p, d) {
   const o = cleanProf(d);
-  p.fr = o.fr; p.nf = o.nf; p.cf = o.cf; p.lv = o.lv;
+  p.fr = o.fr; p.nf = o.nf; p.cf = o.cf; p.tt = o.tt; p.lv = o.lv;
   if (o.av !== (p.av || '')) { p.av = o.av; p.ah = o.av ? (p.ah || 0) + 1 : 0; }
 }
 
@@ -645,9 +651,43 @@ async function rcmd(...c) {
 const ukey = n => 'u:' + String(n).normalize('NFKC').toLowerCase();
 const NAME_RE = /^[\p{L}\p{N}_\-.]{3,16}$/u;
 const hashPin = (pin, salt) => new Promise((ok, no) => nodeCrypto.scrypt(pin, salt, 32, (e, k) => e ? no(e) : ok(k.toString('hex'))));
+const metaChars = () => CH.map(c => [c[0], c[2], hasImg(slugOf(c[0])) ? slugOf(c[0]) : '', c[1]]);
+// ===== เพื่อนเสนอตัวละคร -> คิวรอแอดมินอนุมัติ (เก็บบน Upstash; ต้องตั้ง ADMIN_KEY บน Render ถึงจะเปิดหน้าแอดมินได้) =====
+const ADMIN_KEY = String(process.env.ADMIN_KEY || '');
+const CX_IMG_MAX = 120000, CX_PEND_MAX = 400, CX_DAY_MAX = 100;
+const cxClean = (s, n) => String(s == null ? '' : s).normalize('NFKC').replace(/[\u0000-\u001f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, n);
+const cxAnime = a => { const k = norm(a); return ANIMES.find(x => norm(x) === k) || a; };
+const cxDup = n => { const k = norm(n); return CH.some(c => norm(c[0]) === k || c[1].split('|').some(x => norm(x) === k)); };
+const cxJpeg = d => { if (typeof d !== 'string' || d.length > CX_IMG_MAX * 1.4 + 40) return null; const m = /^data:image\/jpeg;base64,([A-Za-z0-9+\/=]+)$/.exec(d); if (!m) return null; const b = Buffer.from(m[1], 'base64'); return b.length > 500 && b.length <= CX_IMG_MAX && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff ? b : null; };
+function cxAdd(e, buf) {
+  const base = slugOf(e.n); const slug = (base && !hasImg(base)) ? base : 'cx-' + e.id;
+  SLUGX.set(e.n, slug); CXIMG.set(slug, buf);
+  CH.push([e.n, e.al || '', e.a, '', '', 'ใช้พลังพิเศษเฉพาะตัว', 'ไม่ระบุ', 'ไม่ระบุ']);
+  if (!ANIMES.includes(e.a)) ANIMES.push(e.a);
+}
+function cxDel(e) {
+  const i = CH.findIndex(c => c[0] === e.n && c[2] === e.a); if (i >= 0) CH.splice(i, 1);
+  const sl = SLUGX.get(e.n); SLUGX.delete(e.n); if (sl) CXIMG.delete(sl);
+  if (!CH.some(c => c[2] === e.a)) { const j = ANIMES.indexOf(e.a); if (j >= 0) ANIMES.splice(j, 1); }
+}
+const CXOK = new Map(); // id -> {id,n,al,a,by}
+async function cxLoad(tries) {
+  if (!AUTH_ON) return;
+  try {
+    const h = await rcmd('HGETALL', 'cx:ok') || [];
+    for (let i = 0; i < h.length; i += 2) {
+      let e; try { e = JSON.parse(h[i + 1]); } catch (x) { continue; }
+      if (!e || CXOK.has(e.id) || cxDup(e.n)) continue;
+      const b64 = await rcmd('GET', 'cx:img:' + e.id); if (!b64) continue;
+      CXOK.set(e.id, e); cxAdd(e, Buffer.from(b64, 'base64'));
+    }
+    console.log('cx loaded', CXOK.size); io.emit('chars:update', { animes: ANIMES, chars: metaChars() });
+  } catch (e) { console.log('cxLoad', e.message); if ((tries || 0) < 4) setTimeout(() => cxLoad((tries || 0) + 1), 5000 * ((tries || 0) + 1)); }
+}
 const FAILS = new Map();
 const tooMany = k => { const f = FAILS.get(k); return !!f && f.n >= 8 && Date.now() - f.t < 600000; };
 const noteFail = k => { const f = FAILS.get(k); if (!f || Date.now() - f.t > 600000) FAILS.set(k, { n: 1, t: Date.now() }); else { f.n++; f.t = Date.now(); } };
+const kv = (o, n, f) => { const out = {}; if (o && typeof o === 'object') Object.keys(o).slice(0, n).forEach(k => { if (/^[a-z0-9_]{1,16}$/.test(k)) out[k] = f(o[k]); }); return out; };
 const clampI = (v, a, b) => Math.min(b, Math.max(a, Math.floor(+v) || 0));
 function cleanAcct(d, old) {
   d = d && typeof d === 'object' ? d : {};
@@ -659,8 +699,13 @@ function cleanAcct(d, old) {
     games: clampI(d.games, 0, 1e6), wins: clampI(d.wins, 0, 1e6), qgames: clampI(d.qgames, 0, 1e6),
     daily: typeof d.daily === 'string' ? d.daily.slice(0, 10) : '',
     cfo: strs(d.cfo, 200, 40).filter(i => cfIds().has(i)),
-    gp: { s: clampI(d.gp && d.gp.s, 0, 1000), r: clampI(d.gp && d.gp.r, 0, 1000) }
+    gp: { s: clampI(d.gp && d.gp.s, 0, 1000), r: clampI(d.gp && d.gp.r, 0, 1000) },
+    dm: { d: String((d.dm && d.dm.d) || '').slice(0, 10), p: kv(d.dm && d.dm.p, 12, v => clampI(v, 0, 1000)), c: kv(d.dm && d.dm.c, 12, v => v ? 1 : 0), b: d.dm && d.dm.b ? 1 : 0 },
+    sk: { n: clampI(d.sk && d.sk.n, 0, 9999), last: String((d.sk && d.sk.last) || '').slice(0, 10) },
+    tt: strs(d.tt, 30, 20).filter(i => TTIDS.has(i)), mc: clampI(d.mc, 0, 1e6),
+    rp: (Array.isArray(d.rp) ? d.rp : []).slice(0, 12).map(x => ({ u: String((x && x.u) || '').slice(0, 16), n: String((x && x.n) || '').slice(0, 16), t: clampI(x && x.t, 0, 4e12) })).filter(x => x.u)
   };
+  o.tu = typeof d.tu === 'string' && o.tt.includes(d.tu) ? d.tu : '';
   o.cf = typeof d.cf === 'string' && o.cfo.includes(d.cf) ? d.cf : '';
   o.av = typeof d.av === 'string' && d.av.length <= 24000 && AV_RE.test(d.av) ? d.av : '';
   // กันการแก้ตัวเลขในเครื่องแบบก้าวกระโดด: เพิ่มได้ไม่เกินโควตาต่อการบันทึกหนึ่งครั้ง
@@ -684,7 +729,7 @@ function view(r, p) {
     cards: p.cards, qlog: p.qlog || [], qa: r.phase === 'play' && r.qa ? { asker: r.qa.asker, askerName: r.qa.askerName, card: r.qa.card, q: r.qa.q, answers: r.qa.entry.answers, guide: r.qa.asker === p.pid ? null : r.qa.guide } : null, res: p.res,
     players: r.players.map(q => ({
       pid: q.pid, name: q.name, off: !q.sid, ready: q.ready, res: q.res, cards: q.cards.length, wins: q.wins || 0,
-      fr: q.fr || 'none', nf: q.nf || 'none', cf: q.cf || '', lv: q.lv || 1, ah: q.ah || 0, g: q.res ? (q.g || null) : null, earn: over ? (q.earn || 0) : 0,
+      fr: q.fr || 'none', nf: q.nf || 'none', cf: q.cf || '', tt: q.tt || '', un: unOf(q.sid), lv: q.lv || 1, ah: q.ah || 0, g: q.res ? (q.g || null) : null, earn: over ? (q.earn || 0) : 0,
       asks: over ? q.asks : 0, used: over ? q.used : 0, t: over ? q.t : 0,
       ch: (over || q.res || (q.pid !== p.pid && r.phase !== 'lobby')) ? q.ch : null
     }))
@@ -763,7 +808,7 @@ setInterval(() => {              // คนหลุด: รอกลับเข
 }, 1000);
 
 io.on('connection', sock => {
-  sock.emit('meta', { v: 5, ver: APP_VERSION, auth: AUTH_ON, animes: ANIMES, chars: CH.map(c => [c[0], c[2], hasImg(slugOf(c[0])) ? slugOf(c[0]) : '', c[1]]) });
+  sock.emit('meta', { v: 5, ver: APP_VERSION, auth: AUTH_ON, animes: ANIMES, chars: metaChars() });
   const find = () => Object.values(rooms).find(r => r.players.some(p => p.sid === sock.id));
   const me = r => r && r.players.find(p => p.sid === sock.id);
   const err = m => sock.emit('err', m);
@@ -786,7 +831,13 @@ io.on('connection', sock => {
   // ----- บัญชี -----
   const ipOf = () => String(sock.handshake.headers['x-forwarded-for'] || sock.handshake.address || '').split(',')[0].trim();
   const aerr = m => sock.emit('auth:err', m);
-  const okAuth = (rec, tok) => { sock.data.acct = ukey(rec.name); sock.data.tok = tok; sock.emit('auth:ok', { name: rec.name, tok, prof: rec.prof, v: rec.v }); };
+  const presDel = () => { const k = sock.data.acct, s = k && ONLINE.get(k); if (s) { s.delete(sock); if (!s.size) ONLINE.delete(k); } };
+  const refreshRooms = () => { const r = find(); if (r) send(r); const q = Object.values(QROOMS).find(x => x.players.some(p => p.sid === sock.id)); if (q) qzSend(q); };
+  const okAuth = (rec, tok) => {
+    presDel(); sock.data.acct = ukey(rec.name); sock.data.un = rec.name; sock.data.tok = tok;
+    let s = ONLINE.get(sock.data.acct); if (!s) ONLINE.set(sock.data.acct, s = new Set()); s.add(sock);
+    sock.emit('auth:ok', { name: rec.name, tok, prof: rec.prof, v: rec.v }); refreshRooms();
+  };
   const newTok = async rec => { const tok = nodeCrypto.randomBytes(24).toString('hex'); await rcmd('SET', 't:' + tok, rec.name, 'EX', 7776000); return tok; };
   sock.on('auth:register', async d => {
     if (!AUTH_ON) return aerr('ระบบบัญชียังไม่เปิดใช้งาน');
@@ -835,7 +886,95 @@ io.on('connection', sock => {
       sock.emit('auth:saved', { v: rec.v, prof: rec.prof });
     } catch (e) { console.log('auth:save', e.message); }
   });
-  sock.on('auth:logout', () => { if (sock.data.tok && AUTH_ON) rcmd('DEL', 't:' + sock.data.tok).catch(() => {}); sock.data.acct = ''; sock.data.tok = ''; });
+  sock.on('auth:logout', () => { if (sock.data.tok && AUTH_ON) rcmd('DEL', 't:' + sock.data.tok).catch(() => {}); presDel(); sock.data.acct = ''; sock.data.un = ''; sock.data.tok = ''; refreshRooms(); });
+  sock.on('disconnect', presDel);
+  const CXRATE = {};
+  const cxRes = (ok, msg) => sock.emit('cx:res', { ok, msg });
+  sock.on('cx:submit', async d => {
+    try {
+      if (!AUTH_ON) return cxRes(false, 'ระบบนี้ยังไม่เปิดใช้งาน');
+      const acct = sock.data.acct; if (!acct) return cxRes(false, 'ต้องล็อกอินก่อนถึงจะเสนอตัวละครได้');
+      d = d && typeof d === 'object' ? d : {};
+      const n = cxClean(d.n, 40), a0 = cxClean(d.a, 40), al = cxClean(d.al, 60), buf = cxJpeg(d.img);
+      if (!n || !a0) return cxRes(false, 'กรอกชื่อตัวละครและชื่อเรื่องให้ครบ');
+      if (!buf) return cxRes(false, 'รูปไม่ถูกต้องหรือใหญ่เกินไป ลองเลือกรูปใหม่');
+      const now = Date.now(), arr = (CXRATE[acct] || []).filter(x => now - x < 60000); if (arr.length >= 20) return cxRes(false, 'ส่งถี่เกินไป รอสักครู่แล้วลองใหม่'); arr.push(now); CXRATE[acct] = arr;
+      if (cxDup(n)) return cxRes(false, 'มีตัวละครชื่อนี้ในเกมแล้ว');
+      const a = cxAnime(a0), dk = 'cx:rl:' + acct + ':' + new Date().toISOString().slice(0, 10);
+      const used = await rcmd('INCR', dk); if (used === 1) rcmd('EXPIRE', dk, 90000).catch(() => {});
+      if (used > CX_DAY_MAX) return cxRes(false, 'วันนี้เสนอครบ ' + CX_DAY_MAX + ' ตัวแล้ว พรุ่งนี้มาใหม่นะ');
+      const pend = await rcmd('HGETALL', 'cx:pi') || [], k = norm(n);
+      if (pend.length / 2 >= CX_PEND_MAX) return cxRes(false, 'คิวรอตรวจเต็ม ลองใหม่ภายหลัง');
+      for (let i = 1; i < pend.length; i += 2) { try { if (norm(JSON.parse(pend[i]).n) === k) return cxRes(false, 'มีคนเสนอตัวละครนี้ไว้แล้ว รอแอดมินตรวจอยู่'); } catch (e) {} }
+      const id = nodeCrypto.randomBytes(5).toString('hex');
+      await rcmd('SET', 'cx:pimg:' + id, buf.toString('base64'));
+      await rcmd('HSET', 'cx:pi', id, JSON.stringify({ id, n, al, a, by: sock.data.un, t: now }));
+      cxRes(true, 'ส่งแล้ว! รอแอดมินตรวจ ถ้าผ่านจะเข้าเกมอัตโนมัติ');
+    } catch (e) { console.log('cx:submit', e.message); cxRes(false, 'เกิดข้อผิดพลาด ลองใหม่อีกครั้ง'); }
+  });
+  const cxList = async () => {
+    const h = await rcmd('HGETALL', 'cx:pi') || [], items = [];
+    for (let i = 1; i < h.length; i += 2) { try { items.push(JSON.parse(h[i])); } catch (e) {} }
+    items.sort((x, y) => x.t - y.t); const top = items.slice(0, 30);
+    await Promise.all(top.map(async e => { const b = await rcmd('GET', 'cx:pimg:' + e.id); e.img = b ? 'data:image/jpeg;base64,' + b : ''; }));
+    sock.emit('cx:list', { items: top, total: items.length, ok: [...CXOK.values()].map(e => ({ id: e.id, n: e.n, a: e.a, by: e.by })) });
+  };
+  sock.on('cx:admin', async key => {
+    const fk = 'adm:' + ipOf();
+    try {
+      if (!AUTH_ON || !ADMIN_KEY) return sock.emit('cx:admin', { err: 'ยังไม่ได้ตั้ง ADMIN_KEY บน Render' });
+      if (tooMany(fk)) return sock.emit('cx:admin', { err: 'ลองผิดหลายครั้งเกินไป รอสักครู่' });
+      const a = Buffer.from(String(key || '')), b = Buffer.from(ADMIN_KEY);
+      if (a.length !== b.length || !nodeCrypto.timingSafeEqual(a, b)) { noteFail(fk); return sock.emit('cx:admin', { err: 'รหัสไม่ถูกต้อง' }); }
+      FAILS.delete(fk); sock.data.adm = true; sock.emit('cx:admin', { ok: true }); await cxList();
+    } catch (e) { console.log('cx:admin', e.message); }
+  });
+  sock.on('cx:review', async d => {
+    try {
+      if (!sock.data.adm || !d || typeof d.id !== 'string' || !/^[a-f0-9]{10}$/.test(d.id)) return;
+      const raw = await rcmd('HGET', 'cx:pi', d.id); if (!raw) return cxList();
+      const e = JSON.parse(raw);
+      if (d.ok) {
+        e.n = cxClean(d.n || e.n, 40); e.a = cxAnime(cxClean(d.a || e.a, 40)); e.al = cxClean(d.al != null ? d.al : e.al, 60);
+        if (!e.n || !e.a) return sock.emit('cx:res', { ok: false, msg: 'ชื่อหรือเรื่องว่าง' });
+        if (cxDup(e.n)) return sock.emit('cx:res', { ok: false, msg: 'ชื่อซ้ำกับตัวละครที่มีอยู่แล้ว' });
+        const b64 = await rcmd('GET', 'cx:pimg:' + e.id); if (!b64) { await rcmd('HDEL', 'cx:pi', e.id); return cxList(); }
+        await rcmd('SET', 'cx:img:' + e.id, b64); await rcmd('HSET', 'cx:ok', e.id, JSON.stringify(e));
+        CXOK.set(e.id, e); cxAdd(e, Buffer.from(b64, 'base64'));
+        io.emit('chars:update', { animes: ANIMES, chars: metaChars() });
+      }
+      await rcmd('HDEL', 'cx:pi', e.id); rcmd('DEL', 'cx:pimg:' + e.id).catch(() => {});
+      await cxList();
+    } catch (e) { console.log('cx:review', e.message); }
+  });
+  sock.on('cx:remove', async id => {
+    try {
+      if (!sock.data.adm || typeof id !== 'string') return; const e = CXOK.get(id); if (!e) return;
+      CXOK.delete(id); cxDel(e); await rcmd('HDEL', 'cx:ok', id); rcmd('DEL', 'cx:img:' + id).catch(() => {});
+      io.emit('chars:update', { animes: ANIMES, chars: metaChars() }); await cxList();
+    } catch (e) { console.log('cx:remove', e.message); }
+  });
+  // ----- ชวนเพื่อนเข้าห้อง -----
+  const INVRATE = {};
+  sock.on('inv:status', list => {
+    if (!sock.data.acct || !Array.isArray(list)) return;
+    sock.emit('inv:online', list.slice(0, 20).filter(n => typeof n === 'string' && ukey(n) !== sock.data.acct && ONLINE.has(ukey(n))));
+  });
+  sock.on('inv:send', to => {
+    const res = (ok, msg) => sock.emit('inv:res', { ok, msg });
+    if (!sock.data.acct) return res(false, 'ต้องล็อกอินก่อนถึงจะชวนเพื่อนได้');
+    if (typeof to !== 'string') return;
+    const r = find(), q = r ? null : qfind(), room = r || q;
+    if (!room) return res(false, 'ต้องอยู่ในห้องก่อนถึงจะชวนได้');
+    if (room.phase !== 'lobby') return res(false, 'ห้องเริ่มเกมไปแล้ว ชวนไม่ได้');
+    const now = Date.now(), arr = (INVRATE[sock.data.acct] || []).filter(x => now - x < 60000);
+    if (arr.length >= 8) return res(false, 'ชวนบ่อยเกินไป รอสักครู่');
+    arr.push(now); INVRATE[sock.data.acct] = arr;
+    const tk = ukey(to), targets = ONLINE.get(tk);
+    if (!targets || tk === sock.data.acct) return res(false, 'คนนี้ไม่ได้ออนไลน์อยู่');
+    targets.forEach(t => t.emit('inv:got', { from: sock.data.un, code: room.code, kind: r ? 'g' : 'q' }));
+    res(true, 'ส่งคำชวนให้ ' + to + ' แล้ว');
+  });
 
   sock.on('setset', set => {
     const r = find(), p = me(r); if (!r || !p || r.owner !== p.pid || r.phase !== 'lobby') return;
@@ -877,7 +1016,7 @@ io.on('connection', sock => {
       picks.push(c); seen.add(c[2]);
     });
     r.players.forEach((q, i) => {
-      q.full = picks[i]; q.ch = { n: picks[i][0], a: picks[i][2], i: (slug => hasImg(slug) ? slug : '')(picks[i][0].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')) };
+      q.full = picks[i]; q.ch = { n: picks[i][0], a: picks[i][2], i: (slug => hasImg(slug) ? slug : '')(slugOf(picks[i][0])) };
       q.cards = [];
       q.hints = []; q.qlog = []; q.res = null; q.ready = false; q.asks = 0; q.used = 0; q.t = 0; q.g = null; q.earn = 0;
     });
@@ -1020,7 +1159,7 @@ function qzView(r, p) {
   const v = {
     code: r.code, phase: r.phase, you: p.pid, rid: r.rid || 0, owner: r.owner === p.pid, ownerPid: r.owner, set: r.set, n: r.qs.length, i: r.i,
     players: r.players.map(x => ({
-      pid: x.pid, name: x.name, score: x.score, ok: x.ok, streak: x.streak, online: x.online, fr: x.fr || 'none', nf: x.nf || 'none', cf: x.cf || '', lv: x.lv || 1, ah: x.ah || 0,
+      pid: x.pid, name: x.name, score: x.score, ok: x.ok, streak: x.streak, online: x.online, fr: x.fr || 'none', nf: x.nf || 'none', cf: x.cf || '', tt: x.tt || '', un: unOf(x.sid), lv: x.lv || 1, ah: x.ah || 0,
       answered: r.phase === 'q' ? x.ans !== null : undefined,
       delta: r.phase === 'reveal' ? x.delta : undefined,
       pick: r.phase === 'reveal' ? x.ans : undefined
@@ -1151,3 +1290,4 @@ io.on('connection', sock => {
 });
 
 srv.listen(process.env.PORT || 3000, () => console.log('ANIME GUESS running on :' + (process.env.PORT || 3000)));
+setTimeout(() => cxLoad(0), 500);
