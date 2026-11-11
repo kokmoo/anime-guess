@@ -613,7 +613,7 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '3.3';
+const APP_VERSION = '3.4';
 const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
 const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
 let CFIDS = new Set(), CFM = 0;
@@ -917,28 +917,29 @@ io.on('connection', sock => {
   sock.on('auth:logout', () => { if (sock.data.tok && AUTH_ON) rcmd('DEL', 't:' + sock.data.tok).catch(() => {}); presDel(); sock.data.acct = ''; sock.data.un = ''; sock.data.tok = ''; if (sock.data.admAcct) { sock.data.adm = false; sock.data.admAcct = false; sock.emit('adm:on', { on: false }); } refreshRooms(); });
   sock.on('disconnect', presDel);
   const CXRATE = {};
-  const cxRes = (ok, msg) => sock.emit('cx:res', { ok, msg });
+  const cxRes = (ok, msg, ref) => sock.emit('cx:res', { ok, msg, ref });
   sock.on('cx:submit', async d => {
+    const ref = d && Number.isInteger(d.ref) ? d.ref : undefined, R = (ok, msg) => cxRes(ok, msg, ref);
     try {
-      if (!AUTH_ON) return cxRes(false, 'ระบบนี้ยังไม่เปิดใช้งาน');
-      const acct = sock.data.acct; if (!acct) return cxRes(false, 'ต้องล็อกอินก่อนถึงจะเสนอตัวละครได้');
+      if (!AUTH_ON) return R(false, 'ระบบนี้ยังไม่เปิดใช้งาน');
+      const acct = sock.data.acct; if (!acct) return R(false, 'ต้องล็อกอินก่อนถึงจะเสนอตัวละครได้');
       d = d && typeof d === 'object' ? d : {};
       const n = cxClean(d.n, 40), a0 = cxClean(d.a, 40), al = cxClean(d.al, 60), buf = cxJpeg(d.img);
-      if (!n || !a0) return cxRes(false, 'กรอกชื่อตัวละครและชื่อเรื่องให้ครบ');
-      if (!buf) return cxRes(false, 'รูปไม่ถูกต้องหรือใหญ่เกินไป ลองเลือกรูปใหม่');
-      const now = Date.now(), arr = (CXRATE[acct] || []).filter(x => now - x < 60000); if (arr.length >= 20) return cxRes(false, 'ส่งถี่เกินไป รอสักครู่แล้วลองใหม่'); arr.push(now); CXRATE[acct] = arr;
-      if (cxDup(n)) return cxRes(false, 'มีตัวละครชื่อนี้ในเกมแล้ว');
+      if (!n || !a0) return R(false, 'กรอกชื่อตัวละครและชื่อเรื่องให้ครบ');
+      if (!buf) return R(false, 'รูปไม่ถูกต้องหรือใหญ่เกินไป ลองเลือกรูปใหม่');
+      const now = Date.now(), arr = (CXRATE[acct] || []).filter(x => now - x < 60000); if (arr.length >= 60) return R(false, 'ส่งถี่เกินไป รอสักครู่แล้วลองใหม่'); arr.push(now); CXRATE[acct] = arr;
+      if (cxDup(n)) return R(false, 'มีตัวละครชื่อนี้ในเกมแล้ว');
       const a = cxAnime(a0), dk = 'cx:rl:' + acct + ':' + new Date().toISOString().slice(0, 10);
       const used = await rcmd('INCR', dk); if (used === 1) rcmd('EXPIRE', dk, 90000).catch(() => {});
-      if (used > CX_DAY_MAX) return cxRes(false, 'วันนี้เสนอครบ ' + CX_DAY_MAX + ' ตัวแล้ว พรุ่งนี้มาใหม่นะ');
+      if (used > CX_DAY_MAX) return R(false, 'วันนี้เสนอครบ ' + CX_DAY_MAX + ' ตัวแล้ว พรุ่งนี้มาใหม่นะ');
       const pend = await rcmd('HGETALL', 'cx:pi') || [], k = norm(n);
-      if (pend.length / 2 >= CX_PEND_MAX) return cxRes(false, 'คิวรอตรวจเต็ม ลองใหม่ภายหลัง');
-      for (let i = 1; i < pend.length; i += 2) { try { if (norm(JSON.parse(pend[i]).n) === k) return cxRes(false, 'มีคนเสนอตัวละครนี้ไว้แล้ว รอแอดมินตรวจอยู่'); } catch (e) {} }
+      if (pend.length / 2 >= CX_PEND_MAX) return R(false, 'คิวรอตรวจเต็ม ลองใหม่ภายหลัง');
+      for (let i = 1; i < pend.length; i += 2) { try { if (norm(JSON.parse(pend[i]).n) === k) return R(false, 'มีคนเสนอตัวละครนี้ไว้แล้ว รอแอดมินตรวจอยู่'); } catch (e) {} }
       const id = nodeCrypto.randomBytes(5).toString('hex');
       await rcmd('SET', 'cx:pimg:' + id, buf.toString('base64'));
       await rcmd('HSET', 'cx:pi', id, JSON.stringify({ id, n, al, a, by: sock.data.un, t: now }));
-      cxRes(true, 'ส่งแล้ว! รอแอดมินตรวจ ถ้าผ่านจะเข้าเกมอัตโนมัติ');
-    } catch (e) { console.log('cx:submit', e.message); cxRes(false, 'เกิดข้อผิดพลาด ลองใหม่อีกครั้ง'); }
+      R(true, 'ส่งแล้ว! รอแอดมินตรวจ ถ้าผ่านจะเข้าเกมอัตโนมัติ');
+    } catch (e) { console.log('cx:submit', e.message); R(false, 'เกิดข้อผิดพลาด ลองใหม่อีกครั้ง'); }
   });
   const cxList = async () => {
     const h = await rcmd('HGETALL', 'cx:pi') || [], items = [];
@@ -957,6 +958,15 @@ io.on('connection', sock => {
       if (a.length !== b.length || !nodeCrypto.timingSafeEqual(a, b)) { noteFail(fk); return sock.emit('cx:admin', { err: 'รหัสไม่ถูกต้อง' }); }
       FAILS.delete(fk); sock.data.adm = true; sock.emit('cx:admin', { ok: true }); sock.emit('adm:on', { on: true }); await cxList();
     } catch (e) { console.log('cx:admin', e.message); }
+  });
+  sock.on('cx:mine', async () => {
+    try {
+      const acct = sock.data.acct; if (!AUTH_ON || !acct) return;
+      const h = await rcmd('HGETALL', 'cx:pi') || [], items = [];
+      for (let i = 1; i < h.length; i += 2) { try { const e = JSON.parse(h[i]); if (ukey(e.by) === acct) items.push({ n: e.n, a: e.a }); } catch (x) {} }
+      const used = +(await rcmd('GET', 'cx:rl:' + acct + ':' + new Date().toISOString().slice(0, 10))) || 0;
+      sock.emit('cx:mine', { left: Math.max(0, CX_DAY_MAX - used), pending: items.slice(0, 60), ok: [...CXOK.values()].filter(e => ukey(e.by) === acct).map(e => ({ n: e.n, a: e.a })).slice(0, 100) });
+    } catch (e) { console.log('cx:mine', e.message); }
   });
   sock.on('cx:refresh', () => { if (sock.data.adm) cxList().catch(() => {}); });
   sock.on('cx:review', async d => {
