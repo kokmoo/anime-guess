@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- ag-build:20261045 -->
+<!-- ag-build:20261046 -->
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ANIME GUESS</title>
@@ -289,7 +289,7 @@ body.bgi::before{animation:kb 55s ease-in-out infinite alternate;will-change:tra
 const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิดตัวอักษร'],era:['📅','ใบ้ยุค'],ability:['⚡','ความสามารถ'],side:['🏴','ฝ่าย'],role:['⭐','บทบาท']};
 const s=io(),$=id=>document.getElementById(id);
 const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
-const VER=5,APPV='3.7',BUILD='20261045';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
+const VER=5,APPV='3.8',BUILD='20261046';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
 const pre=new URLSearchParams(location.search).get('room')||'';
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
@@ -581,7 +581,7 @@ s.on('inv:got',async d=>{if(st||QM){flash('✉️ '+d.from+' ชวนเข้�
 
 // ================= v3.1: เสนอตัวละคร + หน้าแอดมิน =================
 s.on('chars:update',m=>{animes=m.animes||animes;chars=m.chars||chars;if($('lib').style.display==='flex'&&$('lr'))drawLib();if(!st&&!QM&&mode==='home')render()});
-let cxAdm=null,cxRows=[],cxSeq=0,cxWait={},cxMine=null,cxBusy=false;
+const CXMAX=100;let cxAdm=null,cxRows=[],cxSeq=0,cxWait={},cxMine=null,cxBusy=false;
 const cxEx=n=>{const k=n.trim().toLowerCase();return !!k&&chars.some(c=>c[0].toLowerCase()===k||(c[3]||'').toLowerCase().split('|').includes(k))};
 function cxFromImg(im){const M=512,k=Math.min(1,M/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);let q=.85,d=c.toDataURL('image/jpeg',q);while(d.length>110000&&q>.35){q-=.1;d=c.toDataURL('image/jpeg',q)}return d}
 function cxShrinkURL(u){return new Promise(res=>{const im=new Image();im.onerror=()=>res('');im.onload=()=>{try{res(cxFromImg(im))}catch(e){res('')}};im.src=u})}
@@ -589,7 +589,7 @@ function cxShrink(f){return new Promise(res=>{const fr=new FileReader();fr.onerr
 // ชื่อไฟล์ "เรื่อง_ชื่อตัวละคร.jpg" หรือ "ชื่อตัวละคร.jpg" -> เติมช่องให้อัตโนมัติ
 function cxParse(fn){let b=fn.replace(/\.[^.]+$/,'').replace(/[-]+/g,' ').trim(),a='',n=b;if(b.includes('_')){const p=b.split('_').map(x=>x.trim()).filter(Boolean);if(p.length>=2){a=p[0].replace(/\s+/g,' ');n=p.slice(1).join(' ')}else n=p[0]||''}
  n=n.replace(/_/g,' ').replace(/\s+/g,' ').trim();return{n,a}}
-async function cxPick(inp){const fs=[...(inp.files||[])].filter(f=>/^image\//.test(f.type)).slice(0,20-cxRows.length);inp.value='';if(!fs.length)return;
+async function cxPick(inp){const fs=[...(inp.files||[])].filter(f=>/^image\//.test(f.type)).slice(0,CXMAX-cxRows.length);inp.value='';if(!fs.length)return;
  flash('กำลังเตรียมรูป '+fs.length+' ไฟล์…');const sa=($('cxa')&&$('cxa').value.trim())||'';
  for(const f of fs){const img=await cxShrink(f);if(!img){flash('อ่านรูป '+f.name+' ไม่ได้');continue}const p=cxParse(f.name);cxRows.push({id:++cxSeq,img,n:p.n,a:p.a||sa,al:'',st:'',msg:''})}
  cxDraw()}
@@ -598,14 +598,16 @@ function cxRowDraw(r){const dup=r.st!=='ok'&&cxEx(r.n),c=r.st==='ok'?'#2faa5f':r
   <input maxlength="40" placeholder="ชื่อตัวละคร" value="${esc(r.n)}" oninput="cxSet(${r.id},'n',this.value)" style="margin:0 0 4px"><input maxlength="40" list="cxl" placeholder="ชื่อเรื่อง" value="${esc(r.a)}" oninput="cxSet(${r.id},'a',this.value)" style="margin:0 0 4px"><input maxlength="60" placeholder="ชื่อเรียกอื่น/ชื่อไทย (ไม่บังคับ)" value="${esc(r.al)}" oninput="cxSet(${r.id},'al',this.value)" style="margin:0">
   <small id="cxm${r.id}">${r.st==='ok'?'✅ '+esc(r.msg):r.st==='err'?'⚠️ '+esc(r.msg):r.st==='sending'?'กำลังส่ง…':dup?'⚠️ มีชื่อนี้ในเกมแล้ว':''}</small></div>
   ${r.st==='sending'?'':`<button class="g" style="width:auto;margin:0;padding:4px 8px" onclick="cxDel(${r.id})">✕</button>`}</div></div>`}
-let cxSvT=0;function cxSave(){clearTimeout(cxSvT);cxSvT=setTimeout(()=>{try{const L=cxRows.filter(r=>r.st!=='ok').map(r=>({id:r.id,img:r.img,n:r.n,a:r.a,al:r.al,yr:r.yr||0,ro:r.ro||''}));if(L.length)localStorage.cxdraft=JSON.stringify(L);else localStorage.removeItem('cxdraft')}catch(e){try{localStorage.removeItem('cxdraft')}catch(x){}}},400)}
+let cxSvT=0;function cxSave(){clearTimeout(cxSvT);cxSvT=setTimeout(()=>{try{const L=cxRows.filter(r=>r.st!=='ok').map(r=>({id:r.id,img:r.img,n:r.n,a:r.a,al:r.al,yr:r.yr||0,ro:r.ro||''})),j=JSON.stringify(L);if(L.length&&j.length<3500000)localStorage.cxdraft=j;else localStorage.removeItem('cxdraft')}catch(e){try{localStorage.removeItem('cxdraft')}catch(x){}}},400)}
 function cxSet(id,k,v){cxSave();const r=cxRows.find(x=>x.id===id);if(r){r[k]=v;if(r.st==='err'){r.st='';}if(k==='n'){const m=$('cxm'+id);if(m&&r.st!=='ok')m.textContent=cxEx(v)?'⚠️ มีชื่อนี้ในเกมแล้ว':''}}}
+function cxRowUpd(r){const el=document.querySelector(`[data-r="${r.id}"]`);if(el)el.outerHTML=cxRowDraw(r);const n=cxRows.filter(x=>x.st!=='ok').length,b=$('cxsend');if(b){b.disabled=cxBusy||!n;b.textContent=cxBusy?`กำลังส่ง… (${cxRows.filter(x=>x.st==='ok').length}/${cxRows.length})`:n?`ส่งให้แอดมินตรวจ (${n} ตัว)`:'เลือกรูปก่อน'}}
+function cxRowAdd(r){const L=$('cxlist');if(L)L.insertAdjacentHTML('beforeend',cxRowDraw(r));cxSave();const n=cxRows.filter(x=>x.st!=='ok').length,b=$('cxsend');if(b){b.disabled=cxBusy||!n;b.textContent=n?`ส่งให้แอดมินตรวจ (${n} ตัว)`:'เลือกรูปก่อน'}}
 function cxDel(id){cxRows=cxRows.filter(r=>r.id!==id);cxDraw()}
 function cxDraw(){const L=$('cxlist');if(!L)return;cxSave();const n=cxRows.filter(r=>r.st!=='ok').length;L.innerHTML=cxRows.map(cxRowDraw).join('');const b=$('cxsend');if(b){b.disabled=cxBusy||!n;b.textContent=cxBusy?'กำลังส่ง…':n?`ส่งให้แอดมินตรวจ (${n} ตัว)`:'เลือกรูปก่อน'}}
-function openCx(){cxRows=[];try{const d=JSON.parse(localStorage.cxdraft||'[]');if(Array.isArray(d))d.slice(0,20).forEach(r=>{if(r&&typeof r.img==='string'&&r.img.startsWith('data:image/'))cxRows.push({id:++cxSeq,img:r.img,n:String(r.n||''),a:String(r.a||''),al:String(r.al||''),yr:+r.yr||0,ro:r.ro||'',st:'',msg:''})})}catch(e){}cxBusy=false;cxMine=null;
+function openCx(){cxRows=[];try{const d=JSON.parse(localStorage.cxdraft||'[]');if(Array.isArray(d))d.slice(0,CXMAX).forEach(r=>{if(r&&typeof r.img==='string'&&r.img.startsWith('data:image/'))cxRows.push({id:++cxSeq,img:r.img,n:String(r.n||''),a:String(r.a||''),al:String(r.al||''),yr:+r.yr||0,ro:r.ro||'',st:'',msg:''})})}catch(e){}cxBusy=false;cxMine=null;
  $('lc').innerHTML=`<div class="row"><h2>➕ เสนอตัวละคร</h2><button class="g" style="width:auto" onclick="openLib()">← กลับ</button></div>`+
  (!AUTHON?`<div class="box">ระบบนี้ยังไม่เปิดใช้งานบนเซิร์ฟเวอร์นี้</div>`:!ACC?`<div class="box">ต้องล็อกอินบัญชีก่อนถึงจะเสนอตัวละครได้<br><small>เข้าที่ โปรไฟล์ → ข้อมูล</small><br><br><button class="b" onclick="closeLib();openProf('me')">ไปล็อกอิน</button></div>`:
- `<div class="box"><small>เลือกรูปได้ทีเดียวหลายรูป (สูงสุด 20) แล้วเติมชื่อตัวละครกับชื่อเรื่อง แอดมินตรวจแล้วเข้าเกมอัตโนมัติ · เสนอได้วันละ 100 ตัว<br>💡 ตั้งชื่อไฟล์เป็น <b>เรื่อง_ชื่อตัวละคร.jpg</b> เช่น <b>Naruto_Sasuke.jpg</b> ระบบจะเติมช่องให้เอง</small>
+ `<div class="box"><small>เลือกรูปได้ทีเดียวหลายรูป (สูงสุด ${CXMAX} รูปต่อครั้ง) แล้วเติมชื่อตัวละครกับชื่อเรื่อง แอดมินตรวจแล้วเข้าเกมอัตโนมัติ · เสนอได้วันละ 100 ตัว<br>💡 ตั้งชื่อไฟล์เป็น <b>เรื่อง_ชื่อตัวละคร.jpg</b> เช่น <b>Naruto_Sasuke.jpg</b> ระบบจะเติมช่องให้เอง</small>
  <input id="cxa" maxlength="40" list="cxl" placeholder="ชื่อเรื่อง (ใช้เติมให้ทุกรูปที่ยังว่าง)" oninput="cxFillA(this.value)"><datalist id="cxl">${animes.map(a=>`<option value="${esc(a)}">`).join('')}</datalist>
  <input id="cxf" type="file" accept="image/*" multiple style="display:none" onchange="cxPick(this)"><button class="b" onclick="$('cxf').click()">🖼️ เลือกรูปตัวละคร (หลายรูปได้)</button></div>
  ${AUTHON&&ACC?alBox():''}<div id="cxlist"></div>${ADMIN?'<label class="c"><input type="checkbox" id="cxdir"> ✅ อนุมัติเข้าเกมทันที (แอดมิน)</label>':''}<button id="cxsend" class="b" disabled onclick="cxSendAll()">เลือกรูปก่อน</button>
@@ -620,36 +622,39 @@ function alBox(){return `<div class="box"><b>🔎 ค้นหาจากฐา
  <input id="alq" maxlength="60" placeholder="${alM==='c'?'เช่น Gojo Satoru, Luffy':'เช่น Jujutsu Kaisen, Bleach'} (พิมพ์ภาษาอังกฤษ)" onkeydown="if(event.key==='Enter')alGo()"><button class="b" onclick="alGo()">ค้นหา</button><div id="alr"></div></div>`}
 function alMode(m){alM=m;alRes=null;const q=$('alq');if(q)q.placeholder=m==='c'?'เช่น Gojo Satoru, Luffy (พิมพ์ภาษาอังกฤษ)':'เช่น Jujutsu Kaisen, Bleach (พิมพ์ภาษาอังกฤษ)';$('alt_c').className=m==='c'?'b':'g';$('alt_a').className=m==='a'?'b':'g';alDraw()}
 function alGo(){const q=$('alq').value.trim();if(!q)return;alLoad=true;alDraw();s.emit(alM==='c'?'al:find':'al:anime',q)}
-s.on('al:err',m=>{alLoad=false;flash('⚠️ '+m);alDraw()});
-s.on('al:res',d=>{alLoad=false;if(d.kind==='chars'&&alRes&&alRes.kind==='chars'&&d.p>1&&alRes.id){d.items=alRes.items.concat(d.items);d.id=alRes.id}else if(d.kind==='chars'&&alRes&&alRes.pend)d.id=alRes.pend;alRes=d;d.items.forEach(x=>{if(x.id&&x.img)alPool.set(x.id,x)});alDraw()});
+s.on('al:err',m=>{alLoad=false;flash('⚠️ '+m);alDraw();if(alWaitRes){const f=alWaitRes;alWaitRes=null;f()}});
+s.on('al:res',d=>{alLoad=false;if(d.kind==='chars'&&alRes&&alRes.kind==='chars'&&d.p>1&&alRes.id){d.items=alRes.items.concat(d.items);d.id=alRes.id}else if(d.kind==='chars'&&alRes&&alRes.pend)d.id=alRes.pend;alRes=d;d.items.forEach(x=>{if(x.id&&x.img)alPool.set(x.id,x)});alDraw();if(alWaitRes){const f=alWaitRes;alWaitRes=null;f()}});
 function alOpen(id){alLoad=true;alRes={kind:'wait',pend:id,items:[]};alDraw();s.emit('al:chars',{id,p:1})}
 function alMore(){alLoad=true;const id=alRes.id,p=alRes.p+1;alDraw();s.emit('al:chars',{id,p})}
-function alTog(id){if(alSel.has(id))alSel.delete(id);else{if(alSel.size+cxRows.length>=20)return flash('เลือกได้รวมไม่เกิน 20 ตัวต่อครั้ง');alSel.add(id)}alDraw()}
-function alTop(){let k=0;alRes.items.forEach(x=>{if(k<10&&!cxEx(x.n)&&alSel.size+cxRows.length<20){alSel.add(x.id);k++}});alDraw()}
-function alAll(){alRes.items.forEach(x=>{if(!cxEx(x.n)&&alSel.size+cxRows.length<20)alSel.add(x.id)});alDraw()}
+function alTog(id){if(alSel.has(id))alSel.delete(id);else{if(alSel.size+cxRows.length>=CXMAX)return flash('เลือกได้รวมไม่เกิน '+CXMAX+' ตัวต่อครั้ง');alSel.add(id)}alDraw()}
+function alTop(){let k=0;alRes.items.forEach(x=>{if(k<10&&!cxEx(x.n)&&alSel.size+cxRows.length<CXMAX){alSel.add(x.id);k++}});alDraw()}
+let alWaitRes=null;
+async function alFill(){if(!alRes||alRes.kind!=='chars'||alLoad)return;let g=0;alAll();while(g++<8&&alSel.size+cxRows.length<CXMAX&&alRes.more){await new Promise(rs=>{alWaitRes=rs;alMore();setTimeout(()=>{if(alWaitRes===rs){alWaitRes=null;rs()}},12000)});alAll()}alAll();if(alSel.size)flash('เลือกแล้ว '+alSel.size+' ตัว กด "เพิ่ม … ตัวที่เลือก" ได้เลย')}
+function alAll(){alRes.items.forEach(x=>{if(!cxEx(x.n)&&alSel.size+cxRows.length<CXMAX)alSel.add(x.id)});alDraw()}
 function alDraw(){const e=$('alr');if(!e)return;let h='';
  if(alLoad)h='<small>กำลังค้นหา…</small>';
  else if(alRes&&alRes.kind==='anime')h=alRes.items.length?alRes.items.map(m=>`<div class="row" style="margin:4px 0;justify-content:flex-start;gap:8px;cursor:pointer" onclick="alOpen(${m.id})"><img src="${esc(m.th)}" style="width:40px;height:56px;object-fit:cover;border:2px solid var(--line)"><span><b>${esc(m.t)}</b><br><small>แตะเพื่อดูตัวละคร</small></span></div>`).join(''):'<small>ไม่พบเรื่องนี้</small>';
  else if(alRes&&(alRes.kind==='chars'||alRes.kind==='find')){const it=alRes.items;
   h=(alRes.kind==='chars'?`<b>${esc(alRes.a)}</b><br>`:'')+(it.length?`<div class="lg">${it.map(x=>{const dup=cxEx(x.n),on=alSel.has(x.id);return `<div class="lt" style="${dup?'opacity:.45':''};${on?'outline:3px solid #2faa5f':''}" onclick="${dup?'':`alTog(${x.id})`}"><img loading="lazy" src="${esc(x.th)}" alt=""><small>${esc(x.n)}${alRes.kind==='find'?`<br>· ${esc(x.a)}`:''}${dup?'<br>มีแล้ว':on?'<br>✅':''}</small></div>`}).join('')}</div>`:'<small>ไม่พบตัวละคร</small>')+
-   `<div class="row" style="margin-top:6px">${alRes.kind==='chars'?'<button class="g" onclick="alTop()">⭐ เลือก 10 ตัวเด่น</button>':''}<button class="g" onclick="alAll()">เลือกทั้งหมดที่ยังไม่มี</button>${alRes.kind==='chars'&&alRes.more?'<button class="g" onclick="alMore()">โหลดเพิ่ม</button>':''}</div>`}
- if(alSel.size)h+=`<button class="b" ${alBusy?'disabled':''} onclick="alAdd()">${alBusy?'กำลังดึงรูป…':'➕ เพิ่ม '+alSel.size+' ตัวที่เลือกลงรายการด้านล่าง'}</button>`;
+   `<div class="row" style="margin-top:6px">${alRes.kind==='chars'?'<button class="g" onclick="alTop()">⭐ เลือก 10 ตัวเด่น</button><button class="g" onclick="alFill()">📥 เลือกให้ครบ '+CXMAX+'</button>':''}<button class="g" onclick="alAll()">เลือกทั้งหมดที่ยังไม่มี</button>${alRes.kind==='chars'&&alRes.more?'<button class="g" onclick="alMore()">โหลดเพิ่ม</button>':''}</div>`}
+ if(alSel.size)h+=`<button class="b" ${alBusy?'disabled':''} onclick="alAdd()">${alBusy?'กำลังดึงรูป…':'➕ เพิ่ม '+alSel.size+' ตัวที่เลือกลงรายการด้านล่าง (รวมไม่เกิน '+CXMAX+')'}</button>`;
  e.innerHTML=h}
 s.on('al:img',d=>{const f=alWait[d.ref];if(f){delete alWait[d.ref];f(d)}});
-async function alAdd(){if(alBusy)return;alBusy=true;alDraw();let ok=0,bad=0;
- for(const id of [...alSel]){const x=alPool.get(id);if(!x)continue;
-  const r=await new Promise(rs=>{const ref=++alRef;alWait[ref]=rs;s.emit('al:img',{ref,url:x.img});setTimeout(()=>{if(alWait[ref]){delete alWait[ref];rs({err:'หมดเวลา'})}},12000)});
+async function alAdd(){if(alBusy)return;alBusy=true;alDraw();let ok=0,bad=0;const ids=[...alSel];let i=0,done=0;
+ const one=async id=>{const x=alPool.get(id);if(!x)return;
+  const r=await new Promise(rs=>{const ref=++alRef;alWait[ref]=rs;s.emit('al:img',{ref,url:x.img});setTimeout(()=>{if(alWait[ref]){delete alWait[ref];rs({err:'หมดเวลา'})}},15000)});
   const img=r.data?await cxShrinkURL(r.data):'';
-  if(!img){bad++;continue}cxRows.push({id:++cxSeq,img,n:x.n,a:x.a,al:'',yr:x.yr||0,ro:x.ro||'',st:'',msg:''});alSel.delete(id);ok++;cxDraw()}
+  if(!img){bad++;return}const row={id:++cxSeq,img,n:x.n,a:x.a,al:'',yr:x.yr||0,ro:x.ro||'',st:'',msg:''};cxRows.push(row);cxRowAdd(row);alSel.delete(id);ok++;
+  if(++done%10===0)flash(`กำลังดึงรูป… ${done}/${ids.length}`)};
+ await Promise.all([0,1,2,3].map(async()=>{while(i<ids.length)await one(ids[i++])}));
  alBusy=false;alDraw();flash(ok?`✅ เพิ่มลงรายการแล้ว ${ok} ตัว ตรวจชื่อแล้วกดส่งได้เลย`+(bad?` (โหลดรูปไม่ได้ ${bad})`:''):'โหลดรูปไม่ได้ ลองใหม่อีกครั้ง')}
-
 async function cxSendAll(){if(cxBusy)return;const L=cxRows.filter(r=>r.st!=='ok');
  for(const r of L){if(!r.n.trim()||!r.a.trim()){r.st='err';r.msg='กรอกชื่อตัวละครและชื่อเรื่อง'}}
  if(L.some(r=>r.st==='err')){cxDraw();return flash('กรอกชื่อตัวละครและชื่อเรื่องให้ครบทุกรูป')}
  cxBusy=true;cxDraw();let ok=0,bad=0;
- for(const r of L){r.st='sending';cxDraw();
+ for(const r of L){r.st='sending';cxRowUpd(r);
   const res=await new Promise(rs=>{cxWait[r.id]=rs;s.emit('cx:submit',{ref:r.id,n:r.n.trim(),a:r.a.trim(),al:(r.al||'').trim(),img:r.img,yr:r.yr||0,ro:r.ro||'',direct:!!($('cxdir')&&$('cxdir').checked)});setTimeout(()=>{if(cxWait[r.id]){delete cxWait[r.id];rs({ok:false,msg:'ไม่มีการตอบกลับ ลองใหม่'})}},12000)});
-  if(res.ok){r.st='ok';r.msg=res.msg;ok++}else{r.st='err';r.msg=res.msg;bad++}cxDraw();await new Promise(x=>setTimeout(x,250))}
+  if(res.ok){r.st='ok';r.msg=res.msg;ok++}else{r.st='err';r.msg=res.msg;bad++}cxRowUpd(r);await new Promise(x=>setTimeout(x,120))}
  cxBusy=false;cxRows=cxRows.filter(r=>r.st!=='ok');cxDraw();
  flash(bad?`ส่งสำเร็จ ${ok} ตัว · ไม่สำเร็จ ${bad} ตัว (ดูข้อความใต้รูป)`:`✅ ส่งครบ ${ok} ตัว! รอแอดมินตรวจ`);if(!bad&&$('cxmine')&&$('cxmine').open)s.emit('cx:mine')}
 s.on('cx:res',d=>{if(d.ref!=null&&cxWait[d.ref]){const f=cxWait[d.ref];delete cxWait[d.ref];f(d);return}flash((d.ok?'✅ ':'⚠️ ')+d.msg)});
@@ -962,7 +967,7 @@ function openProf(tab){pTab=tab||pTab;const lv=lvOf(PF.xp),a=40*(lv-1)*(lv-1),b=
    return `<div class="it ${on?'on':''}">${pv}<div>${lb}</div>${on?'<b>✓ ใช้งานอยู่</b>':ow?`<button class="b" onclick="equip('${k}','${id}')">ใช้</button>`:`<button class="${PF.coins>=pr?'b':'g'}" onclick="buy('${k}','${id}',${pr},'${lb}')">🪙 ${pr}</button>`}</div>`}).join('');
   body=`<b>🖼️ กรอบโปรไฟล์</b><div class="shop">${it('fr',FR)}</div><b>✨ เอฟเฟกต์ชื่อ</b><div class="shop">${it('nf',NF)}</div>`}
  $('sc').innerHTML=head+body+`<button class="b" onclick="closeSet()">ปิด</button>`;$('set').style.display='flex'}
-const NEWS=['🖼️ โลโก้และพื้นหลังใหม่: หน้าแรกเป็นฉากทะเล ส่วนในห้องและตอนเล่นเป็นฉากป่า','🎨 หน้าตาใหม่: หน้าแรกใช้รูปตัวละครจริง ห้องรอเพื่อนเป็นที่นั่ง หน้าเล่นบนคอมกว้างขึ้น ตอนจบมีโพเดียม หน้าเลือกอนิเมะในโหมดแฟนพันธุ์แท้เป็นการ์ดมีรูป กดปุ่ม 1-4 หรือ A-D เพื่อตอบควิซได้ และมีปุ่มปิดเสียงด่วนที่มุมบน','🎵 เสียงใหม่: มีเพลงพื้นหลังเปลี่ยนตามหน้าจอ (ล็อบบี้ / ตอนเล่น / โอกาสสุดท้าย / แฟนพันธุ์แท้ / ชนะ) พร้อมเสียงชนะ-แพ้ เสียงเหรียญ เลเวลอัป เสียงตอบถูกคอมโบ และเสียงเตือนตอนเหลือ 5 วินาที ปรับระดับหรือปิดได้ที่ ⚙️ ตั้งค่า (เพลงจะเริ่มหลังแตะหน้าจอครั้งแรก)','🆕 เกมทายตัวละคร: ถ้าใครตอบผิด ทุกคนในห้องจะเห็นว่าเขาตอบเป็นตัวอะไร (มีรูปตัวที่ตอบด้วย) และดูย้อนหลังได้ที่ใต้ชื่อของเขากับหน้าสรุปผล','👤 โปรไฟล์: อัปโหลดรูปของตัวเองได้ เพื่อนในห้องจะเห็นรูปคุณ','🪙 สะสมเหรียญจากการเล่น (ชนะ/แพ้/แฟนพันธุ์แท้/เข้าเล่นรายวัน) เอาไปซื้อกรอบโปรไฟล์และเอฟเฟกต์ชื่อในร้านค้า','⭐ มีเลเวลจากประสบการณ์ที่สะสม แสดงข้างชื่อ','🔢 แสดงเวอร์ชันเกมและเซิร์ฟเวอร์ที่หน้าแรกและในตั้งค่า'];
+const NEWS=['📥 เสนอตัวละครได้ทีละสูงสุด 100 ตัว มีปุ่ม "เลือกให้ครบ 100" อัตโนมัติ (คลังตัวละคร 📚 → เสนอตัวละครใหม่)'];
 function openNews(){closeSet();dlg(`<b style="font-size:20px">📜 มีอะไรใหม่ · v${APPV}</b><ul style="text-align:left;line-height:1.6;padding-left:18px">${NEWS.map(n=>`<li>${n}</li>`).join('')}</ul>`,[['เริ่มเลย','b']])}
 // ================= v2.5: สุ่มกรอบการ์ด (Gacha) =================
 // ปรับค่าได้ที่นี่: ราคา อัตราสุ่ม (รวมต้อง = 100) ระบบการันตี และเหรียญคืนเมื่อได้ซ้ำ
@@ -1010,7 +1015,7 @@ SFX.gacha=t=>{const i=TORD.indexOf(t);
  if(i>=2)setTimeout(()=>seq([659,784,988,1319],'triangle',.18,.1),380);
  if(i>=3)setTimeout(()=>{seq([784,988,1175,1568,1976],'sawtooth',.2,.07);[523,784,1047].forEach(f=>tone(f,1.1,'sine',.08,.55))},800);
  if(i>=4)setTimeout(()=>{[0,1,2,3,4,5].forEach(k=>tone(1047*Math.pow(1.122,k*2),.5,'sine',.07,k*.09));[262,330,392,523].forEach(f=>tone(f,1.6,'sine',.09,.3))},1400)};
-NEWS.unshift('📚 แตะตัวละครในคลังเพื่อเสนอชื่อไทย/แจ้งตัวละครผิด · ตัวละครที่เพิ่มจาก AniList มีใบ้ปีที่ฉายและบทบาท · ผู้เสนอที่ถูกอนุมัติ 10 ตัวขึ้นไปเข้าเกมทันที · เก็บรายการที่เลือกไว้ไม่หายเมื่อรีเฟรช');NEWS.unshift('🛠️ แก้บั๊กซื้อกรอบ/เอฟเฟกต์ชื่อไม่ได้ และถอดกรอบระดับ SSR ออก (ใครเคยได้ รับเหรียญคืนใบละ 400)');NEWS.unshift('🔎 เสนอตัวละครแบบค้นหาจากฐานข้อมูลอนิเมะ (AniList): พิมพ์ชื่อตัวละครหรือชื่อเรื่อง แล้วเลือกได้เลย ไม่ต้องหารูปเอง');NEWS.unshift('➕ เสนอตัวละครสะดวกขึ้น: เลือกรูปได้ทีละหลายรูป ระบบเติมชื่อจากชื่อไฟล์ (เรื่อง_ชื่อ.jpg) เตือนชื่อซ้ำ และดูสถานะที่เสนอไว้ได้');NEWS.unshift('🛡️ ระบบแอดมินครบขึ้น: ผู้เสนอตัวละครได้รับแจ้งผล, ระงับบัญชี/ปรับเหรียญ, ดูห้อง ลบแชท เชิญออก ปิดรูปโปรไฟล์ได้');NEWS.unshift('➕ เสนอตัวละครใหม่ได้แล้ว: เปิดคลังตัวละคร 📚 → เสนอตัวละครใหม่ ใส่ชื่อ เรื่อง และรูป (ต้องล็อกอิน) แอดมินตรวจแล้วเข้าเกมทันที');NEWS.unshift('🎯 ภารกิจรายวัน 3 ข้อ (รับเหรียญ) + โบนัสเข้าเล่นต่อเนื่องหลายวัน + ฉายา 10 แบบ แสดงข้างชื่อ + รายชื่อคนที่เพิ่งเล่นด้วยกัน กดชวนกลับเข้าห้องได้ (ต้องล็อกอินทั้งสองฝ่าย) ดูที่ โปรไฟล์ → ภารกิจ');NEWS.unshift('☁️ ระบบบัญชีผู้เล่น: สมัครด้วยชื่อกับ PIN (ไม่ต้องใช้อีเมล) เหรียญ กรอบที่สุ่มได้ และเลเวลจะถูกเก็บบนเซิร์ฟเวอร์ ใช้ข้ามเครื่องได้ ดูที่ โปรไฟล์ → ข้อมูล');NEWS.unshift('🏠 หน้าแรกจัดลำดับใหม่ (สร้างห้อง/เข้าร่วม → โหมดแฟนพันธุ์แท้ → เมนูรอง) และช่องพิมพ์ชื่อตัวละครเลื่อนดูรายชื่อบนมือถือได้โดยไม่เผลอเลือก');NEWS.unshift('⚙️ เจ้าของห้องแก้ตั้งค่า (เวลา/ความยาก/อนิเมะ/การ์ด/จำนวนคน) ได้ตอนรอเพื่อน และปุ่ม 📚 คลังตัวละครย้ายมาอยู่เรียงกับปุ่มแชท');NEWS.unshift('✨ ปรับแอนิเมชันทั้งเกมให้ลื่นขึ้น: ปุ่มกดมีคลื่นและเด้ง หน้าต่างเปิด-ปิดนุ่ม การ์ดตัวละครเด้งเข้า ตอบถูก/ผิดมีอนุภาคและแฟลช สุ่มกรอบมีช่วงรวมพลังก่อนเปิดผล พื้นหลังขยับช้า ๆ (ปิดได้ที่ ตั้งค่า → ลดการเคลื่อนไหว)');NEWS.unshift('🎰 ระบบสุ่มกรอบการ์ดตัวละครใหม่! ใช้เหรียญสุ่มกรอบ 5 ระดับ C/B/A/S/SSR ยิ่งสูงยิ่งสุ่มยาก มีระบบการันตี สุ่ม ×10 และเหรียญคืนเมื่อซ้ำ ดูที่ โปรไฟล์ → 🎰 สุ่มกรอบ');
+
 
 setTimeout(()=>{dailyBonus();if(localStorage.seenVer!==APPV){try{localStorage.seenVer=APPV}catch(e){}openNews()}},900);
 

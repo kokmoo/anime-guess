@@ -613,7 +613,7 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '3.7';
+const APP_VERSION = '3.8';
 const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
 const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
 let CFIDS = new Set(), CFM = 0;
@@ -1003,7 +1003,7 @@ io.on('connection', sock => {
       const n = cxClean(d.n, 40), a0 = cxClean(d.a, 40), al = cxClean(d.al, 60), buf = cxJpeg(d.img), yr = Number.isInteger(d.yr) && d.yr >= 1950 && d.yr <= 2035 ? d.yr : 0, ro = d.ro === 'M' || d.ro === 'S' ? d.ro : '';
       if (!n || !a0) return R(false, 'กรอกชื่อตัวละครและชื่อเรื่องให้ครบ');
       if (!buf) return R(false, 'รูปไม่ถูกต้องหรือใหญ่เกินไป ลองเลือกรูปใหม่');
-      const now = Date.now(), arr = (CXRATE[acct] || []).filter(x => now - x < 60000); if (arr.length >= 60) return R(false, 'ส่งถี่เกินไป รอสักครู่แล้วลองใหม่'); arr.push(now); CXRATE[acct] = arr;
+      const now = Date.now(), arr = (CXRATE[acct] || []).filter(x => now - x < 60000); if (arr.length >= 150) return R(false, 'ส่งถี่เกินไป รอสักครู่แล้วลองใหม่'); arr.push(now); CXRATE[acct] = arr;
       if (cxDup(n)) return R(false, 'มีตัวละครชื่อนี้ในเกมแล้ว');
       if (d.direct && sock.data.adm) {   // แอดมินเพิ่มเข้าเกมทันที ไม่ผ่านคิว
         const id = nodeCrypto.randomBytes(5).toString('hex'), e = { id, n, al, a: cxAnime(a0), by: sock.data.un || 'admin', yr, ro };
@@ -1027,7 +1027,7 @@ io.on('connection', sock => {
     } catch (e) { console.log('cx:submit', e.message); R(false, 'เกิดข้อผิดพลาด ลองใหม่อีกครั้ง'); }
   });
   const ALRATE = [];
-  const alOk = () => { if (!AUTH_ON || !sock.data.acct) { sock.emit('al:err', 'ต้องล็อกอินก่อน'); return false; } const now = Date.now(); while (ALRATE.length && now - ALRATE[0] > 60000) ALRATE.shift(); if (ALRATE.length >= 90) { sock.emit('al:err', 'ค้นหาถี่เกินไป รอสักครู่'); return false; } ALRATE.push(now); return true; };
+  const alOk = () => { if (!AUTH_ON || !sock.data.acct) { sock.emit('al:err', 'ต้องล็อกอินก่อน'); return false; } const now = Date.now(); while (ALRATE.length && now - ALRATE[0] > 60000) ALRATE.shift(); if (ALRATE.length >= 300) { sock.emit('al:err', 'ค้นหาถี่เกินไป รอสักครู่'); return false; } ALRATE.push(now); return true; };
   sock.on('al:anime', async q => {
     if (!alOk()) return;
     try {
