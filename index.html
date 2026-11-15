@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- ag-build:20261042 -->
+<!-- ag-build:20261044 -->
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ANIME GUESS</title>
@@ -289,7 +289,7 @@ body.bgi::before{animation:kb 55s ease-in-out infinite alternate;will-change:tra
 const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิดตัวอักษร'],era:['📅','ใบ้ยุค'],ability:['⚡','ความสามารถ'],side:['🏴','ฝ่าย'],role:['⭐','บทบาท']};
 const s=io(),$=id=>document.getElementById(id);
 const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
-const VER=5,APPV='3.4',BUILD='20261042';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
+const VER=5,APPV='3.6',BUILD='20261044';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
 const pre=new URLSearchParams(location.search).get('room')||'';
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
@@ -490,7 +490,7 @@ function openSet(){const dk=document.documentElement.dataset.theme==='dark';$('s
 const getTok=()=>{try{return localStorage.tok||''}catch(e){return ''}};
 function accSave(){if(!ACC)return;accDirty=true;clearTimeout(accTimer);accTimer=setTimeout(accFlush,1500)}
 function accFlush(){if(!ACC||accBusy||!accDirty)return;accBusy=true;accDirty=false;s.emit('auth:save',{prof:PF,base:ACC.v});setTimeout(()=>{accBusy=false},8000)}
-function accApply(p){Object.keys(PF).forEach(k=>delete PF[k]);Object.assign(PF,pfNorm(p));pfLocal()}
+function accApply(p){Object.keys(PF).forEach(k=>delete PF[k]);Object.assign(PF,pfNorm(p));pfLocal();if(typeof cfFix==='function'&&CF.length)setTimeout(cfFix,0)}
 s.on('meta',m=>{AUTHON=!!m.auth;const t=getTok();if(AUTHON&&t)s.emit('auth:token',t);if($('set').style.display==='flex'&&pTab==='me')openProf('me');if(!st&&!QM&&mode==='home')render()});
 s.on('auth:ok',d=>{try{localStorage.tok=d.tok}catch(e){}
  const same=ACC&&ACC.name===d.name&&ACC.v===d.v;ACC={name:d.name,v:d.v};
@@ -523,7 +523,7 @@ const TT=[
  {id:'lv10',i:'⭐',n:'ระดับสิบ',d:'ถึงเลเวล 10',pr:()=>[lvOf(PF.xp),10]},
  {id:'lv25',i:'🌟',n:'ตำนาน',d:'ถึงเลเวล 25',pr:()=>[lvOf(PF.xp),25]},
  {id:'collector',i:'🖼️',n:'นักสะสมกรอบ',d:'สะสมกรอบการ์ดครบ 10 แบบ',pr:()=>[PF.cfo.length,10]},
- {id:'ssr',i:'💎',n:'ผู้โชคดี',d:'สุ่มได้กรอบระดับ SSR',pr:()=>[PF.cfo.some(i=>CFM[i]&&CFM[i].t==='SSR')?1:0,1]},
+ {id:'ssr',i:'💎',n:'ผู้โชคดี',d:'สุ่มได้กรอบระดับ S',pr:()=>[PF.cfo.some(i=>CFM[i]&&CFM[i].t==='S')?1:0,1]},
  {id:'streak7',i:'🔥',n:'ขยันสุดๆ',d:'เข้าเล่นต่อเนื่อง 7 วัน',pr:()=>[PF.sk.n,7]},
  {id:'missions',i:'🎯',n:'นักภารกิจ',d:'ทำภารกิจรายวันสำเร็จ 15 ครั้ง',pr:()=>[PF.mc,15]}];
 const TTM={};TT.forEach(t=>TTM[t.id]=t);
@@ -579,7 +579,9 @@ s.on('inv:got',async d=>{if(st||QM){flash('✉️ '+d.from+' ชวนเข้�
 s.on('chars:update',m=>{animes=m.animes||animes;chars=m.chars||chars;if($('lib').style.display==='flex'&&$('lr'))drawLib();if(!st&&!QM&&mode==='home')render()});
 let cxAdm=null,cxRows=[],cxSeq=0,cxWait={},cxMine=null,cxBusy=false;
 const cxEx=n=>{const k=n.trim().toLowerCase();return !!k&&chars.some(c=>c[0].toLowerCase()===k||(c[3]||'').toLowerCase().split('|').includes(k))};
-function cxShrink(f){return new Promise(res=>{const fr=new FileReader();fr.onerror=()=>res('');fr.onload=()=>{const im=new Image();im.onerror=()=>res('');im.onload=()=>{const M=512,k=Math.min(1,M/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);let q=.85,d=c.toDataURL('image/jpeg',q);while(d.length>110000&&q>.35){q-=.1;d=c.toDataURL('image/jpeg',q)}res(d)};im.src=fr.result};fr.readAsDataURL(f)})}
+function cxFromImg(im){const M=512,k=Math.min(1,M/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);let q=.85,d=c.toDataURL('image/jpeg',q);while(d.length>110000&&q>.35){q-=.1;d=c.toDataURL('image/jpeg',q)}return d}
+function cxShrinkURL(u){return new Promise(res=>{const im=new Image();im.onerror=()=>res('');im.onload=()=>{try{res(cxFromImg(im))}catch(e){res('')}};im.src=u})}
+function cxShrink(f){return new Promise(res=>{const fr=new FileReader();fr.onerror=()=>res('');fr.onload=()=>cxShrinkURL(fr.result).then(res);fr.readAsDataURL(f)})}
 // ชื่อไฟล์ "เรื่อง_ชื่อตัวละคร.jpg" หรือ "ชื่อตัวละคร.jpg" -> เติมช่องให้อัตโนมัติ
 function cxParse(fn){let b=fn.replace(/\.[^.]+$/,'').replace(/[-]+/g,' ').trim(),a='',n=b;if(b.includes('_')){const p=b.split('_').map(x=>x.trim()).filter(Boolean);if(p.length>=2){a=p[0].replace(/\s+/g,' ');n=p.slice(1).join(' ')}else n=p[0]||''}
  n=n.replace(/_/g,' ').replace(/\s+/g,' ').trim();return{n,a}}
@@ -601,17 +603,46 @@ function openCx(){cxRows=[];cxBusy=false;cxMine=null;
  `<div class="box"><small>เลือกรูปได้ทีเดียวหลายรูป (สูงสุด 20) แล้วเติมชื่อตัวละครกับชื่อเรื่อง แอดมินตรวจแล้วเข้าเกมอัตโนมัติ · เสนอได้วันละ 100 ตัว<br>💡 ตั้งชื่อไฟล์เป็น <b>เรื่อง_ชื่อตัวละคร.jpg</b> เช่น <b>Naruto_Sasuke.jpg</b> ระบบจะเติมช่องให้เอง</small>
  <input id="cxa" maxlength="40" list="cxl" placeholder="ชื่อเรื่อง (ใช้เติมให้ทุกรูปที่ยังว่าง)" oninput="cxFillA(this.value)"><datalist id="cxl">${animes.map(a=>`<option value="${esc(a)}">`).join('')}</datalist>
  <input id="cxf" type="file" accept="image/*" multiple style="display:none" onchange="cxPick(this)"><button class="b" onclick="$('cxf').click()">🖼️ เลือกรูปตัวละคร (หลายรูปได้)</button></div>
- <div id="cxlist"></div><button id="cxsend" class="b" disabled onclick="cxSendAll()">เลือกรูปก่อน</button>
+ ${AUTHON&&ACC?alBox():''}<div id="cxlist"></div>${ADMIN?'<label class="c"><input type="checkbox" id="cxdir"> ✅ อนุมัติเข้าเกมทันที (แอดมิน)</label>':''}<button id="cxsend" class="b" disabled onclick="cxSendAll()">เลือกรูปก่อน</button>
  <details id="cxmine" ontoggle="if(this.open)s.emit('cx:mine')"><summary><b>ดูสถานะที่ฉันเสนอไว้</b></summary><div id="cxmb"><small>กำลังโหลด…</small></div></details>`)+
- (ADMIN?'':'')+`<div style="margin-top:14px"><button class="g" style="width:auto;margin:0;font-size:12px" onclick="cxAdmin()">🛡️ แอดมิน</button></div>`;cxDraw()}
+ (ADMIN?'':'')+`<div style="margin-top:14px"><button class="g" style="width:auto;margin:0;font-size:12px" onclick="cxAdmin()">🛡️ แอดมิน</button></div>`;cxDraw();alDraw()}
 function cxFillA(v){let ch=0;cxRows.forEach(r=>{if(!r.a||r.aFill){r.a=v.trim();r.aFill=1;ch=1}});if(ch){document.querySelectorAll('.cxr').forEach(el=>{const r=cxRows.find(x=>x.id==el.dataset.r);if(r&&r.st!=='ok')el.querySelectorAll('input')[1].value=r.a})}}
 s.on('cx:mine',d=>{cxMine=d;const e=$('cxmb');if(!e)return;d.pending=d.pending||[];d.ok=d.ok||[];e.innerHTML=(d.left!=null?`<small>วันนี้เสนอได้อีก ${d.left} ตัว</small><br>`:'')+(d.pending.length?`<b>รอแอดมินตรวจ (${d.pending.length})</b>`+d.pending.map(x=>`<div class="row" style="margin:3px 0"><span>⏳ ${esc(x.n)} <small>· ${esc(x.a)}</small></span></div>`).join(''):'<small>ไม่มีรายการที่รอตรวจ</small>')+(d.ok.length?`<br><b>อนุมัติแล้ว (${d.ok.length})</b>`+d.ok.map(x=>`<div style="margin:3px 0">✅ ${esc(x.n)} <small>· ${esc(x.a)}</small></div>`).join(''):'')});
+// ===== ค้นหาจากฐานข้อมูลอนิเมะ (AniList) แล้วเติมลงรายการเสนอ =====
+let alM='c',alRes=null,alPool=new Map(),alSel=new Set(),alWait={},alRef=0,alLoad=false,alBusy=false;
+function alBox(){return `<div class="box"><b>🔎 ค้นหาจากฐานข้อมูล (ไม่ต้องหารูปเอง)</b><br><small>พิมพ์ชื่อตัวละครหรือชื่อเรื่อง เลือกตัวที่ต้องการ ระบบดึงรูปและชื่อมาให้</small>
+ <div class="row tabs4" style="margin-top:6px"><button id="alt_c" class="${alM==='c'?'b':'g'}" onclick="alMode('c')">ชื่อตัวละคร</button><button id="alt_a" class="${alM==='a'?'b':'g'}" onclick="alMode('a')">ชื่อเรื่อง</button></div>
+ <input id="alq" maxlength="60" placeholder="${alM==='c'?'เช่น Gojo Satoru, Luffy':'เช่น Jujutsu Kaisen, Bleach'} (พิมพ์ภาษาอังกฤษ)" onkeydown="if(event.key==='Enter')alGo()"><button class="b" onclick="alGo()">ค้นหา</button><div id="alr"></div></div>`}
+function alMode(m){alM=m;alRes=null;const q=$('alq');if(q)q.placeholder=m==='c'?'เช่น Gojo Satoru, Luffy (พิมพ์ภาษาอังกฤษ)':'เช่น Jujutsu Kaisen, Bleach (พิมพ์ภาษาอังกฤษ)';$('alt_c').className=m==='c'?'b':'g';$('alt_a').className=m==='a'?'b':'g';alDraw()}
+function alGo(){const q=$('alq').value.trim();if(!q)return;alLoad=true;alDraw();s.emit(alM==='c'?'al:find':'al:anime',q)}
+s.on('al:err',m=>{alLoad=false;flash('⚠️ '+m);alDraw()});
+s.on('al:res',d=>{alLoad=false;if(d.kind==='chars'&&alRes&&alRes.kind==='chars'&&d.p>1&&alRes.id){d.items=alRes.items.concat(d.items);d.id=alRes.id}else if(d.kind==='chars'&&alRes&&alRes.pend)d.id=alRes.pend;alRes=d;d.items.forEach(x=>{if(x.id&&x.img)alPool.set(x.id,x)});alDraw()});
+function alOpen(id){alLoad=true;alRes={kind:'wait',pend:id,items:[]};alDraw();s.emit('al:chars',{id,p:1})}
+function alMore(){alLoad=true;const id=alRes.id,p=alRes.p+1;alDraw();s.emit('al:chars',{id,p})}
+function alTog(id){if(alSel.has(id))alSel.delete(id);else{if(alSel.size+cxRows.length>=20)return flash('เลือกได้รวมไม่เกิน 20 ตัวต่อครั้ง');alSel.add(id)}alDraw()}
+function alAll(){alRes.items.forEach(x=>{if(!cxEx(x.n)&&alSel.size+cxRows.length<20)alSel.add(x.id)});alDraw()}
+function alDraw(){const e=$('alr');if(!e)return;let h='';
+ if(alLoad)h='<small>กำลังค้นหา…</small>';
+ else if(alRes&&alRes.kind==='anime')h=alRes.items.length?alRes.items.map(m=>`<div class="row" style="margin:4px 0;justify-content:flex-start;gap:8px;cursor:pointer" onclick="alOpen(${m.id})"><img src="${esc(m.th)}" style="width:40px;height:56px;object-fit:cover;border:2px solid var(--line)"><span><b>${esc(m.t)}</b><br><small>แตะเพื่อดูตัวละคร</small></span></div>`).join(''):'<small>ไม่พบเรื่องนี้</small>';
+ else if(alRes&&(alRes.kind==='chars'||alRes.kind==='find')){const it=alRes.items;
+  h=(alRes.kind==='chars'?`<b>${esc(alRes.a)}</b><br>`:'')+(it.length?`<div class="lg">${it.map(x=>{const dup=cxEx(x.n),on=alSel.has(x.id);return `<div class="lt" style="${dup?'opacity:.45':''};${on?'outline:3px solid #2faa5f':''}" onclick="${dup?'':`alTog(${x.id})`}"><img loading="lazy" src="${esc(x.th)}" alt=""><small>${esc(x.n)}${alRes.kind==='find'?`<br>· ${esc(x.a)}`:''}${dup?'<br>มีแล้ว':on?'<br>✅':''}</small></div>`}).join('')}</div>`:'<small>ไม่พบตัวละคร</small>')+
+   `<div class="row" style="margin-top:6px"><button class="g" onclick="alAll()">เลือกทั้งหมดที่ยังไม่มี</button>${alRes.kind==='chars'&&alRes.more?'<button class="g" onclick="alMore()">โหลดเพิ่ม</button>':''}</div>`}
+ if(alSel.size)h+=`<button class="b" ${alBusy?'disabled':''} onclick="alAdd()">${alBusy?'กำลังดึงรูป…':'➕ เพิ่ม '+alSel.size+' ตัวที่เลือกลงรายการด้านล่าง'}</button>`;
+ e.innerHTML=h}
+s.on('al:img',d=>{const f=alWait[d.ref];if(f){delete alWait[d.ref];f(d)}});
+async function alAdd(){if(alBusy)return;alBusy=true;alDraw();let ok=0,bad=0;
+ for(const id of [...alSel]){const x=alPool.get(id);if(!x)continue;
+  const r=await new Promise(rs=>{const ref=++alRef;alWait[ref]=rs;s.emit('al:img',{ref,url:x.img});setTimeout(()=>{if(alWait[ref]){delete alWait[ref];rs({err:'หมดเวลา'})}},12000)});
+  const img=r.data?await cxShrinkURL(r.data):'';
+  if(!img){bad++;continue}cxRows.push({id:++cxSeq,img,n:x.n,a:x.a,al:'',st:'',msg:''});alSel.delete(id);ok++;cxDraw()}
+ alBusy=false;alDraw();flash(ok?`✅ เพิ่มลงรายการแล้ว ${ok} ตัว ตรวจชื่อแล้วกดส่งได้เลย`+(bad?` (โหลดรูปไม่ได้ ${bad})`:''):'โหลดรูปไม่ได้ ลองใหม่อีกครั้ง')}
+
 async function cxSendAll(){if(cxBusy)return;const L=cxRows.filter(r=>r.st!=='ok');
  for(const r of L){if(!r.n.trim()||!r.a.trim()){r.st='err';r.msg='กรอกชื่อตัวละครและชื่อเรื่อง'}}
  if(L.some(r=>r.st==='err')){cxDraw();return flash('กรอกชื่อตัวละครและชื่อเรื่องให้ครบทุกรูป')}
  cxBusy=true;cxDraw();let ok=0,bad=0;
  for(const r of L){r.st='sending';cxDraw();
-  const res=await new Promise(rs=>{cxWait[r.id]=rs;s.emit('cx:submit',{ref:r.id,n:r.n.trim(),a:r.a.trim(),al:(r.al||'').trim(),img:r.img});setTimeout(()=>{if(cxWait[r.id]){delete cxWait[r.id];rs({ok:false,msg:'ไม่มีการตอบกลับ ลองใหม่'})}},12000)});
+  const res=await new Promise(rs=>{cxWait[r.id]=rs;s.emit('cx:submit',{ref:r.id,n:r.n.trim(),a:r.a.trim(),al:(r.al||'').trim(),img:r.img,direct:!!($('cxdir')&&$('cxdir').checked)});setTimeout(()=>{if(cxWait[r.id]){delete cxWait[r.id];rs({ok:false,msg:'ไม่มีการตอบกลับ ลองใหม่'})}},12000)});
   if(res.ok){r.st='ok';r.msg=res.msg;ok++}else{r.st='err';r.msg=res.msg;bad++}cxDraw();await new Promise(x=>setTimeout(x,250))}
  cxBusy=false;cxRows=cxRows.filter(r=>r.st!=='ok');cxDraw();
  flash(bad?`ส่งสำเร็จ ${ok} ตัว · ไม่สำเร็จ ${bad} ตัว (ดูข้อความใต้รูป)`:`✅ ส่งครบ ${ok} ตัว! รอแอดมินตรวจ`);if(!bad&&$('cxmine')&&$('cxmine').open)s.emit('cx:mine')}
@@ -898,7 +929,7 @@ function delAv(){PF.av='';pfSave();syncProf();openProf('me')}
 function setPName(v){v=v.trim().slice(0,16);if(!v)return;name=v;localStorage.name=v;if(st)act('rename',v)}
 function equip(k,id){if(!owns(k,id))return;PF[k]=id;pfSave();syncProf();openProf('shop')}
 async function buy(k,id,price,label){if(PF.coins<price)return say('เหรียญไม่พอ ต้องการ '+price+' 🪙 (คุณมี '+PF.coins+')\nเล่นเกมเพื่อสะสมเหรียญเพิ่มได้เลย');
- if(!await ask('ซื้อ <b>'+esc(label)+'</b> ราคา '+price+' 🪙 ?','ซื้อ'))return;PF.coins-=price;mp('gacha',n);PF.owned.push(k+':'+id);pfSave();SFX.buy();equip(k,id)}
+ if(!await ask('ซื้อ <b>'+esc(label)+'</b> ราคา '+price+' 🪙 ?','ซื้อ'))return;PF.coins-=price;PF.owned.push(k+':'+id);pfSave();SFX.buy();equip(k,id)}
 function openProf(tab){pTab=tab||pTab;const lv=lvOf(PF.xp),a=40*(lv-1)*(lv-1),b=40*lv*lv,pc=Math.min(100,Math.round((PF.xp-a)/(b-a)*100));
  const me={name,fr:PF.fr,nf:PF.nf,lv,av:PF.av};
  const head=`<h2>👤 โปรไฟล์</h2><div class="row" style="justify-content:flex-start;gap:14px">${av(name||'?',me,1)}<div style="flex:1"><b style="font-size:18px">${pnm({...me,lv:0,name:name||'ผู้เล่น'})}</b><br><small>Lv.${lv} · ${PF.xp} XP</small></div><b style="font-size:18px">🪙 ${PF.coins}</b></div><div class="xpbar"><i style="width:${pc}%"></i></div><small>อีก ${b-PF.xp} XP จะขึ้นเลเวลถัดไป</small>
@@ -920,24 +951,25 @@ const NEWS=['🖼️ โลโก้และพื้นหลังใหม�
 function openNews(){closeSet();dlg(`<b style="font-size:20px">📜 มีอะไรใหม่ · v${APPV}</b><ul style="text-align:left;line-height:1.6;padding-left:18px">${NEWS.map(n=>`<li>${n}</li>`).join('')}</ul>`,[['เริ่มเลย','b']])}
 // ================= v2.5: สุ่มกรอบการ์ด (Gacha) =================
 // ปรับค่าได้ที่นี่: ราคา อัตราสุ่ม (รวมต้อง = 100) ระบบการันตี และเหรียญคืนเมื่อได้ซ้ำ
-const GA={cost:100,cost10:900,rates:{C:46,B:28,A:16,S:8,SSR:2},pitySS:10,pitySSR:80,refund:{C:15,B:30,A:60,S:150,SSR:400}};
-const TORD=['C','B','A','S','SSR'],TCOL={C:'#9aa4b2',B:'#4da3ff',A:'#b36bff',S:'#ffb020',SSR:'#ff4d8d'};
+const GA={cost:100,cost10:900,rates:{C:46,B:28,A:16,S:10},pitySS:10,refund:{C:15,B:30,A:60,S:150}};
+const TORD=['C','B','A','S'],TCOL={C:'#9aa4b2',B:'#4da3ff',A:'#b36bff',S:'#ffb020',SSR:'#ff4d8d'};
 const rnd=()=>{try{const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]/4294967296}catch(e){return Math.random()}};
-fetch('/frames.json?v='+BUILD).then(r=>r.json()).then(a=>{CF=a;CFM={};a.forEach(x=>CFM[x.id]=x);PF.cfo=PF.cfo.filter(i=>CFM[i]);if(PF.cf&&!CFM[PF.cf])PF.cf='';pfSave();syncProf()}).catch(()=>{});
+// กรอบระดับ SSR ถูกถอดออกจากเกมแล้ว: ถ้าผู้เล่นเคยได้ไว้ ลบออกและคืนเหรียญใบละ 400
+function cfFix(){if(!CF.length)return;const gone=PF.cfo.filter(i=>!CFM[i]);if(gone.length){const rf=gone.filter(i=>/^cf_ssr_/.test(i)).length*400;PF.cfo=PF.cfo.filter(i=>CFM[i]);if(rf){PF.coins+=rf;setTimeout(()=>flash('💎 กรอบระดับ SSR ถูกถอดออกจากเกมแล้ว คืนเหรียญให้ '+rf+' 🪙'),1500)}}if(PF.cf&&!CFM[PF.cf])PF.cf='';pfSave();syncProf()}
+fetch('/frames.json?v='+BUILD).then(r=>r.json()).then(a=>{CF=a;CFM={};a.forEach(x=>CFM[x.id]=x);cfFix()}).catch(()=>{});
 function fbox(f,inner,cls){const w=f.win,pd=.012;
  return `<div class="fb ${cls||''}" style="aspect-ratio:${f.w}/${f.h}"><div class="fw" style="left:${(w[0]-pd)*100}%;top:${(w[1]-pd)*100}%;width:${(w[2]-w[0]+2*pd)*100}%;height:${(w[3]-w[1]+2*pd)*100}%">${inner}</div><img class="ff" src="/${f.f}" alt="" loading="lazy"></div>`}
 const gSample=()=>PF.av?`<img class="ph" src="${PF.av}" alt="">`:`<div class="ph gs">🙂</div>`;
-function rollOne(){const g=PF.gp;g.s++;g.r++;let t='C';
- if(g.r>=GA.pitySSR)t='SSR';
- else{let x=rnd()*100,acc=0;for(const k of TORD){acc+=GA.rates[k];if(x<acc){t=k;break}}
-  if(g.s>=GA.pitySS&&TORD.indexOf(t)<3)t=rnd()*(GA.rates.S+GA.rates.SSR)<GA.rates.S?'S':'SSR'}
- if(t==='S'||t==='SSR')g.s=0;if(t==='SSR')g.r=0;
+function rollOne(){const g=PF.gp;g.s++;let t='C';
+ {let x=rnd()*100,acc=0;for(const k of TORD){acc+=GA.rates[k];if(x<acc){t=k;break}}
+  if(g.s>=GA.pitySS&&TORD.indexOf(t)<3)t='S'}
+ if(t==='S')g.s=0;
  const pool=CF.filter(f=>f.t===t),f=pool[Math.floor(rnd()*pool.length)],dup=PF.cfo.includes(f.id);
  if(dup)PF.coins+=GA.refund[t];else PF.cfo.push(f.id);
  return {f,dup,t}}
 async function doRoll(n){if(!CF.length)return say('กำลังโหลดข้อมูลกรอบ ลองใหม่อีกครั้ง');
  const price=n===10?GA.cost10:GA.cost;if(PF.coins<price)return say('เหรียญไม่พอ ต้องการ '+price+' 🪙 (คุณมี '+PF.coins+')');
- PF.coins-=price;const rs=[];for(let i=0;i<n;i++)rs.push(rollOne());pfSave();syncProf();checkTitles();
+ PF.coins-=price;mp('gacha',n);const rs=[];for(let i=0;i<n;i++)rs.push(rollOne());pfSave();syncProf();checkTitles();
  const best=rs.reduce((m,r)=>Math.max(m,TORD.indexOf(r.t)),0),bt=TORD[best];SFX.charge();
  setTimeout(()=>{SFX.gacha(bt);vib(bt==='SSR'?[40,60,40,60,140]:bt==='S'?[30,50,70]:12);const d=$('dc').getBoundingClientRect();if(best>=3){burst(d.left+d.width/2,d.top+d.height*.4,TCOL[bt],bt==='SSR'?70:36);vflash(TCOL[bt]+'aa')}},1000);
  const back=rs.reduce((s,r)=>s+(r.dup?GA.refund[r.t]:0),0);
@@ -952,7 +984,7 @@ function gachaBody(){const g=PF.gp,own=PF.cfo.length,tot=CF.length;
  let h=`<div class="box"><b>🎰 สุ่มกรอบการ์ดตัวละคร</b><br><small>กรอบจะล้อมการ์ดตัวละครของคุณในเกมทายตัวละคร · ยิ่งระดับสูงยิ่งสุ่มยาก</small>
  <div class="rt">${TORD.map(t=>`<span style="background:${TCOL[t]}">${t} ${GA.rates[t]}%</span>`).join('')}</div>
  <div class="row"><button class="${PF.coins>=GA.cost?'b':'g'}" onclick="doRoll(1)">สุ่ม ×1 · 🪙 ${GA.cost}</button><button class="${PF.coins>=GA.cost10?'b':'g'}" onclick="doRoll(10)">สุ่ม ×10 · 🪙 ${GA.cost10}</button></div>
- <small>การันตี: ระดับ S ขึ้นไปอย่างน้อย 1 ใบทุก ${GA.pitySS} ครั้ง (ตอนนี้ ${g.s}/${GA.pitySS}) · SSR การันตีใน ${GA.pitySSR} ครั้ง (ตอนนี้ ${g.r}/${GA.pitySSR})<br>ได้กรอบซ้ำ คืนเหรียญ: ${TORD.map(t=>t+' '+GA.refund[t]).join(' · ')}<br>สะสมแล้ว ${own}/${tot}</small></div>`;
+ <small>การันตี: ระดับ S ขึ้นไปอย่างน้อย 1 ใบทุก ${GA.pitySS} ครั้ง (ตอนนี้ ${g.s}/${GA.pitySS})<br>ได้กรอบซ้ำ คืนเหรียญ: ${TORD.map(t=>t+' '+GA.refund[t]).join(' · ')}<br>สะสมแล้ว ${own}/${tot}</small></div>`;
  h+=`<div class="row" style="justify-content:flex-start"><button class="${PF.cf?'g':'b'}" onclick="equipCf('')">${PF.cf?'ถอดกรอบการ์ด':'✓ ไม่ใส่กรอบการ์ด'}</button></div>`;
  for(const t of [...TORD].reverse()){const L=CF.filter(f=>f.t===t);if(!L.length)continue;const o=L.filter(f=>PF.cfo.includes(f.id)).length;
   h+=`<b style="color:${TCOL[t]}">${t}</b> <small>${o}/${L.length}</small><div class="shop gal">${L.map(f=>{const ow=PF.cfo.includes(f.id),on=PF.cf===f.id;
@@ -963,7 +995,7 @@ SFX.gacha=t=>{const i=TORD.indexOf(t);
  if(i>=2)setTimeout(()=>seq([659,784,988,1319],'triangle',.18,.1),380);
  if(i>=3)setTimeout(()=>{seq([784,988,1175,1568,1976],'sawtooth',.2,.07);[523,784,1047].forEach(f=>tone(f,1.1,'sine',.08,.55))},800);
  if(i>=4)setTimeout(()=>{[0,1,2,3,4,5].forEach(k=>tone(1047*Math.pow(1.122,k*2),.5,'sine',.07,k*.09));[262,330,392,523].forEach(f=>tone(f,1.6,'sine',.09,.3))},1400)};
-NEWS.unshift('➕ เสนอตัวละครสะดวกขึ้น: เลือกรูปได้ทีละหลายรูป ระบบเติมชื่อจากชื่อไฟล์ (เรื่อง_ชื่อ.jpg) เตือนชื่อซ้ำ และดูสถานะที่เสนอไว้ได้');NEWS.unshift('🛡️ ระบบแอดมินครบขึ้น: ผู้เสนอตัวละครได้รับแจ้งผล, ระงับบัญชี/ปรับเหรียญ, ดูห้อง ลบแชท เชิญออก ปิดรูปโปรไฟล์ได้');NEWS.unshift('➕ เสนอตัวละครใหม่ได้แล้ว: เปิดคลังตัวละคร 📚 → เสนอตัวละครใหม่ ใส่ชื่อ เรื่อง และรูป (ต้องล็อกอิน) แอดมินตรวจแล้วเข้าเกมทันที');NEWS.unshift('🎯 ภารกิจรายวัน 3 ข้อ (รับเหรียญ) + โบนัสเข้าเล่นต่อเนื่องหลายวัน + ฉายา 10 แบบ แสดงข้างชื่อ + รายชื่อคนที่เพิ่งเล่นด้วยกัน กดชวนกลับเข้าห้องได้ (ต้องล็อกอินทั้งสองฝ่าย) ดูที่ โปรไฟล์ → ภารกิจ');NEWS.unshift('☁️ ระบบบัญชีผู้เล่น: สมัครด้วยชื่อกับ PIN (ไม่ต้องใช้อีเมล) เหรียญ กรอบที่สุ่มได้ และเลเวลจะถูกเก็บบนเซิร์ฟเวอร์ ใช้ข้ามเครื่องได้ ดูที่ โปรไฟล์ → ข้อมูล');NEWS.unshift('🏠 หน้าแรกจัดลำดับใหม่ (สร้างห้อง/เข้าร่วม → โหมดแฟนพันธุ์แท้ → เมนูรอง) และช่องพิมพ์ชื่อตัวละครเลื่อนดูรายชื่อบนมือถือได้โดยไม่เผลอเลือก');NEWS.unshift('⚙️ เจ้าของห้องแก้ตั้งค่า (เวลา/ความยาก/อนิเมะ/การ์ด/จำนวนคน) ได้ตอนรอเพื่อน และปุ่ม 📚 คลังตัวละครย้ายมาอยู่เรียงกับปุ่มแชท');NEWS.unshift('✨ ปรับแอนิเมชันทั้งเกมให้ลื่นขึ้น: ปุ่มกดมีคลื่นและเด้ง หน้าต่างเปิด-ปิดนุ่ม การ์ดตัวละครเด้งเข้า ตอบถูก/ผิดมีอนุภาคและแฟลช สุ่มกรอบมีช่วงรวมพลังก่อนเปิดผล พื้นหลังขยับช้า ๆ (ปิดได้ที่ ตั้งค่า → ลดการเคลื่อนไหว)');NEWS.unshift('🎰 ระบบสุ่มกรอบการ์ดตัวละครใหม่! ใช้เหรียญสุ่มกรอบ 5 ระดับ C/B/A/S/SSR ยิ่งสูงยิ่งสุ่มยาก มีระบบการันตี สุ่ม ×10 และเหรียญคืนเมื่อซ้ำ ดูที่ โปรไฟล์ → 🎰 สุ่มกรอบ');
+NEWS.unshift('🛠️ แก้บั๊กซื้อกรอบ/เอฟเฟกต์ชื่อไม่ได้ และถอดกรอบระดับ SSR ออก (ใครเคยได้ รับเหรียญคืนใบละ 400)');NEWS.unshift('🔎 เสนอตัวละครแบบค้นหาจากฐานข้อมูลอนิเมะ (AniList): พิมพ์ชื่อตัวละครหรือชื่อเรื่อง แล้วเลือกได้เลย ไม่ต้องหารูปเอง');NEWS.unshift('➕ เสนอตัวละครสะดวกขึ้น: เลือกรูปได้ทีละหลายรูป ระบบเติมชื่อจากชื่อไฟล์ (เรื่อง_ชื่อ.jpg) เตือนชื่อซ้ำ และดูสถานะที่เสนอไว้ได้');NEWS.unshift('🛡️ ระบบแอดมินครบขึ้น: ผู้เสนอตัวละครได้รับแจ้งผล, ระงับบัญชี/ปรับเหรียญ, ดูห้อง ลบแชท เชิญออก ปิดรูปโปรไฟล์ได้');NEWS.unshift('➕ เสนอตัวละครใหม่ได้แล้ว: เปิดคลังตัวละคร 📚 → เสนอตัวละครใหม่ ใส่ชื่อ เรื่อง และรูป (ต้องล็อกอิน) แอดมินตรวจแล้วเข้าเกมทันที');NEWS.unshift('🎯 ภารกิจรายวัน 3 ข้อ (รับเหรียญ) + โบนัสเข้าเล่นต่อเนื่องหลายวัน + ฉายา 10 แบบ แสดงข้างชื่อ + รายชื่อคนที่เพิ่งเล่นด้วยกัน กดชวนกลับเข้าห้องได้ (ต้องล็อกอินทั้งสองฝ่าย) ดูที่ โปรไฟล์ → ภารกิจ');NEWS.unshift('☁️ ระบบบัญชีผู้เล่น: สมัครด้วยชื่อกับ PIN (ไม่ต้องใช้อีเมล) เหรียญ กรอบที่สุ่มได้ และเลเวลจะถูกเก็บบนเซิร์ฟเวอร์ ใช้ข้ามเครื่องได้ ดูที่ โปรไฟล์ → ข้อมูล');NEWS.unshift('🏠 หน้าแรกจัดลำดับใหม่ (สร้างห้อง/เข้าร่วม → โหมดแฟนพันธุ์แท้ → เมนูรอง) และช่องพิมพ์ชื่อตัวละครเลื่อนดูรายชื่อบนมือถือได้โดยไม่เผลอเลือก');NEWS.unshift('⚙️ เจ้าของห้องแก้ตั้งค่า (เวลา/ความยาก/อนิเมะ/การ์ด/จำนวนคน) ได้ตอนรอเพื่อน และปุ่ม 📚 คลังตัวละครย้ายมาอยู่เรียงกับปุ่มแชท');NEWS.unshift('✨ ปรับแอนิเมชันทั้งเกมให้ลื่นขึ้น: ปุ่มกดมีคลื่นและเด้ง หน้าต่างเปิด-ปิดนุ่ม การ์ดตัวละครเด้งเข้า ตอบถูก/ผิดมีอนุภาคและแฟลช สุ่มกรอบมีช่วงรวมพลังก่อนเปิดผล พื้นหลังขยับช้า ๆ (ปิดได้ที่ ตั้งค่า → ลดการเคลื่อนไหว)');NEWS.unshift('🎰 ระบบสุ่มกรอบการ์ดตัวละครใหม่! ใช้เหรียญสุ่มกรอบ 5 ระดับ C/B/A/S/SSR ยิ่งสูงยิ่งสุ่มยาก มีระบบการันตี สุ่ม ×10 และเหรียญคืนเมื่อซ้ำ ดูที่ โปรไฟล์ → 🎰 สุ่มกรอบ');
 
 setTimeout(()=>{dailyBonus();if(localStorage.seenVer!==APPV){try{localStorage.seenVer=APPV}catch(e){}openNews()}},900);
 

@@ -613,7 +613,7 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '3.4';
+const APP_VERSION = '3.6';
 const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
 const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
 let CFIDS = new Set(), CFM = 0;
@@ -661,7 +661,8 @@ const ADMIN_USERS = new Set(String(process.env.ADMIN_USERS || '').split(',').map
 const CX_IMG_MAX = 120000, CX_PEND_MAX = 400, CX_DAY_MAX = 100;
 const cxClean = (s, n) => String(s == null ? '' : s).normalize('NFKC').replace(/[\u0000-\u001f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, n);
 const cxAnime = a => { const k = norm(a); return ANIMES.find(x => norm(x) === k) || a; };
-const cxDup = n => { const k = norm(n); return CH.some(c => norm(c[0]) === k || c[1].split('|').some(x => norm(x) === k)); };
+const cxTok = n => norm(n).split(' ').filter(Boolean).sort().join(' ');   // "Gojo Satoru" กับ "Satoru Gojo" ถือว่าชื่อเดียวกัน
+const cxDup = n => { const k = norm(n), t = cxTok(n); return CH.some(c => norm(c[0]) === k || cxTok(c[0]) === t || c[1].split('|').some(x => norm(x) === k || cxTok(x) === t)); };
 const cxJpeg = d => { if (typeof d !== 'string' || d.length > CX_IMG_MAX * 1.4 + 40) return null; const m = /^data:image\/jpeg;base64,([A-Za-z0-9+\/=]+)$/.exec(d); if (!m) return null; const b = Buffer.from(m[1], 'base64'); return b.length > 500 && b.length <= CX_IMG_MAX && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff ? b : null; };
 function cxAdd(e, buf) {
   const base = slugOf(e.n); const slug = (base && !hasImg(base)) ? base : 'cx-' + e.id;
@@ -706,6 +707,14 @@ const CXNOTE = async (by, note) => {   // แจ้งผลให้คนเ�
   if (on && on.size) { on.forEach(x => x.emit('cx:notes', [note])); return; }
   try { await rcmd('RPUSH', 'cx:n:' + k, JSON.stringify(note)); await rcmd('LTRIM', 'cx:n:' + k, -30, -1); } catch (e) {}
 };
+// ----- ดึงตัวละครจาก AniList (ฐานข้อมูลอนิเมะฟรี: graphql.anilist.co) ให้ผู้เล่นเลือกเติมลงฟอร์มเสนอตัวละคร -----
+const AL_URL = process.env.AL_URL || 'https://graphql.anilist.co', AL_IMG = process.env.AL_IMG || 'https://s4.anilist.co/';
+async function alq(query, variables) {
+  const r = await fetch(AL_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ query, variables }), signal: AbortSignal.timeout(9000) });
+  const j = await r.json(); if (j.errors && !j.data) throw new Error((j.errors[0] && j.errors[0].message) || 'AniList error'); return j.data;
+}
+const alT = t => cxClean((t && (t.english || t.romaji)) || '', 40);
+const alC = (n, a) => ({ id: +n.id || 0, n: cxClean(n.name && n.name.full, 40), nat: cxClean(n.name && n.name.native, 40), a, th: String((n.image && (n.image.medium || n.image.large)) || '').slice(0, 300), img: String((n.image && (n.image.large || n.image.medium)) || '').slice(0, 300) });
 const FAILS = new Map();
 const tooMany = k => { const f = FAILS.get(k); return !!f && f.n >= 8 && Date.now() - f.t < 600000; };
 const noteFail = k => { const f = FAILS.get(k); if (!f || Date.now() - f.t > 600000) FAILS.set(k, { n: 1, t: Date.now() }); else { f.n++; f.t = Date.now(); } };
@@ -929,17 +938,61 @@ io.on('connection', sock => {
       if (!buf) return R(false, 'รูปไม่ถูกต้องหรือใหญ่เกินไป ลองเลือกรูปใหม่');
       const now = Date.now(), arr = (CXRATE[acct] || []).filter(x => now - x < 60000); if (arr.length >= 60) return R(false, 'ส่งถี่เกินไป รอสักครู่แล้วลองใหม่'); arr.push(now); CXRATE[acct] = arr;
       if (cxDup(n)) return R(false, 'มีตัวละครชื่อนี้ในเกมแล้ว');
+      if (d.direct && sock.data.adm) {   // แอดมินเพิ่มเข้าเกมทันที ไม่ผ่านคิว
+        const id = nodeCrypto.randomBytes(5).toString('hex'), e = { id, n, al, a: cxAnime(a0), by: sock.data.un || 'admin' };
+        await rcmd('SET', 'cx:img:' + id, buf.toString('base64')); await rcmd('HSET', 'cx:ok', id, JSON.stringify(e));
+        CXOK.set(id, e); cxAdd(e, buf); io.emit('chars:update', { animes: ANIMES, chars: metaChars() });
+        return R(true, 'เพิ่มเข้าเกมแล้ว');
+      }
       const a = cxAnime(a0), dk = 'cx:rl:' + acct + ':' + new Date().toISOString().slice(0, 10);
       const used = await rcmd('INCR', dk); if (used === 1) rcmd('EXPIRE', dk, 90000).catch(() => {});
       if (used > CX_DAY_MAX) return R(false, 'วันนี้เสนอครบ ' + CX_DAY_MAX + ' ตัวแล้ว พรุ่งนี้มาใหม่นะ');
       const pend = await rcmd('HGETALL', 'cx:pi') || [], k = norm(n);
       if (pend.length / 2 >= CX_PEND_MAX) return R(false, 'คิวรอตรวจเต็ม ลองใหม่ภายหลัง');
-      for (let i = 1; i < pend.length; i += 2) { try { if (norm(JSON.parse(pend[i]).n) === k) return R(false, 'มีคนเสนอตัวละครนี้ไว้แล้ว รอแอดมินตรวจอยู่'); } catch (e) {} }
+      for (let i = 1; i < pend.length; i += 2) { try { if (cxTok(JSON.parse(pend[i]).n) === cxTok(n)) return R(false, 'มีคนเสนอตัวละครนี้ไว้แล้ว รอแอดมินตรวจอยู่'); } catch (e) {} }
       const id = nodeCrypto.randomBytes(5).toString('hex');
       await rcmd('SET', 'cx:pimg:' + id, buf.toString('base64'));
       await rcmd('HSET', 'cx:pi', id, JSON.stringify({ id, n, al, a, by: sock.data.un, t: now }));
       R(true, 'ส่งแล้ว! รอแอดมินตรวจ ถ้าผ่านจะเข้าเกมอัตโนมัติ');
     } catch (e) { console.log('cx:submit', e.message); R(false, 'เกิดข้อผิดพลาด ลองใหม่อีกครั้ง'); }
+  });
+  const ALRATE = [];
+  const alOk = () => { if (!AUTH_ON || !sock.data.acct) { sock.emit('al:err', 'ต้องล็อกอินก่อน'); return false; } const now = Date.now(); while (ALRATE.length && now - ALRATE[0] > 60000) ALRATE.shift(); if (ALRATE.length >= 90) { sock.emit('al:err', 'ค้นหาถี่เกินไป รอสักครู่'); return false; } ALRATE.push(now); return true; };
+  sock.on('al:anime', async q => {
+    if (!alOk()) return;
+    try {
+      q = cxClean(q, 60); if (!q) return;
+      const d = await alq('query($q:String){Page(perPage:8){media(search:$q,type:ANIME,sort:SEARCH_MATCH){id title{romaji english} coverImage{medium}}}}', { q });
+      sock.emit('al:res', { kind: 'anime', items: (d.Page.media || []).map(m => ({ id: +m.id, t: alT(m.title), th: String((m.coverImage && m.coverImage.medium) || '').slice(0, 300) })) });
+    } catch (e) { console.log('al:anime', e.message); sock.emit('al:err', 'เชื่อมต่อฐานข้อมูลไม่ได้ ลองใหม่ภายหลัง'); }
+  });
+  sock.on('al:chars', async d => {
+    if (!alOk() || !d) return;
+    try {
+      const id = Math.floor(+d.id), p = Math.min(50, Math.max(1, Math.floor(+d.p) || 1)); if (!(id > 0)) return;
+      const r = await alq('query($id:Int,$p:Int){Media(id:$id){title{romaji english} characters(page:$p,perPage:25,sort:[ROLE,FAVOURITES_DESC]){pageInfo{hasNextPage} nodes{id name{full native} image{large medium}}}}}', { id, p });
+      const m = r.Media, a = alT(m.title);
+      sock.emit('al:res', { kind: 'chars', a, p, more: !!m.characters.pageInfo.hasNextPage, items: (m.characters.nodes || []).map(n => alC(n, a)).filter(x => x.n && x.img) });
+    } catch (e) { console.log('al:chars', e.message); sock.emit('al:err', 'เชื่อมต่อฐานข้อมูลไม่ได้ ลองใหม่ภายหลัง'); }
+  });
+  sock.on('al:find', async q => {
+    if (!alOk()) return;
+    try {
+      q = cxClean(q, 60); if (!q) return;
+      const d = await alq('query($q:String){Page(perPage:20){characters(search:$q,sort:SEARCH_MATCH){id name{full native} image{large medium} media(perPage:1,type:ANIME){nodes{title{romaji english}}}}}}', { q });
+      sock.emit('al:res', { kind: 'find', items: (d.Page.characters || []).map(n => alC(n, alT(n.media && n.media.nodes && n.media.nodes[0] && n.media.nodes[0].title))).filter(x => x.n && x.img && x.a) });
+    } catch (e) { console.log('al:find', e.message); sock.emit('al:err', 'เชื่อมต่อฐานข้อมูลไม่ได้ ลองใหม่ภายหลัง'); }
+  });
+  sock.on('al:img', async d => {    // ดาวน์โหลดรูปให้เบราว์เซอร์ (เบราว์เซอร์ดึงข้ามเว็บเองไม่ได้) เฉพาะโฮสต์ของ AniList เท่านั้น
+    const ref = d && Number.isInteger(d.ref) ? d.ref : 0;
+    try {
+      if (!alOk() || !d) return sock.emit('al:img', { ref, err: 'ล็อกอินก่อน' });
+      const url = String(d.url || ''); if (url.length > 300 || !url.startsWith(AL_IMG)) return sock.emit('al:img', { ref, err: 'ลิงก์รูปไม่ถูกต้อง' });
+      const r = await fetch(url, { redirect: 'error', signal: AbortSignal.timeout(9000) }); const ct = String(r.headers.get('content-type') || '').split(';')[0];
+      if (!r.ok || !/^image\/(jpeg|png|webp|gif)$/.test(ct)) return sock.emit('al:img', { ref, err: 'โหลดรูปไม่ได้' });
+      const b = Buffer.from(await r.arrayBuffer()); if (b.length > 700000) return sock.emit('al:img', { ref, err: 'รูปใหญ่เกินไป' });
+      sock.emit('al:img', { ref, data: 'data:' + ct + ';base64,' + b.toString('base64') });
+    } catch (e) { sock.emit('al:img', { ref, err: 'โหลดรูปไม่ได้' }); }
   });
   const cxList = async () => {
     const h = await rcmd('HGETALL', 'cx:pi') || [], items = [];
