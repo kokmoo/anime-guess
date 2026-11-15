@@ -613,7 +613,7 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '3.8';
+const APP_VERSION = '3.9';
 const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
 const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
 let CFIDS = new Set(), CFM = 0;
@@ -668,7 +668,7 @@ function cxAdd(e, buf) {
   const base = slugOf(e.n); const slug = (base && !hasImg(base)) ? base : 'cx-' + e.id;
   SLUGX.set(e.n, slug); CXIMG.set(slug, buf);
   CH.push([e.n, e.al || '', e.a, e.yr ? Math.floor(e.yr / 10) * 10 + 's' : '', '', 'ใช้พลังพิเศษเฉพาะตัว', 'ไม่ระบุ', e.ro === 'M' ? 'ตัวเอก' : e.ro === 'S' ? 'ตัวสมทบ' : 'ไม่ระบุ']);
-  if (!ANIMES.includes(e.a)) ANIMES.push(e.a);
+  if (!ANIMES.includes(e.a)) { ANIMES.push(e.a); anNew(e.a); }
 }
 function cxDel(e) {
   const i = CH.findIndex(c => c[0] === e.n && c[2] === e.a); if (i >= 0) CH.splice(i, 1);
@@ -680,11 +680,10 @@ async function cxLoad(tries) {
   if (!AUTH_ON) return;
   try {
     const h = await rcmd('HGETALL', 'cx:ok') || [];
-    for (let i = 0; i < h.length; i += 2) {
-      let e; try { e = JSON.parse(h[i + 1]); } catch (x) { continue; }
-      if (!e || CXOK.has(e.id) || cxDup(e.n)) continue;
-      const b64 = await rcmd('GET', 'cx:img:' + e.id); if (!b64) continue;
-      CXOK.set(e.id, e); cxAdd(e, Buffer.from(b64, 'base64'));
+    const ents = []; for (let i = 0; i < h.length; i += 2) { try { const e = JSON.parse(h[i + 1]); if (e && e.id) ents.push(e); } catch (x) {} }
+    for (let i = 0; i < ents.length; i += 15) {   // ดึงรูปทีละ 15 ตัวพร้อมกัน เปิดเซิร์ฟเวอร์เร็วขึ้นเมื่อมีตัวละครเยอะ
+      const chunk = ents.slice(i, i + 15), imgs = await Promise.all(chunk.map(e => rcmd('GET', 'cx:img:' + e.id).catch(() => null)));
+      chunk.forEach((e, j) => { if (!imgs[j] || CXOK.has(e.id) || cxDup(e.n)) return; CXOK.set(e.id, e); cxAdd(e, Buffer.from(imgs[j], 'base64')); });
     }
     const ov = await rcmd('HGETALL', 'cx:ov') || [];
     for (let i = 1; i < ov.length; i += 2) { try { const v = JSON.parse(ov[i]); if (v && v.o && !OVR.has(v.o)) { OVR.set(v.o, v); ovApply(v); } } catch (e) {} }
@@ -755,14 +754,21 @@ const admHttp = async req => {
   } catch (e) {}
   noteFail(ip); return false;
 };
-app.get('/__admin/export', async (req, res) => {   // สำรองตัวละครที่ผู้เล่นเสนอ + การแก้ไขตัวละครเดิม เป็นไฟล์ JSON
-  if (!(await admHttp(req))) return res.status(403).json({ error: 'forbidden' });
+const DLTOK = new Map(), EXP_PART = 200;   // โทเคนดาวน์โหลดชั่วคราว (ให้เบราว์เซอร์ดาวน์โหลดไฟล์ใหญ่ได้เอง) + แบ่งไฟล์สำรองเป็นส่วนละ 200 ตัว
+app.get('/__admin/export', async (req, res) => {
+  const t = String(req.query.t || ''), ok = t && DLTOK.has(t) && DLTOK.get(t) > Date.now();
+  if (!ok && !(await admHttp(req))) return res.status(403).json({ error: 'forbidden' });
   try {
-    const chars = [];
-    for (const e of CXOK.values()) { const img = await rcmd('GET', 'cx:img:' + e.id); if (img) chars.push(Object.assign({}, e, { img })); }
-    const ov = [...OVR.values()];
-    res.set('Content-Disposition', 'attachment; filename="anime-guess-backup-' + new Date().toISOString().slice(0, 10) + '.json"').json({ v: 1, t: Date.now(), chars, ov });
-  } catch (e) { console.log('export', e.message); res.status(500).json({ error: 'fail' }); }
+    const all = [...CXOK.values()], parts = Math.max(1, Math.ceil(all.length / EXP_PART)), part = Math.min(parts - 1, Math.max(0, parseInt(req.query.part) || 0));
+    res.set({ 'Content-Type': 'application/json; charset=utf-8', 'Content-Disposition': 'attachment; filename="anime-guess-backup-' + new Date().toISOString().slice(0, 10) + '-part' + (part + 1) + 'of' + parts + '.json"' });
+    res.write('{"v":1,"part":' + part + ',"parts":' + parts + ',"chars":[');
+    const sl = all.slice(part * EXP_PART, (part + 1) * EXP_PART); let first = true;
+    for (let i = 0; i < sl.length; i += 8) {
+      const ch = sl.slice(i, i + 8), imgs = await Promise.all(ch.map(e => rcmd('GET', 'cx:img:' + e.id).catch(() => null)));
+      ch.forEach((e, j) => { if (!imgs[j]) return; res.write((first ? '' : ',') + JSON.stringify(Object.assign({}, e, { img: imgs[j] }))); first = false; });
+    }
+    res.end('],"ov":' + JSON.stringify(part === 0 ? [...OVR.values()] : []) + '}');
+  } catch (e) { console.log('export', e.message); try { res.end(); } catch (x) {} }
 });
 app.post('/__admin/import', express.json({ limit: '60mb' }), async (req, res) => {   // นำเข้าจากไฟล์สำรอง (ข้ามตัวที่ซ้ำ)
   if (!(await admHttp(req))) return res.status(403).json({ error: 'forbidden' });
@@ -782,6 +788,41 @@ app.post('/__admin/import', express.json({ limit: '60mb' }), async (req, res) =>
     animesFix(); io.emit('chars:update', { animes: ANIMES, chars: metaChars() }); res.json({ added, skipped, ov: ovn });
   } catch (e) { console.log('import', e.message); res.status(500).json({ error: 'fail' }); }
 });
+// ----- ปกเรื่อง + หมวดแนวเรื่อง: ดึงจาก AniList เบื้องหลังทีละเรื่อง แล้วเก็บแคชไว้ใน Upstash (ปิดได้ด้วย AL_META=0) -----
+const ANM = new Map();   // ชื่อเรื่อง -> {c: ปก, g: [แนว], y: ปี} หรือ {x:1} ถ้าหาไม่เจอ
+const ANM_SKIP = new Set(['Ecchi', 'Hentai']);
+const anQ = new Set(); let anRun = false, anFail = 0, anDelta = {}, anTimer = 0;
+const anOut = e => [e.c || '', e.g || [], e.y || 0];
+const anAll = () => { const o = {}; ANM.forEach((e, t) => { if (!e.x) o[t] = anOut(e); }); return o; };
+function anFlush() { anTimer = 0; const d = anDelta; anDelta = {}; if (Object.keys(d).length) io.emit('anime:meta', d); }
+function anNew(t) { if (process.env.AL_META === '0' || ANM.has(t)) return; anQ.add(t); anPump(); }
+async function anInit() {
+  if (process.env.AL_META === '0') return;
+  try { const h = AUTH_ON ? await rcmd('HGETALL', 'an:m') || [] : []; for (let i = 0; i < h.length; i += 2) { try { const e = JSON.parse(h[i + 1]); if (e.x && Date.now() - (e.t || 0) > 7 * 864e5) continue; ANM.set(h[i], e); } catch (x) {} } } catch (e) { console.log('anInit', e.message); }
+  ANIMES.forEach(t => { if (!ANM.has(t)) anQ.add(t); });
+  console.log('anime meta cached', ANM.size, 'queued', anQ.size); io.emit('anime:meta', anAll()); anPump();
+}
+async function anPump() {
+  if (anRun) return; anRun = true;
+  try {
+    while (anQ.size && anFail < 5) {
+      const t = anQ.values().next().value; anQ.delete(t);
+      if (ANM.has(t) || !ANIMES.includes(t)) continue;
+      try {
+        const d = await alq('query($q:String){Media(search:$q,type:ANIME,sort:SEARCH_MATCH){title{romaji english} synonyms genres seasonYear startDate{year} coverImage{large medium}}}', { q: t });
+        const m = d && d.Media, k = norm(t); let e = { x: 1, t: Date.now() };
+        if (m) {
+          const names = [m.title && m.title.english, m.title && m.title.romaji].concat(m.synonyms || []).filter(Boolean).map(norm);
+          if (names.some(n => n === k || (k.length >= 5 && (n.includes(k) || k.includes(n))))) e = { c: String((m.coverImage && (m.coverImage.large || m.coverImage.medium)) || '').slice(0, 300), g: (m.genres || []).filter(x => !ANM_SKIP.has(x)).slice(0, 6), y: +(m.seasonYear || (m.startDate && m.startDate.year)) || 0, t: Date.now() };
+        }
+        anFail = 0; ANM.set(t, e);
+        if (AUTH_ON) rcmd('HSET', 'an:m', t, JSON.stringify(e)).catch(() => {});
+        if (!e.x) { anDelta[t] = anOut(e); if (!anTimer) anTimer = setTimeout(anFlush, 4000); }
+      } catch (e) { anFail++; anQ.add(t); await new Promise(r => setTimeout(r, 15000)); }
+      await new Promise(r => setTimeout(r, 2200));
+    }
+  } finally { anRun = false; }
+}
 const FAILS = new Map();
 const tooMany = k => { const f = FAILS.get(k); return !!f && f.n >= 8 && Date.now() - f.t < 600000; };
 const noteFail = k => { const f = FAILS.get(k); if (!f || Date.now() - f.t > 600000) FAILS.set(k, { n: 1, t: Date.now() }); else { f.n++; f.t = Date.now(); } };
@@ -906,7 +947,7 @@ setInterval(() => {              // คนหลุด: รอกลับเข
 }, 1000);
 
 io.on('connection', sock => {
-  sock.emit('meta', { v: 5, ver: APP_VERSION, auth: AUTH_ON, animes: ANIMES, chars: metaChars() });
+  sock.emit('meta', { v: 5, ver: APP_VERSION, auth: AUTH_ON, animes: ANIMES, chars: metaChars() }); sock.emit('anime:meta', anAll());
   const find = () => Object.values(rooms).find(r => r.players.some(p => p.sid === sock.id));
   const me = r => r && r.players.find(p => p.sid === sock.id);
   const err = m => sock.emit('err', m);
@@ -1184,6 +1225,11 @@ io.on('connection', sock => {
     Object.values(QROOMS).forEach(r => r.players.forEach(p => { if (p.sid === sid && p.av) { p.av = ''; p.ah = 0; qzSend(r); } }));
   };
   const admRoom = (k, code) => k === 'q' ? QROOMS[code] : rooms[code];
+  sock.on('adm:dltok', () => {
+    if (!adm()) return; const now = Date.now(); DLTOK.forEach((v, k) => { if (v < now) DLTOK.delete(k); });
+    const t = nodeCrypto.randomBytes(16).toString('hex'); DLTOK.set(t, now + 15 * 60000);
+    sock.emit('adm:dltok', { t, parts: Math.max(1, Math.ceil(CXOK.size / EXP_PART)), total: CXOK.size });
+  });
   sock.on('adm:state', () => {
     if (!adm()) return;
     const rl = [];
@@ -1637,4 +1683,4 @@ io.on('connection', sock => {
 });
 
 srv.listen(process.env.PORT || 3000, () => console.log('ANIME GUESS running on :' + (process.env.PORT || 3000)));
-setTimeout(() => cxLoad(0), 500);
+setTimeout(() => { cxLoad(0).finally(() => anInit()); }, 500);
