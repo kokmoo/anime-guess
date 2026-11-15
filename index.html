@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- ag-build:20261048 -->
+<!-- ag-build:20261049 -->
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ANIME GUESS</title>
@@ -289,7 +289,7 @@ body.bgi::before{animation:kb 55s ease-in-out infinite alternate;will-change:tra
 const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิดตัวอักษร'],era:['📅','ใบ้ยุค'],ability:['⚡','ความสามารถ'],side:['🏴','ฝ่าย'],role:['⭐','บทบาท']};
 const s=io(),$=id=>document.getElementById(id);
 const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
-const VER=5,APPV='4.0',BUILD='20261048';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
+const VER=5,APPV='4.1',BUILD='20261049';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
 const pre=new URLSearchParams(location.search).get('room')||'';
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
@@ -988,7 +988,7 @@ function openProf(tab){pTab=tab||pTab;const lv=lvOf(PF.xp),a=40*(lv-1)*(lv-1),b=
    return `<div class="it ${on?'on':''}">${pv}<div>${lb}</div>${on?'<b>✓ ใช้งานอยู่</b>':ow?`<button class="b" onclick="equip('${k}','${id}')">ใช้</button>`:`<button class="${PF.coins>=pr?'b':'g'}" onclick="buy('${k}','${id}',${pr},'${lb}')">🪙 ${pr}</button>`}</div>`}).join('');
   body=`<b>🖼️ กรอบโปรไฟล์</b><div class="shop">${it('fr',FR)}</div><b>✨ เอฟเฟกต์ชื่อ</b><div class="shop">${it('nf',NF)}</div>`}
  $('sc').innerHTML=head+body+`<button class="b" onclick="closeSet()">ปิด</button>`;$('set').style.display='flex'}
-const NEWS=['🎵 มีเพลงประกอบจริงแล้ว: เพลงล็อบบี้ / เพลงตอนเล่น / เพลงรอบไฟนอล (ปิดหรือปรับเสียงได้ในตั้งค่า ⚙️)'];
+const NEWS=['🔊 เสียงเอฟเฟกต์ใหม่: กดปุ่ม · เหรียญ · ชนะ · แพ้/เกมโอเวอร์ · เลเวลอัป · สุ่มกาชาระดับสูงมีเสียงประกาย ✨'];
 function openNews(){closeSet();dlg(`<b style="font-size:20px">📜 มีอะไรใหม่ · v${APPV}</b><ul style="text-align:left;line-height:1.6;padding-left:18px">${NEWS.map(n=>`<li>${n}</li>`).join('')}</ul>`,[['เริ่มเลย','b']])}
 // ================= v2.5: สุ่มกรอบการ์ด (Gacha) =================
 // ปรับค่าได้ที่นี่: ราคา อัตราสุ่ม (รวมต้อง = 100) ระบบการันตี และเหรียญคืนเมื่อได้ซ้ำ
@@ -1036,6 +1036,12 @@ SFX.gacha=t=>{const i=TORD.indexOf(t);
  if(i>=2)setTimeout(()=>seq([659,784,988,1319],'triangle',.18,.1),380);
  if(i>=3)setTimeout(()=>{seq([784,988,1175,1568,1976],'sawtooth',.2,.07);[523,784,1047].forEach(f=>tone(f,1.1,'sine',.08,.55))},800);
  if(i>=4)setTimeout(()=>{[0,1,2,3,4,5].forEach(k=>tone(1047*Math.pow(1.122,k*2),.5,'sine',.07,k*.09));[262,330,392,523].forEach(f=>tone(f,1.6,'sine',.09,.3))},1400)};
+// ----- เสียงเอฟเฟกต์จากไฟล์ (ถ้าโหลดไม่ได้จะใช้เสียงสังเคราะห์เดิม) -----
+const SMP={};function smp(k,file,vol,rate){const o=SFX[k];try{const a=new Audio('/'+file);a.preload='auto';let bad=false;a.addEventListener('error',()=>{bad=true});SMP[k]=a;
+ SFX[k]=function(){if(!sound)return o.apply(this,arguments);if(bad)return o.apply(this,arguments);try{const c=a.cloneNode();c.volume=Math.min(1,vS*vol);if(rate)c.playbackRate=rate;const p=c.play();if(p&&p.catch)p.catch(()=>{})}catch(e){return o.apply(this,arguments)}}}catch(e){}}
+smp('click','sfx_click.mp3',.5);smp('coin','sfx_coin.mp3',.7);smp('win','sfx_win.mp3',.9);smp('lose','sfx_gameover.mp3',.9);smp('gameover','sfx_gameover.mp3',.9);smp('levelup','sfx_bonus.mp3',.9);
+SFX.buy=()=>{SFX.coin()};
+{const g0=SFX.gacha,sh=new Audio('/sfx_shine.mp3');sh.preload='auto';SFX.gacha=t=>{g0(t);if(sound&&TORD.indexOf(t)>=3)setTimeout(()=>{try{const c=sh.cloneNode();c.volume=Math.min(1,vS*.9);const p=c.play();if(p&&p.catch)p.catch(()=>{})}catch(e){}},700)}}
 
 
 setTimeout(()=>{dailyBonus();if(localStorage.seenVer!==APPV){try{localStorage.seenVer=APPV}catch(e){}openNews()}},900);
