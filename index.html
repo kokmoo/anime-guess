@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- ag-build:20261047 -->
+<!-- ag-build:20261048 -->
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ANIME GUESS</title>
@@ -289,7 +289,7 @@ body.bgi::before{animation:kb 55s ease-in-out infinite alternate;will-change:tra
 const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิดตัวอักษร'],era:['📅','ใบ้ยุค'],ability:['⚡','ความสามารถ'],side:['🏴','ฝ่าย'],role:['⭐','บทบาท']};
 const s=io(),$=id=>document.getElementById(id);
 const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
-const VER=5,APPV='3.9',BUILD='20261047';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
+const VER=5,APPV='4.0',BUILD='20261048';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
 const pre=new URLSearchParams(location.search).get('room')||'';
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
@@ -331,14 +331,20 @@ function bgmStep(){const M=MOODS[bgm.mood],s16=bgm.step%16,c=M.ch[Math.floor(bgm
  if(M.k.includes(s16))bkick(t,M.dv);
  if(M.s.includes(s16))bhit(t,.12,M.dv*.45,1500);
  if(M.h.includes(s16))bhit(t,.04,M.dv*.22,7000)}
-function bgmTick(){if(!ac||ac.state!=='running'||!music||!bgm.mood)return;try{const M=MOODS[bgm.mood],sd=60/M.bpm/4;if(bgm.next<ac.currentTime)bgm.next=ac.currentTime+.05;while(bgm.next<ac.currentTime+.35){bgmStep();bgm.next+=sd;bgm.step++}}catch(e){}}
-function setMood(m){if(bgm.mood===m)return;bgm.mood=m;bgm.step=0;bgm.next=0;if(!bgm.timer)bgm.timer=setInterval(bgmTick,100)}
+const TRK={chill:'bgm_lobby.mp3',play:'bgm_game.mp3',quiz:'bgm_game.mp3',final:'bgm_final.mp3'};let trkEl=null,trkSrc='',trkFade=0;
+function trkSync(){try{const want=music&&TRK[bgm.mood]||'';if(!want){if(trkEl&&!trkEl.paused)trkEl.pause();trkSrc='';return}
+ if(want!==trkSrc){trkSrc=want;if(!trkEl){trkEl=new Audio();trkEl.loop=true;trkEl.preload='auto'}trkEl.pause();trkEl.src='/'+want;trkEl.currentTime=0}
+ trkEl.volume=Math.min(1,vM*.7);if(trkEl.paused){const p=trkEl.play();if(p&&p.catch)p.catch(()=>{})}}catch(e){}}
+['pointerdown','keydown','touchend'].forEach(ev=>document.addEventListener(ev,()=>{if(music&&TRK[bgm.mood]&&trkEl&&trkEl.paused&&!document.hidden)trkSync()},{passive:true}));
+document.addEventListener('visibilitychange',()=>{if(trkEl){if(document.hidden)trkEl.pause();else trkSync()}});
+function bgmTick(){if(!ac||ac.state!=='running'||!music||!bgm.mood)return;if(TRK[bgm.mood])return;try{const M=MOODS[bgm.mood],sd=60/M.bpm/4;if(bgm.next<ac.currentTime)bgm.next=ac.currentTime+.05;while(bgm.next<ac.currentTime+.35){bgmStep();bgm.next+=sd;bgm.step++}}catch(e){}}
+function setMood(m){if(bgm.mood===m){trkSync();return}bgm.mood=m;trkSync();bgm.step=0;bgm.next=0;if(!bgm.timer)bgm.timer=setInterval(bgmTick,100)}
 function wantMood(){if(st){const me=st.players.find(p=>p.pid===st.you);return {lobby:'chill',brief:'chill',countdown:'',play:'play',final:'final',over:me&&me.res==='win'?'win':'chill'}[st.phase]||'chill'}
  if(QM)return {lobby:'chill',q:'quiz',reveal:'quiz',end:'win'}[QM.phase]||'chill';
  if(mode==='quizPlay')return 'quiz';if(mode==='quizEnd')return 'win';return 'chill'}
 const bgmSync=()=>{try{setMood(wantMood())}catch(e){}};
-function setVol(k,v){v=Math.max(0,Math.min(1,+v));if(k==='vs'){vS=v;if(busS)busS.gain.value=v;try{localStorage.vs=v}catch(e){}SFX.pop()}else{vM=v;if(busM)busM.gain.value=v*.45;try{localStorage.vm=v}catch(e){}}}
-function setMusic(on){music=on;try{localStorage.bgm=on?1:0}catch(e){}if(on){actx();bgm.next=0;bgmSync()}}
+function setVol(k,v){v=Math.max(0,Math.min(1,+v));if(k==='vs'){vS=v;if(busS)busS.gain.value=v;try{localStorage.vs=v}catch(e){}SFX.pop()}else{vM=v;if(busM)busM.gain.value=v*.45;if(trkEl)trkEl.volume=Math.min(1,v*.7);try{localStorage.vm=v}catch(e){}}}
+function setMusic(on){music=on;try{localStorage.bgm=on?1:0}catch(e){}if(on){actx();bgm.next=0;bgmSync()}trkSync()}
 const R=a=>a[Math.floor(Math.random()*a.length)];
 const CS={world:()=>{slide(200,800,.35,'sine',.1);seq([523,659,784],'triangle',.2,.08)},letter:()=>seq([1319,1568,1319,1760],'square',.08,.05),era:()=>{tone(262,.5,'sine',.12);tone(392,.5,'sine',.1,.12);tone(523,.6,'sine',.08,.24)},ability:()=>{slide(150,1200,.3,'sawtooth',.07);tone(1500,.15,'square',.05,.3)},side:()=>{tone(330,.15,'triangle',.1);tone(247,.15,'triangle',.1,.15);tone(330,.3,'triangle',.1,.3)},role:()=>seq([784,988,1175,1568],'triangle',.2,.09)};
 const SFX={click:()=>tone(R([560,620,700,780]),.06),tick:c=>tone(500+(10-(c||5))*70,.06,'square',.05),beep:()=>tone(520,.15,'triangle',.1),go:()=>seq([392,523,659,784,1047],'sawtooth',.2,.07),card:t=>(CS[t]||CS.world)(),hint:()=>seq([1047,1319,1568],'sine',.25,.09),ready:()=>seq([659,988],'triangle',.15,.1),leave:()=>slide(600,150,.35,'triangle',.09),err:()=>{tone(150,.2,'sawtooth',.09);tone(120,.25,'sawtooth',.09,.15)},final:()=>[0,1,2].forEach(i=>{tone(880,.12,'square',.07,i*.25);tone(660,.12,'square',.07,i*.25+.12)}),win:()=>seq([523,659,784,1047,1319],'triangle',.22,.12),lose:()=>seq([392,330,262,196],'sawtooth',.28,.08),reveal:()=>{slide(R([200,260,330]),R([700,900,1100]),.3,'triangle',.09);tone(R([880,988,1175]),.2,'triangle',.08,.2)},join:()=>seq([740,988],'triangle',.12,.09),yes:()=>seq([880,1175],'triangle',.1,.09),no:()=>slide(420,180,.22,'sawtooth',.07),msg:()=>seq([1319,1760],'sine',.08,.06),pop:()=>tone(R([660,880,990]),.1,'triangle',.07)};
@@ -982,7 +988,7 @@ function openProf(tab){pTab=tab||pTab;const lv=lvOf(PF.xp),a=40*(lv-1)*(lv-1),b=
    return `<div class="it ${on?'on':''}">${pv}<div>${lb}</div>${on?'<b>✓ ใช้งานอยู่</b>':ow?`<button class="b" onclick="equip('${k}','${id}')">ใช้</button>`:`<button class="${PF.coins>=pr?'b':'g'}" onclick="buy('${k}','${id}',${pr},'${lb}')">🪙 ${pr}</button>`}</div>`}).join('');
   body=`<b>🖼️ กรอบโปรไฟล์</b><div class="shop">${it('fr',FR)}</div><b>✨ เอฟเฟกต์ชื่อ</b><div class="shop">${it('nf',NF)}</div>`}
  $('sc').innerHTML=head+body+`<button class="b" onclick="closeSet()">ปิด</button>`;$('set').style.display='flex'}
-const NEWS=['📚 คลังตัวละครใหม่: พิมพ์แล้วขึ้นชื่อเรื่องก่อน มีปกเรื่อง และแยกหมวดแนว (แอ็กชัน/ตลก/ดราม่า…) · ปุ่มสำรองข้อมูลของแอดมินดาวน์โหลดได้แล้ว'];
+const NEWS=['🎵 มีเพลงประกอบจริงแล้ว: เพลงล็อบบี้ / เพลงตอนเล่น / เพลงรอบไฟนอล (ปิดหรือปรับเสียงได้ในตั้งค่า ⚙️)'];
 function openNews(){closeSet();dlg(`<b style="font-size:20px">📜 มีอะไรใหม่ · v${APPV}</b><ul style="text-align:left;line-height:1.6;padding-left:18px">${NEWS.map(n=>`<li>${n}</li>`).join('')}</ul>`,[['เริ่มเลย','b']])}
 // ================= v2.5: สุ่มกรอบการ์ด (Gacha) =================
 // ปรับค่าได้ที่นี่: ราคา อัตราสุ่ม (รวมต้อง = 100) ระบบการันตี และเหรียญคืนเมื่อได้ซ้ำ
@@ -1040,7 +1046,7 @@ function heroHTML(){const f=HERO?HERO.fan:[null,null],c=(x,i)=>x?`<div class="fc
  return `<div class="fan">${c(f[0],0)}${c(f[1],1)}<div class="fc f2 me"><div class="qq">???</div><b>🫵 คุณ</b><small>ทายให้ได้!</small></div></div>`}
 function mqHTML(){const t=HERO.mq.map(c=>`<img loading="lazy" src="/img/${c[2]}.jpg" alt="" title="${esc(c[0])}">`).join('');return `<div class="mq" aria-hidden="true"><div class="mqt">${t}${t}</div></div>`}
 const coverOf=n=>{const c=chars.find(x=>x[1]===n&&x[2]);return c?c[2]:''};
-function toggleMute(){const on=!(sound||music);sound=on;music=on;try{localStorage.snd=on?1:0;localStorage.bgm=on?1:0}catch(e){}if(on){actx();bgm.next=0;SFX.pop()}muteIcon()}
+function toggleMute(){const on=!(sound||music);sound=on;music=on;try{localStorage.snd=on?1:0;localStorage.bgm=on?1:0}catch(e){}if(on){actx();bgm.next=0;SFX.pop()}trkSync();muteIcon()}
 function muteIcon(){const b=$('mt');if(b)b.textContent=(sound||music)?'🔊':'🔇'}
 muteIcon();
 document.addEventListener('keydown',e=>{const t=e.target&&e.target.tagName;if(t==='INPUT'||t==='SELECT'||t==='TEXTAREA'||e.ctrlKey||e.metaKey||e.altKey)return;if($('dlg').style.display==='flex')return;
