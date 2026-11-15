@@ -613,7 +613,7 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '3.6';
+const APP_VERSION = '3.7';
 const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
 const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
 let CFIDS = new Set(), CFM = 0;
@@ -667,7 +667,7 @@ const cxJpeg = d => { if (typeof d !== 'string' || d.length > CX_IMG_MAX * 1.4 +
 function cxAdd(e, buf) {
   const base = slugOf(e.n); const slug = (base && !hasImg(base)) ? base : 'cx-' + e.id;
   SLUGX.set(e.n, slug); CXIMG.set(slug, buf);
-  CH.push([e.n, e.al || '', e.a, '', '', 'ใช้พลังพิเศษเฉพาะตัว', 'ไม่ระบุ', 'ไม่ระบุ']);
+  CH.push([e.n, e.al || '', e.a, e.yr ? Math.floor(e.yr / 10) * 10 + 's' : '', '', 'ใช้พลังพิเศษเฉพาะตัว', 'ไม่ระบุ', e.ro === 'M' ? 'ตัวเอก' : e.ro === 'S' ? 'ตัวสมทบ' : 'ไม่ระบุ']);
   if (!ANIMES.includes(e.a)) ANIMES.push(e.a);
 }
 function cxDel(e) {
@@ -714,7 +714,74 @@ async function alq(query, variables) {
   const j = await r.json(); if (j.errors && !j.data) throw new Error((j.errors[0] && j.errors[0].message) || 'AniList error'); return j.data;
 }
 const alT = t => cxClean((t && (t.english || t.romaji)) || '', 40);
-const alC = (n, a) => ({ id: +n.id || 0, n: cxClean(n.name && n.name.full, 40), nat: cxClean(n.name && n.name.native, 40), a, th: String((n.image && (n.image.medium || n.image.large)) || '').slice(0, 300), img: String((n.image && (n.image.large || n.image.medium)) || '').slice(0, 300) });
+const alC = (n, a, yr, role) => ({ yr: Number.isInteger(yr) && yr >= 1950 && yr <= 2035 ? yr : 0, ro: role === 'MAIN' ? 'M' : role === 'SUPPORTING' ? 'S' : '', id: +n.id || 0, n: cxClean(n.name && n.name.full, 40), nat: cxClean(n.name && n.name.native, 40), a, th: String((n.image && (n.image.medium || n.image.large)) || '').slice(0, 300), img: String((n.image && (n.image.large || n.image.medium)) || '').slice(0, 300) });
+const TRUST_N = 10;   // อนุมัติแล้วครบกี่ตัวถึงเป็น "ผู้เสนอที่ไว้ใจได้" (ตัวที่เสนอต่อไปเข้าเกมทันที)
+const cxTrusted = async acct => { try { const v = await rcmd('HGET', 'cx:tr', acct); if (v === 'n') return false; if (v === 'y') return true; return (+(await rcmd('HGET', 'cx:apc', acct)) || 0) >= TRUST_N; } catch (e) { return false; } };
+async function cxDirect(e, buf) {   // เข้าเกมทันที (แอดมิน / ผู้ไว้ใจได้) และบันทึกลง Upstash
+  await rcmd('SET', 'cx:img:' + e.id, buf.toString('base64')); await rcmd('HSET', 'cx:ok', e.id, JSON.stringify(e));
+  CXOK.set(e.id, e); cxAdd(e, buf); io.emit('chars:update', { animes: ANIMES, chars: metaChars() });
+}
+async function cxDecide(d) {       // อนุมัติ/ปฏิเสธคำขอหนึ่งรายการ (ไม่ส่งรายการกลับ)
+  if (!d || typeof d.id !== 'string' || !/^[a-f0-9]{10}$/.test(d.id)) return { ok: false, msg: 'รหัสไม่ถูกต้อง' };
+  const raw = await rcmd('HGET', 'cx:pi', d.id); if (!raw) return { ok: false, msg: 'ไม่พบคำขอ (อาจถูกจัดการไปแล้ว)' };
+  const e = JSON.parse(raw);
+  if (d.ok) {
+    e.n = cxClean(d.n || e.n, 40); e.a = cxAnime(cxClean(d.a || e.a, 40)); e.al = cxClean(d.al != null ? d.al : e.al, 60);
+    if (!e.n || !e.a) return { ok: false, msg: 'ชื่อหรือเรื่องว่าง' };
+    if (cxDup(e.n)) return { ok: false, msg: 'ชื่อซ้ำกับตัวละครที่มีอยู่แล้ว: ' + e.n };
+    const b64 = await rcmd('GET', 'cx:pimg:' + e.id); if (!b64) { await rcmd('HDEL', 'cx:pi', e.id); return { ok: false, msg: 'ไม่พบรูปของคำขอนี้' }; }
+    await cxDirect(e, Buffer.from(b64, 'base64')); CXNOTE(e.by, { ok: true, n: e.n });
+    rcmd('HINCRBY', 'cx:apc', ukey(e.by), 1).then(c => { if (+c === TRUST_N) CXNOTE(e.by, { k: 'tr' }); }).catch(() => {});
+  } else CXNOTE(e.by, { ok: false, n: e.n, why: cxClean(d.why, 80) });
+  await rcmd('HDEL', 'cx:pi', e.id); rcmd('DEL', 'cx:pimg:' + e.id).catch(() => {});
+  return { ok: true };
+}
+async function cxSetAlias(n, al) {  // เพิ่มชื่อเรียกอื่นให้ตัวละคร (ตัวที่ผู้เล่นเสนอ -> แก้ในรายการ, ตัวเดิม -> override)
+  const c = CH.find(x => x[0] === n); if (!c) return false;
+  const have = c[1].split('|').some(x => cxTok(x) === cxTok(al)); if (have) return false;
+  c[1] = c[1] ? c[1] + '|' + al : al;
+  const ue = [...CXOK.values()].find(e => e.n === n);
+  if (ue) { ue.al = c[1]; await rcmd('HSET', 'cx:ok', ue.id, JSON.stringify(ue)); }
+  else { const o = ovOrig(n), v = Object.assign({}, OVR.get(o) || {}, { o, al: c[1] }); OVR.set(o, v); await rcmd('HSET', 'cx:ov', o, JSON.stringify(v)); }
+  return true;
+}
+const admHttp = async req => {
+  const ip = 'admh:' + String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+  if (tooMany(ip)) return false;
+  const k = String(req.headers['x-admin-key'] || ''), t = String(req.headers['x-token'] || '');
+  try {
+    if (ADMIN_KEY && k) { const a = Buffer.from(k), b = Buffer.from(ADMIN_KEY); if (a.length === b.length && nodeCrypto.timingSafeEqual(a, b)) return true; }
+    if (AUTH_ON && /^[a-f0-9]{48}$/.test(t)) { const name = await rcmd('GET', 't:' + t); if (name && ADMIN_USERS.has(ukey(name))) return true; }
+  } catch (e) {}
+  noteFail(ip); return false;
+};
+app.get('/__admin/export', async (req, res) => {   // สำรองตัวละครที่ผู้เล่นเสนอ + การแก้ไขตัวละครเดิม เป็นไฟล์ JSON
+  if (!(await admHttp(req))) return res.status(403).json({ error: 'forbidden' });
+  try {
+    const chars = [];
+    for (const e of CXOK.values()) { const img = await rcmd('GET', 'cx:img:' + e.id); if (img) chars.push(Object.assign({}, e, { img })); }
+    const ov = [...OVR.values()];
+    res.set('Content-Disposition', 'attachment; filename="anime-guess-backup-' + new Date().toISOString().slice(0, 10) + '.json"').json({ v: 1, t: Date.now(), chars, ov });
+  } catch (e) { console.log('export', e.message); res.status(500).json({ error: 'fail' }); }
+});
+app.post('/__admin/import', express.json({ limit: '60mb' }), async (req, res) => {   // นำเข้าจากไฟล์สำรอง (ข้ามตัวที่ซ้ำ)
+  if (!(await admHttp(req))) return res.status(403).json({ error: 'forbidden' });
+  try {
+    const d = req.body || {}; let added = 0, skipped = 0, ovn = 0;
+    for (const c of (Array.isArray(d.chars) ? d.chars : []).slice(0, 2000)) {
+      const n = cxClean(c && c.n, 40), a = cxAnime(cxClean(c && c.a, 40)), buf = cxJpeg('data:image/jpeg;base64,' + String((c && c.img) || ''));
+      if (!n || !a || !buf || cxDup(n)) { skipped++; continue; }
+      const e = { id: nodeCrypto.randomBytes(5).toString('hex'), n, al: cxClean(c.al, 60), a, by: cxClean(c.by, 16) || 'import', yr: Number.isInteger(c.yr) ? c.yr : 0, ro: c.ro === 'M' || c.ro === 'S' ? c.ro : '' };
+      await cxDirect(e, buf); added++;
+    }
+    for (const v of (Array.isArray(d.ov) ? d.ov : []).slice(0, 3000)) {
+      if (!v || typeof v.o !== 'string' || OVR.has(v.o)) continue;
+      const x = { o: cxClean(v.o, 40) }; if (v.n) x.n = cxClean(v.n, 40); if (v.a) x.a = cxClean(v.a, 40); if (v.al != null) x.al = cxClean(v.al, 60); if (v.h) x.h = 1;
+      OVR.set(x.o, x); ovApply(x); await rcmd('HSET', 'cx:ov', x.o, JSON.stringify(x)); ovn++;
+    }
+    animesFix(); io.emit('chars:update', { animes: ANIMES, chars: metaChars() }); res.json({ added, skipped, ov: ovn });
+  } catch (e) { console.log('import', e.message); res.status(500).json({ error: 'fail' }); }
+});
 const FAILS = new Map();
 const tooMany = k => { const f = FAILS.get(k); return !!f && f.n >= 8 && Date.now() - f.t < 600000; };
 const noteFail = k => { const f = FAILS.get(k); if (!f || Date.now() - f.t > 600000) FAILS.set(k, { n: 1, t: Date.now() }); else { f.n++; f.t = Date.now(); } };
@@ -868,7 +935,7 @@ io.on('connection', sock => {
     presDel(); sock.data.acct = ukey(rec.name); sock.data.un = rec.name; sock.data.tok = tok;
     let s = ONLINE.get(sock.data.acct); if (!s) ONLINE.set(sock.data.acct, s = new Set()); s.add(sock);
     sock.data.noav = !!rec.noav;
-    if (ADMIN_USERS.has(sock.data.acct)) { sock.data.adm = true; sock.data.admAcct = true; rcmd('HLEN', 'cx:pi').then(n => sock.emit('adm:on', { on: true, pending: +n || 0 })).catch(() => sock.emit('adm:on', { on: true, pending: 0 })); }
+    if (ADMIN_USERS.has(sock.data.acct)) { sock.data.adm = true; sock.data.admAcct = true; Promise.all(['cx:pi', 'cx:ai', 'cx:rp'].map(k => rcmd('HLEN', k))).then(a => sock.emit('adm:on', { on: true, pending: a.reduce((x, y) => x + (+y || 0), 0), acct: true })).catch(() => sock.emit('adm:on', { on: true, pending: 0, acct: true })); }
     else if (sock.data.admAcct) { sock.data.adm = false; sock.data.admAcct = false; sock.emit('adm:on', { on: false }); }
     sock.emit('auth:ok', { name: rec.name, tok, prof: rec.prof, v: rec.v, noav: !!rec.noav }); refreshRooms();
     rcmd('LRANGE', 'cx:n:' + sock.data.acct, 0, -1).then(l => { if (l && l.length) { rcmd('DEL', 'cx:n:' + sock.data.acct).catch(() => {}); sock.emit('cx:notes', l.map(x => { try { return JSON.parse(x); } catch (e) { return null; } }).filter(Boolean)); } }).catch(() => {});
@@ -933,26 +1000,29 @@ io.on('connection', sock => {
       if (!AUTH_ON) return R(false, 'ระบบนี้ยังไม่เปิดใช้งาน');
       const acct = sock.data.acct; if (!acct) return R(false, 'ต้องล็อกอินก่อนถึงจะเสนอตัวละครได้');
       d = d && typeof d === 'object' ? d : {};
-      const n = cxClean(d.n, 40), a0 = cxClean(d.a, 40), al = cxClean(d.al, 60), buf = cxJpeg(d.img);
+      const n = cxClean(d.n, 40), a0 = cxClean(d.a, 40), al = cxClean(d.al, 60), buf = cxJpeg(d.img), yr = Number.isInteger(d.yr) && d.yr >= 1950 && d.yr <= 2035 ? d.yr : 0, ro = d.ro === 'M' || d.ro === 'S' ? d.ro : '';
       if (!n || !a0) return R(false, 'กรอกชื่อตัวละครและชื่อเรื่องให้ครบ');
       if (!buf) return R(false, 'รูปไม่ถูกต้องหรือใหญ่เกินไป ลองเลือกรูปใหม่');
       const now = Date.now(), arr = (CXRATE[acct] || []).filter(x => now - x < 60000); if (arr.length >= 60) return R(false, 'ส่งถี่เกินไป รอสักครู่แล้วลองใหม่'); arr.push(now); CXRATE[acct] = arr;
       if (cxDup(n)) return R(false, 'มีตัวละครชื่อนี้ในเกมแล้ว');
       if (d.direct && sock.data.adm) {   // แอดมินเพิ่มเข้าเกมทันที ไม่ผ่านคิว
-        const id = nodeCrypto.randomBytes(5).toString('hex'), e = { id, n, al, a: cxAnime(a0), by: sock.data.un || 'admin' };
-        await rcmd('SET', 'cx:img:' + id, buf.toString('base64')); await rcmd('HSET', 'cx:ok', id, JSON.stringify(e));
-        CXOK.set(id, e); cxAdd(e, buf); io.emit('chars:update', { animes: ANIMES, chars: metaChars() });
+        const id = nodeCrypto.randomBytes(5).toString('hex'), e = { id, n, al, a: cxAnime(a0), by: sock.data.un || 'admin', yr, ro };
+        await cxDirect(e, buf);
         return R(true, 'เพิ่มเข้าเกมแล้ว');
       }
       const a = cxAnime(a0), dk = 'cx:rl:' + acct + ':' + new Date().toISOString().slice(0, 10);
       const used = await rcmd('INCR', dk); if (used === 1) rcmd('EXPIRE', dk, 90000).catch(() => {});
       if (used > CX_DAY_MAX) return R(false, 'วันนี้เสนอครบ ' + CX_DAY_MAX + ' ตัวแล้ว พรุ่งนี้มาใหม่นะ');
+      if (await cxTrusted(acct)) {   // ผู้เสนอที่ไว้ใจได้ -> เข้าเกมทันที
+        const id = nodeCrypto.randomBytes(5).toString('hex'), e = { id, n, al, a, by: sock.data.un, yr, ro };
+        await cxDirect(e, buf); return R(true, '🌟 เข้าเกมแล้ว (คุณเป็นผู้เสนอที่ไว้ใจได้)');
+      }
       const pend = await rcmd('HGETALL', 'cx:pi') || [], k = norm(n);
       if (pend.length / 2 >= CX_PEND_MAX) return R(false, 'คิวรอตรวจเต็ม ลองใหม่ภายหลัง');
       for (let i = 1; i < pend.length; i += 2) { try { if (cxTok(JSON.parse(pend[i]).n) === cxTok(n)) return R(false, 'มีคนเสนอตัวละครนี้ไว้แล้ว รอแอดมินตรวจอยู่'); } catch (e) {} }
       const id = nodeCrypto.randomBytes(5).toString('hex');
       await rcmd('SET', 'cx:pimg:' + id, buf.toString('base64'));
-      await rcmd('HSET', 'cx:pi', id, JSON.stringify({ id, n, al, a, by: sock.data.un, t: now }));
+      await rcmd('HSET', 'cx:pi', id, JSON.stringify({ id, n, al, a, by: sock.data.un, t: now, yr, ro }));
       R(true, 'ส่งแล้ว! รอแอดมินตรวจ ถ้าผ่านจะเข้าเกมอัตโนมัติ');
     } catch (e) { console.log('cx:submit', e.message); R(false, 'เกิดข้อผิดพลาด ลองใหม่อีกครั้ง'); }
   });
@@ -970,17 +1040,17 @@ io.on('connection', sock => {
     if (!alOk() || !d) return;
     try {
       const id = Math.floor(+d.id), p = Math.min(50, Math.max(1, Math.floor(+d.p) || 1)); if (!(id > 0)) return;
-      const r = await alq('query($id:Int,$p:Int){Media(id:$id){title{romaji english} characters(page:$p,perPage:25,sort:[ROLE,FAVOURITES_DESC]){pageInfo{hasNextPage} nodes{id name{full native} image{large medium}}}}}', { id, p });
-      const m = r.Media, a = alT(m.title);
-      sock.emit('al:res', { kind: 'chars', a, p, more: !!m.characters.pageInfo.hasNextPage, items: (m.characters.nodes || []).map(n => alC(n, a)).filter(x => x.n && x.img) });
+      const r = await alq('query($id:Int,$p:Int){Media(id:$id){seasonYear startDate{year} title{romaji english} characters(page:$p,perPage:25,sort:[ROLE,FAVOURITES_DESC]){pageInfo{hasNextPage} edges{role node{id name{full native} image{large medium}}}}}}', { id, p });
+      const m = r.Media, a = alT(m.title), yr = m.seasonYear || (m.startDate && m.startDate.year) || 0;
+      sock.emit('al:res', { kind: 'chars', a, p, more: !!m.characters.pageInfo.hasNextPage, items: (m.characters.edges || []).map(e => alC(e.node, a, yr, e.role)).filter(x => x.n && x.img) });
     } catch (e) { console.log('al:chars', e.message); sock.emit('al:err', 'เชื่อมต่อฐานข้อมูลไม่ได้ ลองใหม่ภายหลัง'); }
   });
   sock.on('al:find', async q => {
     if (!alOk()) return;
     try {
       q = cxClean(q, 60); if (!q) return;
-      const d = await alq('query($q:String){Page(perPage:20){characters(search:$q,sort:SEARCH_MATCH){id name{full native} image{large medium} media(perPage:1,type:ANIME){nodes{title{romaji english}}}}}}', { q });
-      sock.emit('al:res', { kind: 'find', items: (d.Page.characters || []).map(n => alC(n, alT(n.media && n.media.nodes && n.media.nodes[0] && n.media.nodes[0].title))).filter(x => x.n && x.img && x.a) });
+      const d = await alq('query($q:String){Page(perPage:20){characters(search:$q,sort:SEARCH_MATCH){id name{full native} image{large medium} media(perPage:1,type:ANIME,sort:POPULARITY_DESC){edges{characterRole node{seasonYear startDate{year} title{romaji english}}}}}}}', { q });
+      sock.emit('al:res', { kind: 'find', items: (d.Page.characters || []).map(n => { const e = n.media && n.media.edges && n.media.edges[0], nd = (e && e.node) || {}; return alC(n, alT(nd.title), nd.seasonYear || (nd.startDate && nd.startDate.year) || 0, e && e.characterRole); }).filter(x => x.n && x.img && x.a) });
     } catch (e) { console.log('al:find', e.message); sock.emit('al:err', 'เชื่อมต่อฐานข้อมูลไม่ได้ ลองใหม่ภายหลัง'); }
   });
   sock.on('al:img', async d => {    // ดาวน์โหลดรูปให้เบราว์เซอร์ (เบราว์เซอร์ดึงข้ามเว็บเองไม่ได้) เฉพาะโฮสต์ของ AniList เท่านั้น
@@ -999,7 +1069,8 @@ io.on('connection', sock => {
     for (let i = 1; i < h.length; i += 2) { try { items.push(JSON.parse(h[i])); } catch (e) {} }
     items.sort((x, y) => x.t - y.t); const top = items.slice(0, 30);
     await Promise.all(top.map(async e => { const b = await rcmd('GET', 'cx:pimg:' + e.id); e.img = b ? 'data:image/jpeg;base64,' + b : ''; }));
-    sock.emit('cx:list', { items: top, total: items.length, ok: [...CXOK.values()].map(e => ({ id: e.id, n: e.n, a: e.a, al: e.al || '', by: e.by })) });
+    const na = +(await rcmd('HLEN', 'cx:ai')) || 0, nr = +(await rcmd('HLEN', 'cx:rp')) || 0;
+    sock.emit('cx:list', { items: top, total: items.length, na, nr, ok: [...CXOK.values()].map(e => ({ id: e.id, n: e.n, a: e.a, al: e.al || '', by: e.by })) });
   };
   sock.on('cx:admin', async key => {
     const fk = 'adm:' + ipOf();
@@ -1024,23 +1095,68 @@ io.on('connection', sock => {
   sock.on('cx:refresh', () => { if (sock.data.adm) cxList().catch(() => {}); });
   sock.on('cx:review', async d => {
     try {
-      if (!sock.data.adm || !d || typeof d.id !== 'string' || !/^[a-f0-9]{10}$/.test(d.id)) return;
-      const raw = await rcmd('HGET', 'cx:pi', d.id); if (!raw) return cxList();
-      const e = JSON.parse(raw);
-      if (d.ok) {
-        e.n = cxClean(d.n || e.n, 40); e.a = cxAnime(cxClean(d.a || e.a, 40)); e.al = cxClean(d.al != null ? d.al : e.al, 60);
-        if (!e.n || !e.a) return sock.emit('cx:res', { ok: false, msg: 'ชื่อหรือเรื่องว่าง' });
-        if (cxDup(e.n)) return sock.emit('cx:res', { ok: false, msg: 'ชื่อซ้ำกับตัวละครที่มีอยู่แล้ว' });
-        const b64 = await rcmd('GET', 'cx:pimg:' + e.id); if (!b64) { await rcmd('HDEL', 'cx:pi', e.id); return cxList(); }
-        await rcmd('SET', 'cx:img:' + e.id, b64); await rcmd('HSET', 'cx:ok', e.id, JSON.stringify(e)); CXNOTE(e.by, { ok: true, n: e.n });
-        CXOK.set(e.id, e); cxAdd(e, Buffer.from(b64, 'base64'));
-        io.emit('chars:update', { animes: ANIMES, chars: metaChars() });
-      }
-      if (!d.ok) CXNOTE(e.by, { ok: false, n: e.n, why: cxClean(d.why, 80) });
-      await rcmd('HDEL', 'cx:pi', e.id); rcmd('DEL', 'cx:pimg:' + e.id).catch(() => {});
+      if (!sock.data.adm) return;
+      const r = await cxDecide(d); if (!r.ok) sock.emit('cx:res', { ok: false, msg: r.msg });
       await cxList();
     } catch (e) { console.log('cx:review', e.message); }
   });
+  sock.on('cx:reviewmany', async d => {   // อนุมัติ/ปฏิเสธหลายรายการพร้อมกัน
+    try {
+      if (!sock.data.adm || !d || !Array.isArray(d.items)) return;
+      let ok = 0, bad = [];
+      for (const it of d.items.slice(0, 60)) { const r = await cxDecide({ id: it && it.id, ok: !!d.ok, n: it && it.n, a: it && it.a, al: it && it.al, why: d.why }); if (r.ok) ok++; else bad.push(r.msg); }
+      sock.emit('adm:msg', { ok: !bad.length, msg: (d.ok ? 'อนุมัติ ' : 'ปฏิเสธ ') + ok + ' รายการ' + (bad.length ? ' · ไม่สำเร็จ ' + bad.length + ': ' + bad.slice(0, 2).join(', ') : '') });
+      await cxList();
+    } catch (e) { console.log('cx:reviewmany', e.message); }
+  });
+  // ===== ผู้เล่นเสนอชื่อไทย/ชื่อเรียกอื่น และแจ้งตัวละครผิด =====
+  sock.on('cx:alias', async d => {
+    const res = (ok, msg) => sock.emit('cx:res', { ok, msg });
+    try {
+      const acct = sock.data.acct; if (!AUTH_ON || !acct) return res(false, 'ต้องล็อกอินก่อน');
+      const n = cxClean(d && d.n, 40), al = cxClean(d && d.al, 60).replace(/\|/g, ' ').trim();
+      if (!n || !al) return res(false, 'พิมพ์ชื่อที่ต้องการเสนอ');
+      const c = CH.find(x => x[0] === n); if (!c) return res(false, 'ไม่พบตัวละครนี้');
+      if (cxDup(al)) return res(false, 'มีชื่อนี้ในเกมแล้ว');
+      const dk = 'cx:arl:' + acct + ':' + new Date().toISOString().slice(0, 10), used = await rcmd('INCR', dk); if (used === 1) rcmd('EXPIRE', dk, 90000).catch(() => {});
+      if (used > 30) return res(false, 'วันนี้เสนอชื่อครบ 30 ชื่อแล้ว');
+      const h = await rcmd('HGETALL', 'cx:ai') || []; if (h.length / 2 >= 400) return res(false, 'คิวรอตรวจเต็ม ลองใหม่ภายหลัง');
+      for (let i = 1; i < h.length; i += 2) { try { const e = JSON.parse(h[i]); if (e.n === n && cxTok(e.al) === cxTok(al)) return res(false, 'มีคนเสนอชื่อนี้ไว้แล้ว รอแอดมินตรวจอยู่'); } catch (x) {} }
+      const id = nodeCrypto.randomBytes(5).toString('hex'); await rcmd('HSET', 'cx:ai', id, JSON.stringify({ id, n, al, by: sock.data.un, t: Date.now() }));
+      res(true, 'ส่งชื่อ "' + al + '" ให้แอดมินตรวจแล้ว');
+    } catch (e) { console.log('cx:alias', e.message); res(false, 'เกิดข้อผิดพลาด'); }
+  });
+  sock.on('cx:report', async d => {
+    const res = (ok, msg) => sock.emit('cx:res', { ok, msg });
+    try {
+      const acct = sock.data.acct; if (!AUTH_ON || !acct) return res(false, 'ต้องล็อกอินก่อน');
+      const n = cxClean(d && d.n, 40), why = cxClean(d && d.why, 80); if (!n || !CH.some(x => x[0] === n)) return res(false, 'ไม่พบตัวละครนี้');
+      const id = nodeCrypto.createHash('sha1').update(acct + '|' + n).digest('hex').slice(0, 10);
+      if (+(await rcmd('HLEN', 'cx:rp')) >= 300) return res(false, 'มีรายงานค้างเยอะแล้ว ลองใหม่ภายหลัง');
+      await rcmd('HSET', 'cx:rp', id, JSON.stringify({ id, n, why, by: sock.data.un, t: Date.now() })); res(true, 'ส่งรายงานให้แอดมินแล้ว ขอบคุณที่ช่วยตรวจ');
+    } catch (e) { console.log('cx:report', e.message); res(false, 'เกิดข้อผิดพลาด'); }
+  });
+  const propsPush = async () => {
+    const lst = async k => { const h = await rcmd('HGETALL', k) || [], o = []; for (let i = 1; i < h.length; i += 2) { try { o.push(JSON.parse(h[i])); } catch (e) {} } return o.sort((x, y) => x.t - y.t).slice(0, 60); };
+    const al = (await lst('cx:ai')).map(e => { const c = CH.find(x => x[0] === e.n); return Object.assign(e, { a: c ? c[2] : '', cur: c ? c[1] : '' }); });
+    const rp = (await lst('cx:rp')).map(e => { const c = CH.find(x => x[0] === e.n); return Object.assign(e, { a: c ? c[2] : '' }); });
+    sock.emit('adm:props', { al, rp });
+  };
+  sock.on('adm:props', () => { if (sock.data.adm) propsPush().catch(e => console.log('adm:props', e.message)); });
+  sock.on('adm:aldecide', async d => {
+    try {
+      if (!sock.data.adm || !d || typeof d.id !== 'string' || !/^[a-f0-9]{10}$/.test(d.id)) return;
+      const raw = await rcmd('HGET', 'cx:ai', d.id); if (!raw) return propsPush();
+      const e = JSON.parse(raw);
+      if (d.ok) {
+        const al = cxClean(d.al || e.al, 60).replace(/\|/g, ' ').trim(), done = al && await cxSetAlias(e.n, al);
+        if (!done) { sock.emit('adm:msg', { ok: false, msg: 'เพิ่มไม่ได้ (ชื่อซ้ำ หรือไม่พบตัวละคร)' }); }
+        else { io.emit('chars:update', { animes: ANIMES, chars: metaChars() }); CXNOTE(e.by, { k: 'al', ok: true, n: e.n, al }); }
+      } else CXNOTE(e.by, { k: 'al', ok: false, n: e.n, al: e.al });
+      await rcmd('HDEL', 'cx:ai', e.id); await propsPush();
+    } catch (e) { console.log('adm:aldecide', e.message); }
+  });
+  sock.on('adm:rpdel', async id => { try { if (!sock.data.adm || typeof id !== 'string') return; await rcmd('HDEL', 'cx:rp', id); await propsPush(); } catch (e) {} });
   sock.on('cx:remove', async id => {
     try {
       if (!sock.data.adm || typeof id !== 'string') return; const e = CXOK.get(id); if (!e) return;
@@ -1054,6 +1170,14 @@ io.on('connection', sock => {
   const admMsg = (ok, msg) => sock.emit('adm:msg', { ok, msg });
   const getRec = async name => { name = String(name || '').trim(); if (!name || name.length > 40) return null; const raw = await rcmd('GET', ukey(name)); return raw ? JSON.parse(raw) : null; };
   const recInfo = rec => ({ name: rec.name, coins: (rec.prof && rec.prof.coins) || 0, xp: (rec.prof && rec.prof.xp) || 0, games: (rec.prof && rec.prof.games) || 0, wins: (rec.prof && rec.prof.wins) || 0, qgames: (rec.prof && rec.prof.qgames) || 0, created: rec.created || 0, ban: rec.ban || null, noav: !!rec.noav, online: ONLINE.has(ukey(rec.name)) });
+  const recInfoX = async rec => { const i = recInfo(rec), k = ukey(rec.name); i.apc = +(await rcmd('HGET', 'cx:apc', k)) || 0; const v = await rcmd('HGET', 'cx:tr', k); i.trust = v === 'y' || (v !== 'n' && i.apc >= TRUST_N); return i; };
+  sock.on('adm:trust', async d => {
+    try {
+      if (!sock.data.adm || !d) return; const rec = await getRec(d.name); if (!rec) return sock.emit('adm:user', { err: 'ไม่พบบัญชีนี้' });
+      await rcmd('HSET', 'cx:tr', ukey(rec.name), d.on ? 'y' : 'n'); if (d.on) CXNOTE(rec.name, { k: 'tr' });
+      sock.emit('adm:user', { info: await recInfoX(rec) }); sock.emit('adm:msg', { ok: true, msg: d.on ? 'ตั้งเป็นผู้ไว้ใจได้แล้ว' : 'ยกเลิกสิทธิ์ผู้ไว้ใจได้แล้ว' });
+    } catch (e) { console.log('adm:trust', e.message); }
+  });
   const dropOnline = (k, ev, data) => { const on = ONLINE.get(k); if (on) { on.forEach(x => { x.emit(ev, data); x.data.acct = ''; x.data.un = ''; x.data.tok = ''; }); ONLINE.delete(k); } };
   const clearAvSid = sid => {
     Object.values(rooms).forEach(r => r.players.forEach(p => { if (p.sid === sid && p.av) { p.av = ''; p.ah = 0; send(r); } }));
@@ -1069,7 +1193,7 @@ io.on('connection', sock => {
   });
   sock.on('adm:user', async name => {
     if (!adm()) return;
-    try { const rec = await getRec(name); sock.emit('adm:user', rec ? { info: recInfo(rec) } : { err: 'ไม่พบบัญชีนี้' }); } catch (e) { console.log('adm:user', e.message); }
+    try { const rec = await getRec(name); sock.emit('adm:user', rec ? { info: await recInfoX(rec) } : { err: 'ไม่พบบัญชีนี้' }); } catch (e) { console.log('adm:user', e.message); }
   });
   sock.on('adm:coins', async d => {
     if (!adm() || !d) return;
@@ -1079,7 +1203,7 @@ io.on('connection', sock => {
       rec.prof.coins = clampI(d.mode === 'set' ? n : cur + n, 0, 10000000); rec.v = (rec.v || 0) + 1;
       await rcmd('SET', ukey(rec.name), JSON.stringify(rec));
       const on = ONLINE.get(ukey(rec.name)); if (on) on.forEach(x => x.emit('auth:stale', { prof: rec.prof, v: rec.v }));
-      sock.emit('adm:user', { info: recInfo(rec) }); admMsg(true, 'เหรียญของ ' + rec.name + ' ตอนนี้ ' + rec.prof.coins);
+      sock.emit('adm:user', { info: await recInfoX(rec) }); admMsg(true, 'เหรียญของ ' + rec.name + ' ตอนนี้ ' + rec.prof.coins);
     } catch (e) { console.log('adm:coins', e.message); }
   });
   sock.on('adm:ban', async d => {
@@ -1089,7 +1213,7 @@ io.on('connection', sock => {
       if (d.on) { rec.ban = { why: cxClean(d.why, 60), t: Date.now() }; } else delete rec.ban;
       await rcmd('SET', ukey(rec.name), JSON.stringify(rec));
       if (d.on) dropOnline(ukey(rec.name), 'auth:banned', { why: rec.ban.why });
-      sock.emit('adm:user', { info: recInfo(rec) }); admMsg(true, (d.on ? 'ระงับ ' : 'ปลดระงับ ') + rec.name + ' แล้ว');
+      sock.emit('adm:user', { info: await recInfoX(rec) }); admMsg(true, (d.on ? 'ระงับ ' : 'ปลดระงับ ') + rec.name + ' แล้ว');
     } catch (e) { console.log('adm:ban', e.message); }
   });
   sock.on('adm:delacct', async name => {
@@ -1108,7 +1232,7 @@ io.on('connection', sock => {
         const rec = await getRec(d.name); if (!rec) return sock.emit('adm:user', { err: 'ไม่พบบัญชีนี้' });
         if (on) rec.noav = 1; else delete rec.noav; await rcmd('SET', ukey(rec.name), JSON.stringify(rec));
         const so = ONLINE.get(ukey(rec.name)); if (so) so.forEach(x => { x.data.noav = on; x.emit('adm:noav', { on }); if (on) clearAvSid(x.id); });
-        sock.emit('adm:user', { info: recInfo(rec) }); admMsg(true, (on ? 'ปิดรูปโปรไฟล์ ' : 'เปิดรูปโปรไฟล์ ') + rec.name);
+        sock.emit('adm:user', { info: await recInfoX(rec) }); admMsg(true, (on ? 'ปิดรูปโปรไฟล์ ' : 'เปิดรูปโปรไฟล์ ') + rec.name);
       } else if (typeof d.pid === 'string') {
         if (on) NOAVPID.add(d.pid); else NOAVPID.delete(d.pid);
         const all = [...Object.values(rooms), ...Object.values(QROOMS)];
