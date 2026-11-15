@@ -613,7 +613,7 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '4.3';
+const APP_VERSION = '4.4';
 const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
 const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
 let CFIDS = new Set(), CFM = 0;
@@ -623,7 +623,7 @@ function cfIds() {
   } catch (e) { console.log('frames.json:', e.message); }
   return CFIDS;
 }
-const TTIDS = new Set(['first','win10','win50','quiz20','lv10','lv25','collector','ssr','streak7','missions']);
+const TTIDS = new Set(['first','win10','win50','quiz20','lv10','lv25','collector','ssr','streak7','missions','g_c1','g_c2','g_c3','g_c4','g_b1','g_b2','g_b3','g_b4','g_a1','g_a2','g_a3','g_a4','g_s1','g_s2','g_s3','g_s4','g_m1','g_m2','g_m3']);
 const ONLINE = new Map();   // ชื่อบัญชี(ตัวพิมพ์เล็ก) -> Set ของ socket ที่ออนไลน์ (ใช้ส่งคำชวน)
 const unOf = sid => { const s = sid && io.sockets.sockets.get(sid); return (s && s.data && s.data.un) || ''; };
 const AV_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/;
@@ -838,10 +838,10 @@ function cleanAcct(d, old) {
     games: clampI(d.games, 0, 1e6), wins: clampI(d.wins, 0, 1e6), qgames: clampI(d.qgames, 0, 1e6),
     daily: typeof d.daily === 'string' ? d.daily.slice(0, 10) : '',
     cfo: strs(d.cfo, 200, 40).filter(i => cfIds().has(i)),
-    gp: { s: clampI(d.gp && d.gp.s, 0, 1000), r: clampI(d.gp && d.gp.r, 0, 1000) },
+    gp: Object.assign({ s: clampI(d.gp && d.gp.s, 0, 1000), r: clampI(d.gp && d.gp.r, 0, 1000) }, d.gp && typeof d.gp.m === 'number' ? { m: clampI(d.gp.m, 0, 1000) } : {}),
     dm: { d: String((d.dm && d.dm.d) || '').slice(0, 10), p: kv(d.dm && d.dm.p, 12, v => clampI(v, 0, 1000)), c: kv(d.dm && d.dm.c, 12, v => v ? 1 : 0), b: d.dm && d.dm.b ? 1 : 0 },
     sk: { n: clampI(d.sk && d.sk.n, 0, 9999), last: String((d.sk && d.sk.last) || '').slice(0, 10) },
-    tt: strs(d.tt, 30, 20).filter(i => TTIDS.has(i)), mc: clampI(d.mc, 0, 1e6),
+    tt: strs(d.tt, 60, 20).filter(i => TTIDS.has(i)), mc: clampI(d.mc, 0, 1e6),
     rp: (Array.isArray(d.rp) ? d.rp : []).slice(0, 12).map(x => ({ u: String((x && x.u) || '').slice(0, 16), n: String((x && x.n) || '').slice(0, 16), t: clampI(x && x.t, 0, 4e12) })).filter(x => x.u)
   };
   o.tu = typeof d.tu === 'string' && o.tt.includes(d.tu) ? d.tu : '';
