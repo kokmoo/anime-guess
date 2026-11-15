@@ -613,7 +613,7 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '4.4';
+const APP_VERSION = '4.5';
 const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
 const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
 let CFIDS = new Set(), CFM = 0;
@@ -623,13 +623,13 @@ function cfIds() {
   } catch (e) { console.log('frames.json:', e.message); }
   return CFIDS;
 }
-const TTIDS = new Set(['first','win10','win50','quiz20','lv10','lv25','collector','ssr','streak7','missions','g_c1','g_c2','g_c3','g_c4','g_b1','g_b2','g_b3','g_b4','g_a1','g_a2','g_a3','g_a4','g_s1','g_s2','g_s3','g_s4','g_m1','g_m2','g_m3']);
+const TTIDS = new Set(['first','win10','win50','quiz20','lv10','lv25','collector','ssr','streak7','missions','g_c1','g_c2','g_c3','g_c4','g_b1','g_b2','g_b3','g_b4','g_a1','g_a2','g_a3','g_a4','g_s1','g_s2','g_s3','g_s4','g_m1','g_m2','g_m3','g_c5','g_c6','g_c7','g_b5','g_b6','g_b7','g_a5','g_a6','g_a7','g_s5','g_s6','g_s7','g_m4','g_m5']);
 const ONLINE = new Map();   // ชื่อบัญชี(ตัวพิมพ์เล็ก) -> Set ของ socket ที่ออนไลน์ (ใช้ส่งคำชวน)
 const unOf = sid => { const s = sid && io.sockets.sockets.get(sid); return (s && s.data && s.data.un) || ''; };
 const AV_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/;
 function cleanProf(d) {
   d = d && typeof d === 'object' ? d : {};
-  const o = { fr: FRAMES.has(d.fr) ? d.fr : 'none', nf: NFX.has(d.nf) ? d.nf : 'none', cf: (typeof d.cf === 'string' && cfIds().has(d.cf)) ? d.cf : '', tt: TTIDS.has(d.tt) ? d.tt : '', lv: Math.min(99, Math.max(1, parseInt(d.lv) || 1)), av: '' };
+  const o = { fr: FRAMES.has(d.fr) ? d.fr : 'none', nf: NFX.has(d.nf) ? d.nf : 'none', cf: (typeof d.cf === 'string' && cfIds().has(d.cf)) ? d.cf : '', af: (typeof d.af === 'string' && cfIds().has(d.af)) ? d.af : '', tt: TTIDS.has(d.tt) ? d.tt : '', lv: Math.min(99, Math.max(1, parseInt(d.lv) || 1)), av: '' };
   if (typeof d.av === 'string' && d.av.length <= 24000 && AV_RE.test(d.av)) o.av = d.av;
   return o;
 }
@@ -637,7 +637,7 @@ const NOAVPID = new Set(); // ผู้เล่นแขกที่แอด�
 const avBlocked = p => NOAVPID.has(p.pid) || !!(p.sid && (io.sockets.sockets.get(p.sid) || { data: {} }).data.noav);
 function applyProf(p, d) {
   const o = cleanProf(d); if (avBlocked(p)) o.av = '';
-  p.fr = o.fr; p.nf = o.nf; p.cf = o.cf; p.tt = o.tt; p.lv = o.lv;
+  p.fr = o.fr; p.nf = o.nf; p.cf = o.cf; p.af = o.af; p.tt = o.tt; p.lv = o.lv;
   if (o.av !== (p.av || '')) { p.av = o.av; p.ah = o.av ? (p.ah || 0) + 1 : 0; }
 }
 
@@ -845,7 +845,7 @@ function cleanAcct(d, old) {
     rp: (Array.isArray(d.rp) ? d.rp : []).slice(0, 12).map(x => ({ u: String((x && x.u) || '').slice(0, 16), n: String((x && x.n) || '').slice(0, 16), t: clampI(x && x.t, 0, 4e12) })).filter(x => x.u)
   };
   o.tu = typeof d.tu === 'string' && o.tt.includes(d.tu) ? d.tu : '';
-  o.cf = typeof d.cf === 'string' && o.cfo.includes(d.cf) ? d.cf : '';
+  o.cf = typeof d.cf === 'string' && o.cfo.includes(d.cf) ? d.cf : ''; o.af = typeof d.af === 'string' && o.cfo.includes(d.af) ? d.af : '';
   o.av = typeof d.av === 'string' && d.av.length <= 24000 && AV_RE.test(d.av) ? d.av : '';
   // กันการแก้ตัวเลขในเครื่องแบบก้าวกระโดด: เพิ่มได้ไม่เกินโควตาต่อการบันทึกหนึ่งครั้ง
   o.coins = Math.min(o.coins, old ? old.coins + 6000 : 20000);
@@ -868,7 +868,7 @@ function view(r, p) {
     cards: p.cards, qlog: p.qlog || [], qa: r.phase === 'play' && r.qa ? { asker: r.qa.asker, askerName: r.qa.askerName, card: r.qa.card, q: r.qa.q, answers: r.qa.entry.answers, guide: r.qa.asker === p.pid ? null : r.qa.guide } : null, res: p.res,
     players: r.players.map(q => ({
       pid: q.pid, name: q.name, off: !q.sid, ready: q.ready, res: q.res, cards: q.cards.length, wins: q.wins || 0,
-      fr: q.fr || 'none', nf: q.nf || 'none', cf: q.cf || '', tt: q.tt || '', un: unOf(q.sid), lv: q.lv || 1, ah: q.ah || 0, g: q.res ? (q.g || null) : null, earn: over ? (q.earn || 0) : 0,
+      fr: q.fr || 'none', nf: q.nf || 'none', cf: q.cf || '', af: q.af || '', tt: q.tt || '', un: unOf(q.sid), lv: q.lv || 1, ah: q.ah || 0, g: q.res ? (q.g || null) : null, earn: over ? (q.earn || 0) : 0,
       asks: over ? q.asks : 0, used: over ? q.used : 0, t: over ? q.t : 0,
       ch: (over || q.res || (q.pid !== p.pid && r.phase !== 'lobby')) ? q.ch : null
     }))
@@ -1577,7 +1577,7 @@ function qzView(r, p) {
   const v = {
     code: r.code, phase: r.phase, you: p.pid, rid: r.rid || 0, owner: r.owner === p.pid, ownerPid: r.owner, set: r.set, n: r.qs.length, i: r.i,
     players: r.players.map(x => ({
-      pid: x.pid, name: x.name, score: x.score, ok: x.ok, streak: x.streak, online: x.online, fr: x.fr || 'none', nf: x.nf || 'none', cf: x.cf || '', tt: x.tt || '', un: unOf(x.sid), lv: x.lv || 1, ah: x.ah || 0,
+      pid: x.pid, name: x.name, score: x.score, ok: x.ok, streak: x.streak, online: x.online, fr: x.fr || 'none', nf: x.nf || 'none', cf: x.cf || '', af: x.af || '', tt: x.tt || '', un: unOf(x.sid), lv: x.lv || 1, ah: x.ah || 0,
       answered: r.phase === 'q' ? x.ans !== null : undefined,
       delta: r.phase === 'reveal' ? x.delta : undefined,
       pick: r.phase === 'reveal' ? x.ans : undefined

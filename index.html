@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- ag-build:20261052 -->
+<!-- ag-build:20261053 -->
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ANIME GUESS</title>
@@ -107,7 +107,7 @@ mark{background:var(--sun);color:#14142b;padding:0 2px}
 
 .avw{position:relative;display:inline-flex;flex:none;border-radius:50%;padding:4px;vertical-align:middle}
 .avw .av{position:relative;z-index:1;overflow:hidden;border-width:2px;width:34px;height:34px}.av img{width:100%;height:100%;object-fit:cover;display:block}
-.avw.big{padding:6px}.avw.big .av{width:72px;height:72px;font-size:30px}
+.avw.big{padding:6px}.avw.af{padding:0;width:42px;height:42px;overflow:visible;border-radius:0;margin:6px;z-index:2}.avw.af.big{width:84px;height:84px;margin:14px}.avw.af::before{display:none}.avw .afb{position:absolute;pointer-events:none}.afb .fb{margin:0}.afi{display:flex;width:100%;height:100%;align-items:center;justify-content:center;font-weight:800;font-size:24px}.avw.big .av{width:72px;height:72px;font-size:30px}
 .avw::before{content:'';position:absolute;inset:0;border-radius:50%;z-index:0}
 .fr-gold::before{background:linear-gradient(135deg,#fff3a0,#f5b800 45%,#a86b00)}
 .fr-sakura::before{background:linear-gradient(135deg,#ffd1e6,#ff7eb3 55%,#ffc1dd)}
@@ -305,13 +305,14 @@ body.bgi::before{animation:kb 55s ease-in-out infinite alternate;will-change:tra
 const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิดตัวอักษร'],era:['📅','ใบ้ยุค'],ability:['⚡','ความสามารถ'],side:['🏴','ฝ่าย'],role:['⭐','บทบาท']};
 const s=io(),$=id=>document.getElementById(id);
 const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
-const VER=5,APPV='4.4',BUILD='20261052';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,libSc=0,libSc2=0,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
+const VER=5,APPV='4.5',BUILD='20261053';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,libSc=0,libSc2=0,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
 const pre=new URLSearchParams(location.search).get('room')||'';
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
 const AVC={},avAsk=new Map(),AVOK=/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/;
 const avSrc=p=>{if(!p)return '';if(!p.pid)return p.av||'';if((st&&p.pid===st.you)||(QM&&p.pid===QM.you))return PF.av||'';const c=AVC[p.pid];return c&&c.ah===p.ah?c.src:''};
-const av=(n,p,big)=>{p=p||{};const src=avSrc(p),f=p.fr&&p.fr!=='none'?' fr-'+p.fr:'';return `<span class="avw${f}${big?' big':''}"><span class="av" style="background:hsl(${[...n].reduce((a,c)=>a+c.charCodeAt(0),0)*47%360} 85% 65%)">${src?`<img src="${src}" alt="">`:esc([...n][0]||'?')}</span></span>`};
+const av=(n,p,big)=>{p=p||{};const src=avSrc(p),af=p.af&&CFM[p.af];if(af){const w=af.win,pd=.012,W=100/((w[2]-w[0])+2*pd),hh=W*af.h/af.w,hue=[...n].reduce((a,c)=>a+c.charCodeAt(0),0)*47%360;return `<span class="avw af${big?' big':''}"><span class="afb" style="width:${W}%;left:${-(w[0]-pd)*W}%;top:${-(w[1]-pd)*hh}%">${fbox(af,`<span class="afi" style="background:hsl(${hue} 85% 65%)">${src?`<img src="${src}" alt="">`:esc([...n][0]||'?')}</span>`)}</span></span>`}
+ const f=p.fr&&p.fr!=='none'?' fr-'+p.fr:'';return `<span class="avw${f}${big?' big':''}"><span class="av" style="background:hsl(${[...n].reduce((a,c)=>a+c.charCodeAt(0),0)*47%360} 85% 65%)">${src?`<img src="${src}" alt="">`:esc([...n][0]||'?')}</span></span>`};
 const pnm=p=>{const n=esc(p.name);return (p.nf&&p.nf!=='none'?`<span class="nf nf-${p.nf}">${n}</span>`:n)+(p.tt&&TTM[p.tt]?` <small class="ttl ${TTM[p.tt].tr?'t-'+TTM[p.tt].tr:''}">${TTM[p.tt].i}${TTM[p.tt].n}</small>`:'')+(p.lv>1?` <small class="lvb">Lv${p.lv}</small>`:'')};
 const gline=(p,big)=>{if(!p||p.res!=='lose'||!p.g)return '';const g=p.g,t=esc(g.th||g.n)+(g.th?` <small>(${esc(g.n)})</small>`:'');return `<div class="wg${big?' big':''}">${g.i?`<img src="/img/${g.i}.jpg" alt="" onerror="this.remove()">`:''}❌ ${big?esc(p.name)+' ':''}ตอบ: ${t}</div>`};
 function needAv(list){const now=Date.now(),need=list.filter(p=>p.ah&&!((st&&p.pid===st.you)||(QM&&p.pid===QM.you))&&!(AVC[p.pid]&&AVC[p.pid].ah===p.ah)&&!(now-(avAsk.get(p.pid+':'+p.ah)||0)<2500));if(need.length){need.forEach(p=>avAsk.set(p.pid+':'+p.ah,now));s.emit(st?'getav':'qz:getav',need.map(p=>p.pid))}}
@@ -582,7 +583,7 @@ const TT=[
  {id:'streak7',i:'🔥',n:'ขยันสุดๆ',d:'เข้าเล่นต่อเนื่อง 7 วัน',pr:()=>[PF.sk.n,7]},
  {id:'missions',i:'🎯',n:'นักภารกิจ',d:'ทำภารกิจรายวันสำเร็จ 15 ครั้ง',pr:()=>[PF.mc,15]}];
 const TTM={};TT.forEach(t=>TTM[t.id]=t);
-const GT=[{id:'g_c1',tr:'C',i:'🍜',n:'สายบะหมี่'},{id:'g_c2',tr:'C',i:'🛏️',n:'ขอนอนอีกห้านาที'},{id:'g_c3',tr:'C',i:'🐟',n:'ปลาเค็มผู้ศรัทธา'},{id:'g_c4',tr:'C',i:'🤡',n:'ตัวตลกประจำห้อง'},{id:'g_b1',tr:'B',i:'🥷',n:'นินจาขาดเรียน'},{id:'g_b2',tr:'B',i:'🍙',n:'สาวกข้าวปั้น'},{id:'g_b3',tr:'B',i:'📺',n:'ดูอนิเมะถึงตีสาม'},{id:'g_b4',tr:'B',i:'😎',n:'ฉันไม่ใช่โอตาคุนะ'},{id:'g_a1',tr:'A',i:'👁️',n:'ดวงตาขวาที่ถูกผนึก'},{id:'g_a2',tr:'A',i:'⚔️',n:'ผู้ถูกดาบเลือก'},{id:'g_a3',tr:'A',i:'💤',n:'พระเอกขี้เกียจ'},{id:'g_a4',tr:'A',i:'🍥',n:'ทายผิดแต่มั่นใจ'},{id:'g_s1',tr:'S',i:'🌑',n:'ราชันย์เงามืดผู้ทายผิด'},{id:'g_s2',tr:'S',i:'🔥',n:'เปลวไฟแห่งโอตาคุ'},{id:'g_s3',tr:'S',i:'🌀',n:'ผู้ตื่นรู้ระดับ 99999'},{id:'g_s4',tr:'S',i:'☠️',n:'จอมมารเบียวนิรันดร์'},{id:'g_m1',tr:'M',i:'👑',n:'ราชาแห่งทุกจักรวาลอนิเมะ'},{id:'g_m2',tr:'M',i:'🌸',n:'เทพผู้ทายถูกทุกตัว'},{id:'g_m3',tr:'M',i:'♾️',n:'พลังที่ไม่มีวันจบสิ้น'}];GT.forEach(t=>{t.d='ได้จากการสุ่มกาชา';TTM[t.id]=t});
+const GT=[{id:'g_c1',tr:'C',i:'🍜',n:'สายบะหมี่'},{id:'g_c2',tr:'C',i:'🛏️',n:'ขอนอนอีกห้านาที'},{id:'g_c3',tr:'C',i:'🐟',n:'ปลาเค็มผู้ศรัทธา'},{id:'g_c4',tr:'C',i:'🤡',n:'ตัวตลกประจำห้อง'},{id:'g_b1',tr:'B',i:'🥷',n:'นินจาขาดเรียน'},{id:'g_b2',tr:'B',i:'🍙',n:'สาวกข้าวปั้น'},{id:'g_b3',tr:'B',i:'📺',n:'ดูอนิเมะถึงตีสาม'},{id:'g_b4',tr:'B',i:'😎',n:'ฉันไม่ใช่โอตาคุนะ'},{id:'g_a1',tr:'A',i:'👁️',n:'ดวงตาขวาที่ถูกผนึก'},{id:'g_a2',tr:'A',i:'⚔️',n:'ผู้ถูกดาบเลือก'},{id:'g_a3',tr:'A',i:'💤',n:'พระเอกขี้เกียจ'},{id:'g_a4',tr:'A',i:'🍥',n:'ทายผิดแต่มั่นใจ'},{id:'g_s1',tr:'S',i:'🌑',n:'ราชันย์เงามืดผู้ทายผิด'},{id:'g_s2',tr:'S',i:'🔥',n:'เปลวไฟแห่งโอตาคุ'},{id:'g_s3',tr:'S',i:'🌀',n:'ผู้ตื่นรู้ระดับ 99999'},{id:'g_s4',tr:'S',i:'☠️',n:'จอมมารเบียวนิรันดร์'},{id:'g_m1',tr:'M',i:'👑',n:'ราชาแห่งทุกจักรวาลอนิเมะ'},{id:'g_m2',tr:'M',i:'🌸',n:'เทพผู้ทายถูกทุกตัว'},{id:'g_m3',tr:'M',i:'♾️',n:'พลังที่ไม่มีวันจบสิ้น'},{id:'g_c5',tr:'C',i:'🍳',n:'ไข่ดาวไม่สุก'},{id:'g_c6',tr:'C',i:'🧦',n:'ถุงเท้าข้างเดียว'},{id:'g_c7',tr:'C',i:'🐧',n:'เพนกวินหลงทาง'},{id:'g_b5',tr:'B',i:'🍢',n:'แฟนคลับโอเด้ง'},{id:'g_b6',tr:'B',i:'🎒',n:'ตัวประกอบที่ขยัน'},{id:'g_b7',tr:'B',i:'🎮',n:'นักปั่นแต้มตัวยง'},{id:'g_a5',tr:'A',i:'🌙',n:'ผู้ท่องรัตติกาลที่ลืมปิดแอร์'},{id:'g_a6',tr:'A',i:'🗡️',n:'ดาบข้าอยู่ไหน'},{id:'g_a7',tr:'A',i:'🔮',n:'ผู้ครองพลังต้องห้าม (แค่ค่าไฟ)'},{id:'g_s5',tr:'S',i:'🐉',n:'มังกรที่กลัวผีเสื้อ'},{id:'g_s6',tr:'S',i:'💥',n:'ระเบิดความเบียวขั้นสุด'},{id:'g_s7',tr:'S',i:'🧙',n:'จอมเวทผู้ลืมคาถา'},{id:'g_m4',tr:'M',i:'🌌',n:'ผู้สร้างจักรวาล (ที่ยังไม่ส่งการบ้าน)'},{id:'g_m5',tr:'M',i:'🪽',n:'เทพเงามืดที่แม่เรียกไปกินข้าว'}];GT.forEach(t=>{t.d='ได้จากการสุ่มกาชา';TTM[t.id]=t});
 // ปรับรางวัล/เป้าหมายภารกิจได้ที่นี่ (วันละ 3 ภารกิจ สุ่มจากรายการนี้ ทุกเครื่องได้ชุดเดียวกันในวันเดียวกัน)
 const MP=[
  {id:'play',n:'เล่นเกมทายตัวละคร 1 เกม',t:1,c:30},
@@ -982,13 +983,13 @@ if(pqroom)quizHome();
 // ================= โปรไฟล์ / เหรียญ / ร้านค้า / มีอะไรใหม่ =================
 const FR=[['none','ไม่มีกรอบ',0],['gold','กรอบทอง',150],['sakura','กรอบซากุระ',200],['ice','กรอบน้ำแข็ง',250],['emerald','กรอบมรกต',300],['neon','กรอบนีออน',400],['fire','กรอบเปลวไฟ',500],['royal','กรอบราชวงศ์',600],['rainbow','กรอบสายรุ้ง',800],['galaxy','กรอบกาแล็กซี่',1000]];
 const NF=[['none','ชื่อปกติ',0],['gold','ชื่อสีทอง',100],['ice','ชื่อน้ำแข็ง',150],['neon','ชื่อนีออน',250],['fire','ชื่อเปลวไฟ',300],['sparkle','ชื่อประกาย',400],['rainbow','ชื่อสายรุ้ง',500]];
-function pfNorm(src){const d={coins:0,xp:0,owned:[],fr:'none',nf:'none',av:'',games:0,wins:0,qgames:0,daily:'',paid:[],cf:'',cfo:[],gp:{s:0,r:0},dm:{d:'',p:{},c:{},b:0},sk:{n:0,last:''},tt:[],tu:'',mc:0,rp:[]};try{Object.assign(d,src||{})}catch(e){}
+function pfNorm(src){const d={coins:0,xp:0,owned:[],fr:'none',nf:'none',av:'',games:0,wins:0,qgames:0,daily:'',paid:[],cf:'',cfo:[],gp:{s:0,r:0},dm:{d:'',p:{},c:{},b:0},sk:{n:0,last:''},tt:[],tu:'',mc:0,rp:[],af:''};try{Object.assign(d,src||{})}catch(e){}
  if(!d.dm||typeof d.dm!=='object')d.dm={d:'',p:{},c:{},b:0};d.dm.p=d.dm.p||{};d.dm.c=d.dm.c||{};if(!d.sk||typeof d.sk!=='object')d.sk={n:0,last:''};d.sk.n=+d.sk.n||0;if(!Array.isArray(d.tt))d.tt=[];if(!Array.isArray(d.rp))d.rp=[];d.mc=+d.mc||0;if(!d.gp||typeof d.gp!=='object')d.gp={s:0,r:0};if(typeof d.gp.m!=='number')d.gp.m=((+d.gp.s||0)>0||(d.cfo&&d.cfo.length>0))?80:0;if(!Array.isArray(d.cfo))d.cfo=[];if(!d.gp||typeof d.gp!=='object')d.gp={s:0,r:0};d.gp.s=+d.gp.s||0;d.gp.r=+d.gp.r||0;if(!Array.isArray(d.owned))d.owned=[];if(!Array.isArray(d.paid))d.paid=[];return d}
 function pfLoad(){try{return pfNorm(JSON.parse(localStorage.prof||'{}'))}catch(e){return pfNorm({})}}
 const pfLocal=()=>{try{localStorage.prof=JSON.stringify(PF)}catch(e){}};
 const pfSave=()=>{pfLocal();accSave()};
 const lvOf=xp=>Math.floor(Math.sqrt(Math.max(0,xp)/40))+1;
-const profOut=()=>({fr:PF.fr,nf:PF.nf,lv:lvOf(PF.xp),av:PF.av||'',cf:(PF.cf&&PF.cfo.includes(PF.cf))?PF.cf:'',tt:(PF.tu&&PF.tt.includes(PF.tu))?PF.tu:''});
+const profOut=()=>({fr:PF.fr,nf:PF.nf,lv:lvOf(PF.xp),av:PF.av||'',cf:(PF.cf&&PF.cfo.includes(PF.cf))?PF.cf:'',af:(PF.af&&PF.cfo.includes(PF.af))?PF.af:'',tt:(PF.tu&&PF.tt.includes(PF.tu))?PF.tu:''});
 const owns=(k,id)=>id==='none'||PF.owned.includes(k+':'+id);
 function syncProf(){const o=profOut();if(st)act('prof',o);if(QM)s.emit('qz:prof',o)}
 function gain(coins,xp,key,msg){if(key){if(PF.paid.includes(key))return false;PF.paid.push(key);if(PF.paid.length>60)PF.paid.shift()}
@@ -1007,7 +1008,7 @@ function equip(k,id){if(!owns(k,id))return;PF[k]=id;pfSave();syncProf();openProf
 async function buy(k,id,price,label){if(PF.coins<price)return say('เหรียญไม่พอ ต้องการ '+price+' 🪙 (คุณมี '+PF.coins+')\nเล่นเกมเพื่อสะสมเหรียญเพิ่มได้เลย');
  if(!await ask('ซื้อ <b>'+esc(label)+'</b> ราคา '+price+' 🪙 ?','ซื้อ'))return;PF.coins-=price;PF.owned.push(k+':'+id);pfSave();SFX.buy();equip(k,id)}
 function openProf(tab){pTab=tab||pTab;const lv=lvOf(PF.xp),a=40*(lv-1)*(lv-1),b=40*lv*lv,pc=Math.min(100,Math.round((PF.xp-a)/(b-a)*100));
- const me={name,fr:PF.fr,nf:PF.nf,lv,av:PF.av};
+ const me={name,fr:PF.fr,nf:PF.nf,lv,av:PF.av,af:(PF.af&&PF.cfo.includes(PF.af))?PF.af:''};
  const head=`<h2>👤 โปรไฟล์</h2><div class="row" style="justify-content:flex-start;gap:14px">${av(name||'?',me,1)}<div style="flex:1"><b style="font-size:18px">${pnm({...me,lv:0,name:name||'ผู้เล่น'})}</b><br><small>Lv.${lv} · ${PF.xp} XP</small></div><b style="font-size:18px">🪙 ${PF.coins}</b></div><div class="xpbar"><i style="width:${pc}%"></i></div><small>อีก ${b-PF.xp} XP จะขึ้นเลเวลถัดไป</small>
  <div class="row tabs4" style="margin-top:8px"><button class="${pTab==='me'?'b':'g'}" onclick="openProf('me')">ข้อมูล</button><button class="${pTab==='shop'?'b':'g'}" onclick="openProf('shop')">🛒 ร้านค้า</button><button class="${pTab==='gacha'?'b':'g'}" onclick="openProf('gacha')">🎰 สุ่มกรอบ</button><button class="${pTab==='task'?'b':'g'}" onclick="openProf('task')">🎯 ภารกิจ${dmReady()?' ❗':''}</button></div>`;
  let body='';
@@ -1023,7 +1024,7 @@ function openProf(tab){pTab=tab||pTab;const lv=lvOf(PF.xp),a=40*(lv-1)*(lv-1),b=
    return `<div class="it ${on?'on':''}">${pv}<div>${lb}</div>${on?'<b>✓ ใช้งานอยู่</b>':ow?`<button class="b" onclick="equip('${k}','${id}')">ใช้</button>`:`<button class="${PF.coins>=pr?'b':'g'}" onclick="buy('${k}','${id}',${pr},'${lb}')">🪙 ${pr}</button>`}</div>`}).join('');
   body=`<b>🖼️ กรอบโปรไฟล์</b><div class="shop">${it('fr',FR)}</div><b>✨ เอฟเฟกต์ชื่อ</b><div class="shop">${it('nf',NF)}</div>`}
  $('sc').innerHTML=head+body+`<button class="b" onclick="closeSet()">ปิด</button>`;$('set').style.display='flex'}
-const NEWS=['🎰 กาชาอัปเดต: การันตี MYTHIC ทุก 100 ครั้ง · ฉายาเกรียนๆ/เบียวๆ 19 แบบ สุ่มได้จากกาชา (ระดับสูงมีสีและเอฟเฟกต์เคลื่อนไหว)'];
+const NEWS=['🖼️ ใช้กรอบจากกาชากับรูปโปรไฟล์ได้แล้ว (ไม่ทับกับกรอบการ์ด) · ฉายาเบียวๆ ฮาๆ เพิ่มอีก 14 แบบ รวม 33'];
 function openNews(){closeSet();dlg(`<b style="font-size:20px">📜 มีอะไรใหม่ · v${APPV}</b><ul style="text-align:left;line-height:1.6;padding-left:18px">${NEWS.map(n=>`<li>${n}</li>`).join('')}</ul>`,[['เริ่มเลย','b']])}
 // ================= v2.5: สุ่มกรอบการ์ด (Gacha) =================
 // ปรับค่าได้ที่นี่: ราคา อัตราสุ่ม (รวมต้อง = 100) ระบบการันตี และเหรียญคืนเมื่อได้ซ้ำ
@@ -1062,16 +1063,17 @@ async function doRoll(n){if(!CF.length)return say('กำลังโหลด�
  const html=n===1?`<div class="gwrap">${orb}<div class="gres one">${card(rs[0],1)}</div></div>`:`<div class="gwrap">${orb}<div class="gres">${rs.map(r=>card(r)).join('')}</div></div>${back?`<small>ได้เหรียญคืนจากกรอบซ้ำ ${back} 🪙</small>`:''}`;
  const i=await dlg(html,[[n===1?'สุ่มอีก ('+GA.cost+' 🪙)':'สุ่ม ×10 อีก ('+GA.cost10+' 🪙)','b'],['ใช้ / ดูคอลเลกชัน','g']]);
  if(i===0)doRoll(n);else openProf('gacha')}
+function equipAf(id){if(id&&!PF.cfo.includes(id))return;PF.af=id;pfSave();syncProf();openProf('gacha')}
 function equipCf(id){if(id&&!PF.cfo.includes(id))return;PF.cf=id;pfSave();syncProf();openProf('gacha')}
 function gachaBody(){const g=PF.gp,own=PF.cfo.length,tot=CF.length;
  let h=`<div class="box"><b>🎰 สุ่มกรอบการ์ดตัวละคร</b><br><small>กรอบจะล้อมการ์ดตัวละครของคุณในเกมทายตัวละคร · ยิ่งระดับสูงยิ่งสุ่มยาก</small>
  <div class="rt">${TORD.map(t=>`<span style="background:${TCOL[t]}">${TN[t]||t} ${GA.rates[t]}%</span>`).join('')}</div>
  <div class="row"><button class="${PF.coins>=GA.cost?'b':'g'}" onclick="doRoll(1)">สุ่ม ×1 · 🪙 ${GA.cost}</button><button class="${PF.coins>=GA.cost10?'b':'g'}" onclick="doRoll(10)">สุ่ม ×10 · 🪙 ${GA.cost10}</button></div>
  <small>การันตี: ระดับ S ขึ้นไปอย่างน้อย 1 ใบทุก ${GA.pitySS} ครั้ง (ตอนนี้ ${g.s}/${GA.pitySS})<br><b style="color:${TCOL.M}">การันตี MYTHIC (กรอบ) ทุก ${GA.pityM} ครั้ง — ตอนนี้ ${Math.min(+g.m||0,GA.pityM)}/${GA.pityM}</b><br>ในการสุ่มมีโอกาสได้ <b>ฉายา</b> ด้วย (ราว 30% ของแต่ละระดับ) ยิ่งระดับสูงยิ่งเด่น<br>ได้ของซ้ำ คืนเหรียญ: ${TORD.map(t=>(TN[t]||t)+' '+GA.refund[t]).join(' · ')}<br>สะสมแล้ว ${own}/${tot} กรอบ · ${PF.tt.filter(i=>GT.some(x=>x.id===i)).length}/${GT.length} ฉายา</small></div>`;
- h+=`<div class="row" style="justify-content:flex-start"><button class="${PF.cf?'g':'b'}" onclick="equipCf('')">${PF.cf?'ถอดกรอบการ์ด':'✓ ไม่ใส่กรอบการ์ด'}</button></div>`;
+ h+=`<div class="row" style="justify-content:flex-start"><button class="${PF.cf?'g':'b'}" onclick="equipCf('')">${PF.cf?'ถอดกรอบการ์ด':'✓ ไม่ใส่กรอบการ์ด'}</button>${PF.af?'<button class="g" onclick="equipAf(\'\')">ถอดกรอบรูปโปรไฟล์</button>':''}</div><small>กรอบเดียวกันใช้ได้ทั้งกับการ์ดตัวละครและรูปโปรไฟล์ (เลือกแยกกันได้) · เมื่อใส่กรอบกับรูปโปรไฟล์ วงแหวนจากร้านค้าจะถูกซ่อนไว้ชั่วคราว ถอดกรอบแล้วกลับมาเหมือนเดิม</small>`;
  for(const t of [...TORD].reverse()){const L=CF.filter(f=>f.t===t);if(!L.length)continue;const o=L.filter(f=>PF.cfo.includes(f.id)).length;
   h+=`<b style="color:${TCOL[t]}">${TN[t]||t}</b> <small>${o}/${L.length}</small><div class="shop gal">${L.map(f=>{const ow=PF.cfo.includes(f.id),on=PF.cf===f.id;
-   return `<div class="it ${on?'on':''}" style="${ow?'':'opacity:.45;filter:grayscale(.8)'}">${fbox(f,gSample())}<div>${ow?esc(f.n):'🔒 ???'}</div>${on?'<b>✓ ใช้งานอยู่</b>':ow?`<button class="b" onclick="equipCf('${f.id}')">ใช้</button>`:''}</div>`}).join('')}</div>`;
+   return `<div class="it ${on||PF.af===f.id?'on':''}" style="${ow?'':'opacity:.45;filter:grayscale(.8)'}">${fbox(f,gSample())}<div>${ow?esc(f.n):'🔒 ???'}</div>${ow?`${on?'<b>✓ กรอบการ์ด</b>':`<button class="b" onclick="equipCf('${f.id}')">ใช้กับการ์ด</button>`}${PF.af===f.id?'<b>✓ กรอบรูปโปรไฟล์</b>':`<button class="g" onclick="equipAf('${f.id}')">ใช้กับรูปโปรไฟล์</button>`}`:''}</div>`}).join('')}</div>`;
   const TL=GT.filter(x=>x.tr===t);if(TL.length)h+=`<div class="shop gal tt" style="margin-top:6px">${TL.map(x=>{const ow=PF.tt.includes(x.id),on=PF.tu===x.id;return `<div class="it ${on?'on':''}" style="${ow?'':'opacity:.5;filter:grayscale(.8)'}"><span class="ttl t-${x.tr}">${x.i}${ow?esc(x.n):'🔒 ???'}</span>${on?'<b>✓ ใช้อยู่</b>':ow?`<button class="b" onclick="equipTt('${x.id}','gacha')">ใช้</button>`:''}</div>`}).join('')}</div>`}
  return h}
 SFX.gacha=t=>{const i=TORD.indexOf(t);
