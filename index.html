@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- ag-build:20261049 -->
+<!-- ag-build:20261050 -->
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ANIME GUESS</title>
@@ -69,7 +69,7 @@ main.wide{max-width:1000px}body.w .top{max-width:1000px}main,.top{position:relat
 .card.off{opacity:.45;filter:grayscale(.6)}
 button{color:#14142b}button.g{color:var(--ink)}button.b,button.r{color:#fff}
 .logo b,h1 span,.code,.tile.turn,.pl.turn,.mine,.dc.me,#toast>div,.av,.box[style*="--sun"]{color:#14142b}
-.gchips{display:flex;gap:6px;overflow-x:auto;padding:8px 0;white-space:nowrap}.gc{flex:none;padding:5px 10px;border:2px solid var(--line);cursor:pointer;font-size:13px}.gc.on{background:var(--acc,#ffd23f);font-weight:800}.sgg{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin:8px 0}.sc{cursor:pointer;text-align:center;border:2px solid var(--line);padding:4px}.sc img,.sc .ph0{width:100%;aspect-ratio:2/3;object-fit:cover;display:block}.sc b{display:block;font-size:12px;margin-top:4px}.sc small{opacity:.7}.sc1{width:70px;flex:none}.sc1 img{width:100%;aspect-ratio:2/3;object-fit:cover}.lh{margin:10px 0 4px}.lg{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin:8px 0 14px}.lt{text-align:center}
+.ci{text-align:left;background:rgba(255,255,255,.08);border:2px solid var(--line);padding:6px 10px;line-height:1.6}.gchips{display:flex;gap:6px;overflow-x:auto;padding:8px 0;white-space:nowrap}.gc{flex:none;padding:5px 10px;border:2px solid var(--line);cursor:pointer;font-size:13px}.gc.on{background:var(--acc,#ffd23f);font-weight:800}.sgg{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin:8px 0}.sc{cursor:pointer;text-align:center;border:2px solid var(--line);padding:4px}.sc img,.sc .ph0{width:100%;aspect-ratio:2/3;object-fit:cover;display:block}.sc b{display:block;font-size:12px;margin-top:4px}.sc small{opacity:.7}.sc1{width:70px;flex:none}.sc1 img{width:100%;aspect-ratio:2/3;object-fit:cover}.lh{margin:10px 0 4px}.lg{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin:8px 0 14px}.lt{text-align:center}
 .lt img,.ph0{width:100%;aspect-ratio:1;object-fit:cover;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;background:var(--soft)}
 .lt small{display:block;font-size:11px;line-height:1.2;margin-top:2px}summary{cursor:pointer;padding:6px 0;font-size:17px}
 .bub{position:fixed;left:50%;transform:translateX(-50%);z-index:15;padding:10px 18px;font-weight:800;font-size:20px;border:3px solid var(--line);box-shadow:4px 4px 0 var(--sh);color:#14142b;animation:pop .4s}
@@ -83,7 +83,7 @@ button{color:#14142b}button.g{color:var(--ink)}button.b,button.r{color:#fff}
 #cm{height:38vh;overflow:auto;margin:8px 0;padding:6px;background:var(--bg);border:2px solid var(--line)}.msg{margin:4px 0;word-break:break-word}
 .emotes{display:flex;gap:6px;margin:6px 0}.em{width:auto;flex:1;margin:0;padding:4px;font-size:20px}
 .fab{position:fixed;right:14px;bottom:14px;z-index:8;width:56px;height:56px;border-radius:50%;font-size:26px;padding:0;margin:0;display:none;align-items:center;justify-content:center;background:var(--blue);color:#fff}
-#cb{position:absolute;top:-4px;right:-4px;min-width:22px;height:22px;border-radius:11px;background:var(--pink);color:#fff;font-size:13px;line-height:22px;display:none}
+#cb{position:absolute;top:-9px;right:-9px;min-width:28px;height:28px;padding:0 5px;box-sizing:border-box;border-radius:14px;background:#ff2d55;color:#fff;border:3px solid #fff;font-size:15px;font-weight:900;line-height:22px;text-align:center;display:none;animation:cbp 1.2s infinite}@keyframes cbp{50%{transform:scale(1.18)}}.fl{position:absolute;right:62px;top:50%;transform:translateY(-50%);white-space:nowrap;font-size:12px;font-weight:800;line-height:1.4;background:rgba(10,10,30,.88);color:#fff;border:2px solid var(--line);padding:1px 8px;pointer-events:none;font-family:inherit}
 .emo{position:fixed;bottom:90px;font-size:44px;z-index:18;pointer-events:none;text-align:center;animation:floatup 2.2s ease-out forwards}
 @keyframes floatup{to{transform:translateY(-55vh) rotate(12deg);opacity:0}}
 textarea{font:inherit;width:100%;min-height:220px;padding:10px;border:3px solid var(--line);background:var(--w);color:var(--ink);resize:vertical}
@@ -275,10 +275,10 @@ body.bgi::before{animation:kb 55s ease-in-out infinite alternate;will-change:tra
 <div id="bg"></div><main id="app"></main>
 <div class="ov" id="toast"><div id="tt"></div></div>
 <div class="ov" id="set"><div class="box" style="width:100%;max-width:420px" id="sc"></div></div>
-<button id="noteBtn" class="fab" style="bottom:80px;background:var(--sun);color:#14142b" onclick="togglePanel()" aria-label="โน้ตและไกด์คำถาม">📝</button>
+<button id="noteBtn" class="fab" style="bottom:80px;background:var(--sun);color:#14142b" onclick="togglePanel()" aria-label="โน้ตและไกด์คำถาม">📝<span class="fl">โน้ต</span></button>
 <div id="side"><div class="row" style="align-items:flex-start"><div class="tabs"><button id="tbn" class="tab" onclick="showTab('note')">📝 โน้ต</button><button id="tbg" class="tab" onclick="showTab('guide')">💡 ไกด์คำถาม</button></div><button class="g xbtn" onclick="closePanel()" aria-label="ปิด">✕</button></div><div id="pb"></div></div>
-<button id="libBtn" class="fab" style="bottom:146px;background:var(--w);color:#14142b" onclick="openLib()" aria-label="คลังตัวละคร">📚</button>
-<button id="chatBtn" class="fab" onclick="openChat()" aria-label="แชท">💬<span id="cb"></span></button>
+<button id="libBtn" class="fab" style="bottom:146px;background:var(--w);color:#14142b" onclick="openLib()" aria-label="คลังตัวละคร">📚<span class="fl">ดูตัวละคร</span></button>
+<button id="chatBtn" class="fab" onclick="openChat()" aria-label="แชท">💬<span class="fl">แชท</span><span id="cb"></span></button>
 <div class="ov" id="chat" style="z-index:22;align-items:flex-end"><div class="box" style="width:100%;max-width:520px;margin:0 auto 10px"><div class="row"><h2>💬 แชทห้อง</h2><button class="g" style="width:auto" onclick="closeChat()">ปิด ✕</button></div><div id="cm"></div>
 <div class="emotes"><button class="g em" onclick="act('emote','👏')">👏</button><button class="g em" onclick="act('emote','😂')">😂</button><button class="g em" onclick="act('emote','😱')">😱</button><button class="g em" onclick="act('emote','🤔')">🤔</button><button class="g em" onclick="act('emote','🔥')">🔥</button><button class="g em" onclick="act('emote','❤️')">❤️</button><button class="g em" onclick="act('emote','🙈')">🙈</button><button class="g em" onclick="act('emote','🎉')">🎉</button></div>
 <div class="row"><input id="ci" maxlength="200" placeholder="พิมพ์ข้อความ…" autocomplete="off" onkeydown="if(event.key==='Enter')sendChat()" style="margin:0"><button class="b" style="width:auto;margin:0" onclick="sendChat()">ส่ง</button></div></div></div>
@@ -289,7 +289,7 @@ body.bgi::before{animation:kb 55s ease-in-out infinite alternate;will-change:tra
 const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิดตัวอักษร'],era:['📅','ใบ้ยุค'],ability:['⚡','ความสามารถ'],side:['🏴','ฝ่าย'],role:['⭐','บทบาท']};
 const s=io(),$=id=>document.getElementById(id);
 const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
-const VER=5,APPV='4.1',BUILD='20261049';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
+const VER=5,APPV='4.2',BUILD='20261050';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,libSc=0,libSc2=0,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
 const pre=new URLSearchParams(location.search).get('room')||'';
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
@@ -400,7 +400,11 @@ function tile(p){const you=p.pid===st.you,c=p.ch,hid=you&&!p.res;
  const img=hid?'<div class="ph q">???</div>':(c.i?`<img class="ph" src="/img/${c.i}.jpg" alt="" data-i="${c.i}" data-n="${esc(c.n)}" onclick="zoom(this)">`:`<div class="ph">${esc([...c.n][0])}</div>`);
  const fr=p.cf&&CFM[p.cf];
  return `<div data-pid="${p.pid}" class="tile ${p.pid===st.turn?'turn':''} ${p.res?'res-'+p.res:''}">${fr?fbox(fr,img):img}<div class="tn">${av(p.name,p)} ${pnm(p)}${you?' <small>(คุณ)</small>':''}${p.off?' 📴':''} ${p.res==='win'?'✅':p.res==='lose'?'❌':''}</div>${gline(p)}${hid?'':`<b>${esc(c.n)}</b><small>${esc(c.a)}</small>`}</div>`}
-function zoom(e){dlg(`<img src="/img/${e.dataset.i}.jpg" style="width:100%;border:3px solid var(--line)"><div style="text-align:center;font-weight:800;margin-top:8px">${esc(e.dataset.n)}</div>`,[['ปิด','b']])}
+function chBlock(n){const c=chars.find(x=>x[0]===n);if(!c)return '';const f=franOf(c[1]),m=anmOf(f,(franMap()[c[1]]||{}).ts)||ANM[c[1]],gen=((m&&m[1])||[]).map(g=>GTH[g]||g).join(' / '),yr=m&&m[2]?'ปี '+m[2]:(c[4]?'ยุค '+c[4]:'');
+ return `<div class="ci"><div>📺 เรื่อง: <b>${esc(f)}</b>${yr?' · '+esc(yr):''}</div>${gen?`<div>🏷️ แนว: ${esc(gen)}</div>`:''}${c[6]?`<div>🎭 บทบาท: ${esc(c[6])}${c[5]?' · '+esc(c[5]):''}</div>`:''}<div id="ci2" data-n="${esc(n)}"><small>${ACC?'กำลังโหลดเพศ / อายุ / ส่วนสูง…':'🔒 ล็อกอินเพื่อดูเพศ / อายุ / ส่วนสูง'}</small></div></div>`}
+function chAsk(n){const c=chars.find(x=>x[0]===n);if(!c||!ACC)return;s.emit('ch:info',{n,a:c[1]});setTimeout(()=>{const e=$('ci2');if(e&&e.dataset.n===n&&/กำลังโหลด/.test(e.textContent))e.innerHTML='<small>ยังไม่มีข้อมูลเพศ / อายุ / ส่วนสูง</small>'},7000)}
+s.on('ch:info',d=>{const e=$('ci2');if(!e||e.dataset.n!==d.n)return;const r=d.r;if(!r){e.innerHTML='<small>ยังไม่มีข้อมูลเพศ / อายุ / ส่วนสูงของตัวละครนี้</small>';return}const g={Male:'ชาย',Female:'หญิง','Non-binary':'ไม่ระบุเพศ'}[r.g]||r.g;e.innerHTML=[g&&'⚧ เพศ: '+g,r.age&&'🎂 อายุ: '+r.age,r.h&&'📏 ส่วนสูง: '+r.h].filter(Boolean).map(x=>`<div>${esc(x)}</div>`).join('')});
+function zoom(e){const p=dlg(`<img src="/img/${e.dataset.i}.jpg" style="width:100%;max-height:42vh;object-fit:contain;border:3px solid var(--line)"><div style="text-align:center;font-weight:800;margin:8px 0 4px">${esc(e.dataset.n)}</div><div style="font-size:15px">${chBlock(e.dataset.n)}</div>`,[['ปิด','b']]);chAsk(e.dataset.n);return p}
 function useCard(c){if(!st.canCard)return say(st.turn===st.you?'ตานี้คุณใช้การ์ดไปแล้ว ใช้ได้ 1 ใบต่อตา':'ต้องถึงตาของคุณก่อนถึงจะใช้การ์ดได้');act('useCard',c)}
 function joinRoom(){if(getName())act('join',{code:$('cd').value.trim(),name,pid,prof:profOut()})}
 function rename(v){name=v.trim()||name;localStorage.name=name;act('rename',name)}
@@ -408,27 +412,39 @@ function sendGuess(){const v=$('gs').value.trim();if(!v)return;ask(`ตอบว
 s.on('react',({name,ans})=>{SFX[ans]();const d=document.createElement('div');d.className='bub '+ans;d.textContent=(ans==='yes'?'✅ ใช่':'❌ ไม่')+' · '+name;d.style.top=(70+document.querySelectorAll('.bub').length*54)+'px';document.body.appendChild(d);setTimeout(()=>d.remove(),2600)});
 s.on('kicked',()=>{st=null;lastKey='';chatMsgs=[];unread=0;closeChat();updBadge();sessionStorage.removeItem('room');mode='home';render();say('คุณถูกเจ้าของห้องเชิญออกจากห้อง')});
 function kick(p){ask('เตะผู้เล่นคนนี้ออกจากห้อง?','เตะออก','r').then(ok=>ok&&act('kick',p))}
-function openLib(){if(libLocked()){closeSet();return say('โหมดยาก: ห้ามเปิดดูคลังตัวละครระหว่างเกม 🔒')}closeSet();libQ='';libG='';libA='';libN=60;$('lc').innerHTML=`<div class="row"><h2>📚 ตัวละครในเกม (${chars.length})</h2><button class="g" style="width:auto" onclick="closeLib()">ปิด ✕</button></div><button class="b" style="margin:0 0 8px" onclick="openCx()">➕ เสนอตัวละครใหม่ (ชื่อ + เรื่อง + รูป)</button>${ADMIN?'<button class="g" style="margin:0 0 8px" onclick="cxAdmin()">🛡️ หน้าแอดมิน</button>':''}<input id="lq" placeholder="ค้นหาชื่อตัวละคร หรือชื่อเรื่อง" oninput="libQ=this.value;libN=60;libA='';drawLib()"><div id="lg" class="gchips"></div><div id="lr"></div>`;$('lib').style.display='flex';drawLib()}
+function openLib(){if(libLocked()){closeSet();return say('โหมดยาก: ห้ามเปิดดูคลังตัวละครระหว่างเกม 🔒')}closeSet();$('lc').innerHTML=`<div class="row"><h2>📚 ตัวละครในเกม (${chars.length})</h2><button class="g" style="width:auto" onclick="closeLib()">ปิด ✕</button></div>${st?'':'<button class="b" style="margin:0 0 8px" onclick="openCx()">➕ เสนอตัวละครใหม่ (ชื่อ + เรื่อง + รูป)</button>'}${ADMIN?'<button class="g" style="margin:0 0 8px" onclick="cxAdmin()">🛡️ หน้าแอดมิน</button>':''}<input id="lq" value="${esc(libQ)}" placeholder="ค้นหาชื่อตัวละคร หรือชื่อเรื่อง" oninput="libQ=this.value;libN=60;libA='';drawLib()"><div id="lg" class="gchips"></div><div id="lr"></div>`;$('lib').style.display='flex';drawLib();$('lib').scrollTop=libSc}
 async function libInfo(i){const c=chars[i];if(!c)return;const al=(c[3]||'').split('|').filter(Boolean);
- const k=await dlg((c[2]?`<img src="/img/${c[2]}.jpg" style="width:100%;max-height:45vh;object-fit:contain;border:3px solid var(--line)">`:'')+`<div style="text-align:center;font-weight:800;margin-top:8px">${esc(c[0])}</div><div style="text-align:center"><small>${esc(c[1])}${al.length?'<br>ชื่อเรียกอื่น: '+esc(al.join(', ')):'<br>ยังไม่มีชื่อเรียกอื่น/ชื่อไทย'}</small></div>`,[['✏️ เสนอชื่อไทย / ชื่อเรียกอื่น','b'],['🚩 แจ้งว่าตัวละครนี้ผิด','g'],['ปิด','g']]);
+ const kp=dlg((c[2]?`<img src="/img/${c[2]}.jpg" style="width:100%;max-height:45vh;object-fit:contain;border:3px solid var(--line)">`:'')+`<div style="text-align:center;font-weight:800;margin-top:8px">${esc(c[0])}</div><div style="text-align:center"><small>${al.length?'ชื่อเรียกอื่น: '+esc(al.join(', ')):'ยังไม่มีชื่อเรียกอื่น/ชื่อไทย'}</small></div><div style="font-size:15px;margin-top:6px">${chBlock(c[0])}</div>`,[['✏️ เสนอชื่อไทย / ชื่อเรียกอื่น','b'],['🚩 แจ้งว่าตัวละครนี้ผิด','g'],['ปิด','g']]);chAsk(c[0]);const k=await kp;
  if(k===0){if(!ACC)return flash('⚠️ ต้องล็อกอินก่อน');const v=prompt('เสนอชื่อไทยหรือชื่อเรียกอื่นของ '+c[0]+'\n(ผู้เล่นพิมพ์ชื่อนี้ตอนทายแล้วจะผ่าน เมื่อแอดมินอนุมัติ)');if(v&&v.trim())s.emit('cx:alias',{n:c[0],al:v.trim()})}
  else if(k===1){if(!ACC)return flash('⚠️ ต้องล็อกอินก่อน');const v=prompt('ผิดตรงไหน? เช่น รูปไม่ตรง ชื่อสะกดผิด เรื่องผิด');if(v!==null)s.emit('cx:report',{n:c[0],why:(v||'').trim()})}}
-function closeLib(){$('lib').style.display='none'}
+function closeLib(){libSc=$('lib').scrollTop;$('lib').style.display='none'}
 const GTH={Action:'แอ็กชัน',Adventure:'ผจญภัย',Comedy:'ตลก',Drama:'ดราม่า',Fantasy:'แฟนตาซี',Horror:'สยองขวัญ','Mahou Shoujo':'สาวน้อยเวทมนตร์',Mecha:'หุ่นยนต์',Music:'ดนตรี',Mystery:'ลึกลับ',Psychological:'จิตวิทยา',Romance:'โรแมนซ์','Sci-Fi':'ไซไฟ','Slice of Life':'ชีวิตประจำวัน',Sports:'กีฬา',Supernatural:'เหนือธรรมชาติ',Thriller:'ระทึกขวัญ'};
-function libCover(a,list){const m=ANM[a],f=list&&list[0]&&list[0][2];const u=m&&m[0]?m[0]:(f?'/img/'+f+'.jpg':'');return u?`<img loading="lazy" referrerpolicy="no-referrer" src="${esc(u)}" alt="" onerror="if(!this.dataset.f&&'${f||''}'){this.dataset.f=1;this.src='/img/${f||''}.jpg'}else this.remove()">`:'<div class="ph0">?</div>'}
-function libSer(a,n,list){return `<div class="sc" onclick="libA=this.dataset.a;libN=60;drawLib()" data-a="${esc(a)}">${libCover(a,list)}<b>${esc(a)}</b><small>${n} ตัว${ANM[a]&&ANM[a][2]?' · '+ANM[a][2]:''}</small></div>`}
+const FRAN_ALIAS={'death':'Death Note'};let FRM=null,FRN=-1;
+function franBase(a){let b=String(a).split(/\s*:\s+|\s+[-–—]\s+/)[0];b=b.replace(/\s+(\d+(st|nd|rd|th)|final)\s+season.*$/i,'').replace(/\s+(season|part|cour)\s*\d+.*$/i,'').replace(/\s+(the movie|movie|pv|ova|oad|special)\b.*$/i,'').replace(/\s+\d$/,'').trim()||String(a);return FRAN_ALIAS[b.toLowerCase()]||b}
+function franMap(){if(FRM&&FRN===chars.length)return FRM;const cnt={},base={};chars.forEach(c=>{cnt[c[1]]=(cnt[c[1]]||0)+1});const T=Object.keys(cnt);T.forEach(t=>{base[t]=franBase(t)});
+ const keys=[...new Set(Object.values(base).map(x=>x.toLowerCase()))].sort((x,y)=>x.length-y.length),root={};
+ keys.forEach(k=>{const p=keys.find(o=>o!==k&&o.length>=5&&k.startsWith(o+' '));root[k]=p&&root[p]||p||k});
+ const grp={};T.forEach(t=>{const k=root[base[t].toLowerCase()]||base[t].toLowerCase();(grp[k]=grp[k]||[]).push(t)});
+ FRM={};Object.keys(grp).forEach(k=>{const ts=grp[k],nm=ts.find(t=>t.toLowerCase()===k)||ts.slice().sort((x,y)=>cnt[y]-cnt[x])[0],disp=ts.find(t=>t.toLowerCase()===k)||(franBase(nm));ts.forEach(t=>{FRM[t]={k,name:disp,ts}})});FRN=chars.length;return FRM}
+function franOf(a){const m=franMap()[a];return m?m.name:a}
+function anmOf(name,ts){return ANM[name]||(ts||[]).map(t=>ANM[t]).find(Boolean)}
+function libCover(a,list,ts){const m=anmOf(a,ts),f=list&&list[0]&&list[0][2];const u=m&&m[0]?m[0]:(f?'/img/'+f+'.jpg':'');return u?`<img loading="lazy" referrerpolicy="no-referrer" src="${esc(u)}" alt="" onerror="if(!this.dataset.f&&'${f||''}'){this.dataset.f=1;this.src='/img/${f||''}.jpg'}else this.remove()">`:'<div class="ph0">?</div>'}
+function libSer(a,n,list,ts){const m=anmOf(a,ts);return `<div class="sc" onclick="libOpenA(this.dataset.a)" data-a="${esc(a)}">${libCover(a,list,ts)}<b>${esc(a)}</b><small>${n} ตัว${m&&m[2]?' · '+m[2]:''}</small></div>`}
+function libOpenA(a){libSc2=$('lib').scrollTop;libA=a;libN=60;drawLib();$('lib').scrollTop=0}
+function libBack(){libA='';libN=60;drawLib();$('lib').scrollTop=libSc2}
 function libTile(c){return `<div class="lt" style="cursor:pointer" onclick="libInfo(${chars.indexOf(c)})">${c[2]?`<img loading="lazy" src="/img/${c[2]}.jpg" alt="">`:'<div class="ph0">?</div>'}<small>${esc(c[0])}</small></div>`}
-function drawLib(){const q=libQ.trim().toLowerCase(),by={};chars.forEach(c=>{(by[c[1]]=by[c[1]]||[]).push(c)});
- const gc={};Object.keys(by).forEach(a=>{((ANM[a]&&ANM[a][1])||[]).forEach(g=>gc[g]=(gc[g]||0)+1)});
+function drawLib(){const q=libQ.trim().toLowerCase(),FM=franMap(),by={},tsOf={};chars.forEach(c=>{const f=FM[c[1]],nm=f?f.name:c[1];(by[nm]=by[nm]||[]).push(c);tsOf[nm]=f?f.ts:[c[1]]});
+ const gOf=a=>{const m=anmOf(a,tsOf[a]);return(m&&m[1])||[]};
+ const gc={};Object.keys(by).forEach(a=>{gOf(a).forEach(g=>gc[g]=(gc[g]||0)+1)});
  const gs=Object.keys(gc).sort((x,y)=>gc[y]-gc[x]);if(libG&&!gc[libG])libG='';
  if($('lg'))$('lg').innerHTML=gs.length?`<span class="gc${libG?'':' on'}" onclick="libG='';libA='';drawLib()">ทั้งหมด</span>`+gs.map(g=>`<span class="gc${libG===g?' on':''}" data-g="${esc(g)}" onclick="libG=this.dataset.g;libA='';drawLib()">${esc(GTH[g]||g)} ${gc[g]}</span>`).join(''):'';
- const gOk=a=>!libG||((ANM[a]&&ANM[a][1])||[]).includes(libG),back=libA?`<button class="g" style="margin:6px 0" onclick="libA='';libN=60;drawLib()">← กลับไปรายชื่อเรื่อง</button>`:'';
- if(libA&&by[libA]){$('lr').innerHTML=back+`<div style="display:flex;gap:10px;align-items:center;margin:6px 0"><div class="sc1">${libCover(libA,by[libA])}</div><div><b>${esc(libA)}</b><br><small>${by[libA].length} ตัว${ANM[libA]?' · '+((ANM[libA][1]||[]).map(g=>GTH[g]||g).join(' / ')):''}</small></div></div><div class="lg">${by[libA].map(libTile).join('')}</div>`;return}
- const ser=Object.keys(by).filter(a=>gOk(a)&&(!q||a.toLowerCase().includes(q)||by[a].some(c=>c[0].toLowerCase().includes(q)||(c[3]||'').toLowerCase().includes(q))));
- if(!q){$('lr').innerHTML=ser.sort((x,y)=>x.localeCompare(y)).map(a=>libSer(a,by[a].length,by[a])).join('').replace(/^/,'<div class="sgg">')+'</div>'||'';if(!ser.length)$('lr').innerHTML='<p>ไม่พบเรื่อง</p>';return}
- const st=ser.filter(a=>a.toLowerCase().includes(q)).sort((x,y)=>(y.toLowerCase().startsWith(q)-x.toLowerCase().startsWith(q))||x.localeCompare(y));
- const cs=chars.filter(c=>gOk(c[1])&&(c[0].toLowerCase().includes(q)||(c[3]||'').toLowerCase().includes(q))).sort((x,y)=>(y[0].toLowerCase().startsWith(q)-x[0].toLowerCase().startsWith(q)));
- $('lr').innerHTML=(st.length?`<h3 class="lh">📺 เรื่อง (${st.length})</h3><div class="sgg">${st.slice(0,30).map(a=>libSer(a,by[a].length,by[a])).join('')}</div>`:'')+(cs.length?`<h3 class="lh">🧑 ตัวละคร (${cs.length})</h3><div class="lg">${cs.slice(0,libN).map(libTile).join('')}</div>${cs.length>libN?`<button class="g" onclick="libN+=60;drawLib()">แสดงเพิ่ม</button>`:''}`:'')||'<p>ไม่พบ</p>'}
+ const gOk=a=>!libG||gOf(a).includes(libG),back=libA?`<button class="g" style="margin:6px 0" onclick="libBack()">← กลับไปรายชื่อเรื่อง</button>`:'';
+ if(libA&&by[libA]){const m=anmOf(libA,tsOf[libA]);$('lr').innerHTML=back+`<div style="display:flex;gap:10px;align-items:center;margin:6px 0"><div class="sc1">${libCover(libA,by[libA],tsOf[libA])}</div><div><b>${esc(libA)}</b><br><small>${by[libA].length} ตัว${m?' · '+((m[1]||[]).map(g=>GTH[g]||g).join(' / ')):''}</small></div></div><div class="lg">${by[libA].map(libTile).join('')}</div>`;return}
+ const ser=Object.keys(by).filter(a=>gOk(a)&&(!q||a.toLowerCase().includes(q)||tsOf[a].some(t=>t.toLowerCase().includes(q))||by[a].some(c=>c[0].toLowerCase().includes(q)||(c[3]||'').toLowerCase().includes(q))));
+ if(!q){$('lr').innerHTML=ser.length?'<div class="sgg">'+ser.sort((x,y)=>x.localeCompare(y)).map(a=>libSer(a,by[a].length,by[a],tsOf[a])).join('')+'</div>':'<p>ไม่พบเรื่อง</p>';return}
+ const st0=ser.filter(a=>a.toLowerCase().includes(q)||tsOf[a].some(t=>t.toLowerCase().includes(q))).sort((x,y)=>(y.toLowerCase().startsWith(q)-x.toLowerCase().startsWith(q))||x.localeCompare(y));
+ const cs=chars.filter(c=>gOk(franOf(c[1]))&&(c[0].toLowerCase().includes(q)||(c[3]||'').toLowerCase().includes(q))).sort((x,y)=>(y[0].toLowerCase().startsWith(q)-x[0].toLowerCase().startsWith(q)));
+ $('lr').innerHTML=(st0.length?`<h3 class="lh">📺 เรื่อง (${st0.length})</h3><div class="sgg">${st0.slice(0,30).map(a=>libSer(a,by[a].length,by[a],tsOf[a])).join('')}</div>`:'')+(cs.length?`<h3 class="lh">🧑 ตัวละคร (${cs.length})</h3><div class="lg">${cs.slice(0,libN).map(libTile).join('')}</div>${cs.length>libN?`<button class="g" onclick="libN+=60;drawLib()">แสดงเพิ่ม</button>`:''}`:'')||'<p>ไม่พบ</p>'}
 function setTheme(t){document.documentElement.dataset.theme=t;localStorage.theme=t;openSet()}
 function setCalm(on){if(on)document.documentElement.setAttribute('data-calm','');else document.documentElement.removeAttribute('data-calm');localStorage.calm=on?1:0}
 function warn(){if($('wn'))return;const d=document.createElement('div');d.id='wn';d.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:40;background:#ff4d8d;color:#fff;font-weight:600;padding:10px 14px;text-align:center';d.textContent='⚠️ เซิร์ฟเวอร์เป็นเวอร์ชันเก่า บางฟีเจอร์จะไม่ทำงาน — แทนที่ server.js แล้วรีสตาร์ท (Ctrl+C แล้ว npm start)';document.body.appendChild(d)}
@@ -482,7 +498,7 @@ function sgKey(e){if(e.key==='ArrowDown'||e.key==='ArrowUp'){if(!sgList.length)r
  else if(e.key==='Enter'){e.preventDefault();if(sgSel>=0)pickSg(sgSel);else sendGuess()}else if(e.key==='Escape'){$('gsl').innerHTML='';sgList=[]}}
 function openChat(){chatOpen=true;unread=0;updBadge();$('chat').style.display='flex';renderChat();setTimeout(()=>$('ci').focus(),50)}
 function closeChat(){chatOpen=false;$('chat').style.display='none'}
-function updBadge(){const b=$('cb');b.textContent=unread||'';b.style.display=unread?'block':'none'}
+function updBadge(){const b=$('cb');b.textContent=unread>99?'99+':(unread||'');b.style.display=unread?'block':'none'}
 function msgHTML(m){return `<div class="msg"><b style="color:hsl(${[...m.name].reduce((a,c)=>a+c.charCodeAt(0),0)*47%360} 70% 55%)">${esc(m.name)}</b>: ${esc(m.text)}</div>`}
 function renderChat(){const e=$('cm');e.innerHTML=chatMsgs.map(msgHTML).join('')||'<small>ยังไม่มีข้อความ ทักทายเพื่อนได้เลย 👋</small>';e.scrollTop=e.scrollHeight}
 function sendChat(){const v=$('ci').value.trim();if(!v)return;act('chat',v);$('ci').value=''}
@@ -589,7 +605,7 @@ function recentBox(players){if(!AUTHON)return '';
  if(!ACC)return `<div class="box"><small>👥 ล็อกอินเพื่อชวนคนที่เคยเล่นด้วยกันกลับเข้าห้องได้ (โปรไฟล์ → ข้อมูล)</small></div>`;
  invPoll();const inRoom=new Set(players.map(p=>p.un).filter(Boolean)),L=PF.rp.filter(r=>!inRoom.has(r.u));
  if(!L.length)return PF.rp.length?'':`<div class="box"><small>👥 พอได้เล่นกับเพื่อนที่ล็อกอินแล้ว รายชื่อจะมาอยู่ตรงนี้ ให้ชวนกลับเข้าห้องได้เร็ว ๆ</small></div>`;
- return `<div class="box"><b>👥 คนที่เพิ่งเล่นด้วยกัน</b>${L.map(r=>{const on=INVON.has(r.u);return `<div class="pl rp"><span class="gr">${on?'🟢':'⚪'} ${esc(r.n)} <small>@${esc(r.u)}</small></span><button class="${on?'b':'g'}" style="width:auto;margin:0" ${on?'':'disabled'} onclick="invite('${esc(r.u)}')">${on?'✉️ ชวน':'ออฟไลน์'}</button></div>`}).join('')}</div>`}
+ return `<details class="box"><summary><b>👥 คนที่เพิ่งเล่นด้วยกัน (${L.length})</b></summary>${L.map(r=>{const on=INVON.has(r.u);return `<div class="pl rp"><span class="gr">${on?'🟢':'⚪'} ${esc(r.n)} <small>@${esc(r.u)}</small></span><button class="${on?'b':'g'}" style="width:auto;margin:0" ${on?'':'disabled'} onclick="invite('${esc(r.u)}')">${on?'✉️ ชวน':'ออฟไลน์'}</button></div>`}).join('')}</details>`}
 function invite(u){s.emit('inv:send',u)}
 s.on('inv:res',d=>flash((d.ok?'✉️ ':'⚠️ ')+d.msg));
 s.on('inv:got',async d=>{if(st||QM){flash('✉️ '+d.from+' ชวนเข้าห้อง '+d.code+' (ออกจากห้องนี้ก่อนถึงจะเข้าได้)');return}
@@ -641,11 +657,12 @@ function alBox(){return `<div class="box"><b>🔎 ค้นหาจากฐา
  <div class="row tabs4" style="margin-top:6px"><button id="alt_c" class="${alM==='c'?'b':'g'}" onclick="alMode('c')">ชื่อตัวละคร</button><button id="alt_a" class="${alM==='a'?'b':'g'}" onclick="alMode('a')">ชื่อเรื่อง</button></div>
  <input id="alq" maxlength="60" placeholder="${alM==='c'?'เช่น Gojo Satoru, Luffy':'เช่น Jujutsu Kaisen, Bleach'} (พิมพ์ภาษาอังกฤษ)" onkeydown="if(event.key==='Enter')alGo()"><button class="b" onclick="alGo()">ค้นหา</button><div id="alr"></div></div>`}
 function alMode(m){alM=m;alRes=null;const q=$('alq');if(q)q.placeholder=m==='c'?'เช่น Gojo Satoru, Luffy (พิมพ์ภาษาอังกฤษ)':'เช่น Jujutsu Kaisen, Bleach (พิมพ์ภาษาอังกฤษ)';$('alt_c').className=m==='c'?'b':'g';$('alt_a').className=m==='a'?'b':'g';alDraw()}
-function alGo(){const q=$('alq').value.trim();if(!q)return;alLoad=true;alDraw();s.emit(alM==='c'?'al:find':'al:anime',q)}
+function alGo(){const q=$('alq').value.trim();if(!q)return;alCur=null;alLoad=true;alDraw();s.emit(alM==='c'?'al:find':'al:anime',q)}
 s.on('al:err',m=>{alLoad=false;flash('⚠️ '+m);alDraw();if(alWaitRes){const f=alWaitRes;alWaitRes=null;f()}});
 s.on('al:res',d=>{alLoad=false;if(d.kind==='chars'&&alRes&&alRes.kind==='chars'&&d.p>1&&alRes.id){d.items=alRes.items.concat(d.items);d.id=alRes.id}else if(d.kind==='chars'&&alRes&&alRes.pend)d.id=alRes.pend;alRes=d;d.items.forEach(x=>{if(x.id&&x.img)alPool.set(x.id,x)});alDraw();if(alWaitRes){const f=alWaitRes;alWaitRes=null;f()}});
-function alOpen(id){alLoad=true;alRes={kind:'wait',pend:id,items:[]};alDraw();s.emit('al:chars',{id,p:1})}
-function alMore(){alLoad=true;const id=alRes.id,p=alRes.p+1;alDraw();s.emit('al:chars',{id,p})}
+let alGrp=[],alCur=null;
+function alOpen(i){const g=alGrp[i];if(!g)return;alCur={ids:g.ids,a:g.name};alLoad=true;alRes={kind:'wait',pend:g.ids[0],items:[]};alDraw();s.emit('al:chars',{ids:g.ids,a:g.name,p:1})}
+function alMore(){alLoad=true;const id=alRes.id,p=alRes.p+1;alDraw();s.emit('al:chars',alCur?{ids:alCur.ids,a:alCur.a,p}:{id,p})}
 function alTog(id){if(alSel.has(id))alSel.delete(id);else{if(alSel.size+cxRows.length>=CXMAX)return flash('เลือกได้รวมไม่เกิน '+CXMAX+' ตัวต่อครั้ง');alSel.add(id)}alDraw()}
 function alTop(){let k=0;alRes.items.forEach(x=>{if(k<10&&!cxEx(x.n)&&alSel.size+cxRows.length<CXMAX){alSel.add(x.id);k++}});alDraw()}
 let alWaitRes=null;
@@ -653,7 +670,8 @@ async function alFill(){if(!alRes||alRes.kind!=='chars'||alLoad)return;let g=0;a
 function alAll(){alRes.items.forEach(x=>{if(!cxEx(x.n)&&alSel.size+cxRows.length<CXMAX)alSel.add(x.id)});alDraw()}
 function alDraw(){const e=$('alr');if(!e)return;let h='';
  if(alLoad)h='<small>กำลังค้นหา…</small>';
- else if(alRes&&alRes.kind==='anime')h=alRes.items.length?alRes.items.map(m=>`<div class="row" style="margin:4px 0;justify-content:flex-start;gap:8px;cursor:pointer" onclick="alOpen(${m.id})"><img src="${esc(m.th)}" style="width:40px;height:56px;object-fit:cover;border:2px solid var(--line)"><span><b>${esc(m.t)}</b><br><small>แตะเพื่อดูตัวละคร</small></span></div>`).join(''):'<small>ไม่พบเรื่องนี้</small>';
+ else if(alRes&&alRes.kind==='anime'){const G={};alGrp=[];alRes.items.forEach(m=>{const k=franBase(m.t).toLowerCase();if(!G[k]){const ex=Object.values(franMap()).find(v=>v.k===k);G[k]={ids:[],th:m.th,name:ex?ex.name:franBase(m.t),n:0};alGrp.push(G[k])}G[k].ids.push(m.id);G[k].n++});
+ h=alGrp.length?alGrp.map((g,i)=>`<div class="row" style="margin:4px 0;justify-content:flex-start;gap:8px;cursor:pointer" onclick="alOpen(${i})"><img src="${esc(g.th)}" style="width:40px;height:56px;object-fit:cover;border:2px solid var(--line)"><span><b>${esc(g.name)}</b><br><small>${g.n>1?'รวม '+g.n+' ภาค/ตอน · ':''}แตะเพื่อดูตัวละครทั้งหมด</small></span></div>`).join(''):'<small>ไม่พบเรื่องนี้</small>'}
  else if(alRes&&(alRes.kind==='chars'||alRes.kind==='find')){const it=alRes.items;
   h=(alRes.kind==='chars'?`<b>${esc(alRes.a)}</b><br>`:'')+(it.length?`<div class="lg">${it.map(x=>{const dup=cxEx(x.n),on=alSel.has(x.id);return `<div class="lt" style="${dup?'opacity:.45':''};${on?'outline:3px solid #2faa5f':''}" onclick="${dup?'':`alTog(${x.id})`}"><img loading="lazy" src="${esc(x.th)}" alt=""><small>${esc(x.n)}${alRes.kind==='find'?`<br>· ${esc(x.a)}`:''}${dup?'<br>มีแล้ว':on?'<br>✅':''}</small></div>`}).join('')}</div>`:'<small>ไม่พบตัวละคร</small>')+
    `<div class="row" style="margin-top:6px">${alRes.kind==='chars'?'<button class="g" onclick="alTop()">⭐ เลือก 10 ตัวเด่น</button><button class="g" onclick="alFill()">📥 เลือกให้ครบ '+CXMAX+'</button>':''}<button class="g" onclick="alAll()">เลือกทั้งหมดที่ยังไม่มี</button>${alRes.kind==='chars'&&alRes.more?'<button class="g" onclick="alMore()">โหลดเพิ่ม</button>':''}</div>`}
@@ -762,7 +780,7 @@ function openRoomSet(){if(!st||!st.owner||st.phase!=='lobby')return;const c=st.s
 function saveRoomSet(){const all=$('lall').checked,an=[...document.querySelectorAll('.lan:checked')].map(x=>x.value);if(!all&&!an.length)return say('เลือกอนิเมะอย่างน้อย 1 เรื่อง');
  act('setset',{time:$('ltm').value,max:$('lmx').value,mode:(document.querySelector('input[name=lmd]:checked')||{}).value,cards:$('lcs').checked,cardCount:$('lcc').value,animes:all?'ALL':an});closeSet();flash('✅ บันทึกการตั้งค่าแล้ว')}
 function closeSet(){$('set').style.display='none'}
-function render(){const a=document.activeElement,id=a&&a.id,v=a&&a.value;draw();screenFx();bgmSync();bgSync();$('chatBtn').style.display=st?'flex':'none';$('noteBtn').style.display=st?'flex':'none';$('libBtn').style.display=st?'flex':'none';$('libBtn').textContent=libLocked()?'🔒':'📚';if(!st&&panelOpen)closePanel();if(id){const n=$(id);if(n&&n.tagName==='INPUT'&&v!==undefined){n.value=v;n.focus();try{n.setSelectionRange(v.length,v.length)}catch(e){}if(id==='gs')suggest()}}}
+function render(){const a=document.activeElement,id=a&&a.id,v=a&&a.value;draw();screenFx();bgmSync();bgSync();$('chatBtn').style.display=st?'flex':'none';$('noteBtn').style.display=st?'flex':'none';$('libBtn').style.display=st?'flex':'none';$('libBtn').innerHTML=(libLocked()?'🔒':'📚')+'<span class="fl">ดูตัวละคร</span>';if(!st&&panelOpen)closePanel();if(id){const n=$(id);if(n&&n.tagName==='INPUT'&&v!==undefined){n.value=v;n.focus();try{n.setSelectionRange(v.length,v.length)}catch(e){}if(id==='gs')suggest()}}}
 function draw(){
  const A=$('app');const wide=!st&&mode==='home',gm=!!(st&&(st.phase==='play'||st.phase==='final')),md=!!(st&&st.phase==='over');A.className=wide?'wide':gm?'game':md?'mid':'';document.body.classList.toggle('w',wide);document.body.classList.toggle('gm',gm);document.body.classList.toggle('md',md);
  if(!st){
@@ -988,7 +1006,7 @@ function openProf(tab){pTab=tab||pTab;const lv=lvOf(PF.xp),a=40*(lv-1)*(lv-1),b=
    return `<div class="it ${on?'on':''}">${pv}<div>${lb}</div>${on?'<b>✓ ใช้งานอยู่</b>':ow?`<button class="b" onclick="equip('${k}','${id}')">ใช้</button>`:`<button class="${PF.coins>=pr?'b':'g'}" onclick="buy('${k}','${id}',${pr},'${lb}')">🪙 ${pr}</button>`}</div>`}).join('');
   body=`<b>🖼️ กรอบโปรไฟล์</b><div class="shop">${it('fr',FR)}</div><b>✨ เอฟเฟกต์ชื่อ</b><div class="shop">${it('nf',NF)}</div>`}
  $('sc').innerHTML=head+body+`<button class="b" onclick="closeSet()">ปิด</button>`;$('set').style.display='flex'}
-const NEWS=['🔊 เสียงเอฟเฟกต์ใหม่: กดปุ่ม · เหรียญ · ชนะ · แพ้/เกมโอเวอร์ · เลเวลอัป · สุ่มกาชาระดับสูงมีเสียงประกาย ✨'];
+const NEWS=['✨ อัปเดต: คลังรวมทุกภาคเป็นเรื่องเดียว · กดดูตัวละครเห็นเรื่อง/ปี/แนว/บทบาท/เพศ/อายุ/ส่วนสูง · คลังจำตำแหน่งที่เลื่อนไว้ · ปุ่มลอยมีป้ายชื่อ · แชทมีเลขไม่ได้อ่านเด่นขึ้น'];
 function openNews(){closeSet();dlg(`<b style="font-size:20px">📜 มีอะไรใหม่ · v${APPV}</b><ul style="text-align:left;line-height:1.6;padding-left:18px">${NEWS.map(n=>`<li>${n}</li>`).join('')}</ul>`,[['เริ่มเลย','b']])}
 // ================= v2.5: สุ่มกรอบการ์ด (Gacha) =================
 // ปรับค่าได้ที่นี่: ราคา อัตราสุ่ม (รวมต้อง = 100) ระบบการันตี และเหรียญคืนเมื่อได้ซ้ำ

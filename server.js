@@ -613,7 +613,7 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '4.1';
+const APP_VERSION = '4.2';
 const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
 const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
 let CFIDS = new Set(), CFM = 0;
@@ -653,7 +653,7 @@ async function rcmd(...c) {
 const ukey = n => 'u:' + String(n).normalize('NFKC').toLowerCase();
 const NAME_RE = /^[\p{L}\p{N}_\-.]{3,16}$/u;
 const hashPin = (pin, salt) => new Promise((ok, no) => nodeCrypto.scrypt(pin, salt, 32, (e, k) => e ? no(e) : ok(k.toString('hex'))));
-const metaChars = () => CH.map(c => [c[0], c[2], hasImg(slugOf(c[0])) ? slugOf(c[0]) : '', c[1]]);
+const metaChars = () => CH.map(c => [c[0], c[2], hasImg(slugOf(c[0])) ? slugOf(c[0]) : '', c[1], c[3] || '', c[6] || '', c[7] || '']);
 // ===== เพื่อนเสนอตัวละคร -> คิวรอแอดมินอนุมัติ (เก็บบน Upstash; ต้องตั้ง ADMIN_KEY บน Render ถึงจะเปิดหน้าแอดมินได้) =====
 const ADMIN_KEY = String(process.env.ADMIN_KEY || '');
 // ADMIN_USERS = ชื่อบัญชีแอดมิน (คั่นด้วย , ได้หลายคน) ล็อกอินด้วยบัญชีนี้แล้วเป็นแอดมินอัตโนมัติ ไม่ต้องใส่รหัส
@@ -1073,18 +1073,43 @@ io.on('connection', sock => {
     if (!alOk()) return;
     try {
       q = cxClean(q, 60); if (!q) return;
-      const d = await alq('query($q:String){Page(perPage:8){media(search:$q,type:ANIME,sort:SEARCH_MATCH){id title{romaji english} coverImage{medium}}}}', { q });
+      const d = await alq('query($q:String){Page(perPage:20){media(search:$q,type:ANIME,sort:SEARCH_MATCH){id title{romaji english} coverImage{medium}}}}', { q });
       sock.emit('al:res', { kind: 'anime', items: (d.Page.media || []).map(m => ({ id: +m.id, t: alT(m.title), th: String((m.coverImage && m.coverImage.medium) || '').slice(0, 300) })) });
     } catch (e) { console.log('al:anime', e.message); sock.emit('al:err', 'เชื่อมต่อฐานข้อมูลไม่ได้ ลองใหม่ภายหลัง'); }
   });
   sock.on('al:chars', async d => {
     if (!alOk() || !d) return;
     try {
-      const id = Math.floor(+d.id), p = Math.min(50, Math.max(1, Math.floor(+d.p) || 1)); if (!(id > 0)) return;
-      const r = await alq('query($id:Int,$p:Int){Media(id:$id){seasonYear startDate{year} title{romaji english} characters(page:$p,perPage:25,sort:[ROLE,FAVOURITES_DESC]){pageInfo{hasNextPage} edges{role node{id name{full native} image{large medium}}}}}}', { id, p });
-      const m = r.Media, a = alT(m.title), yr = m.seasonYear || (m.startDate && m.startDate.year) || 0;
-      sock.emit('al:res', { kind: 'chars', a, p, more: !!m.characters.pageInfo.hasNextPage, items: (m.characters.edges || []).map(e => alC(e.node, a, yr, e.role)).filter(x => x.n && x.img) });
+      const ids = (Array.isArray(d.ids) ? d.ids : [d.id]).map(x => Math.floor(+x)).filter(x => x > 0).slice(0, 8), p = Math.min(50, Math.max(1, Math.floor(+d.p) || 1)); if (!ids.length) return;
+      const own = cxClean(d.a || '', 80);
+      const rs = await Promise.all(ids.map(id => alq('query($id:Int,$p:Int){Media(id:$id){seasonYear startDate{year} title{romaji english} characters(page:$p,perPage:25,sort:[ROLE,FAVOURITES_DESC]){pageInfo{hasNextPage} edges{role node{id name{full native} image{large medium}}}}}}', { id, p }).catch(() => null)));
+      const ok = rs.filter(r => r && r.Media); if (!ok.length) throw new Error('empty');
+      const yrs = ok.map(r => r.Media.seasonYear || (r.Media.startDate && r.Media.startDate.year) || 0).filter(Boolean), yr = yrs.length ? Math.min(...yrs) : 0, a = own || alT(ok[0].Media.title);
+      const seen = new Set(), items = [];
+      ok.forEach(r => (r.Media.characters.edges || []).forEach(e => { if (!e.node || seen.has(e.node.id)) return; seen.add(e.node.id); const x = alC(e.node, a, yr, e.role); if (x.n && x.img) items.push(x); }));
+      sock.emit('al:res', { kind: 'chars', a, p, more: ok.some(r => r.Media.characters.pageInfo.hasNextPage), items });
     } catch (e) { console.log('al:chars', e.message); sock.emit('al:err', 'เชื่อมต่อฐานข้อมูลไม่ได้ ลองใหม่ภายหลัง'); }
+  });
+  const CHI = new Map();   // ข้อมูลเพิ่มเติมของตัวละคร (เพศ/อายุ/ส่วนสูง) ดึงจาก AniList ตอนกดดู แล้วแคชไว้
+  sock.on('ch:info', async d => {
+    if (!d || !AUTH_ON || !sock.data.acct) return;
+    const n = cxClean(d.n, 80), a = cxClean(d.a, 80); if (!n) return; const k = n + '|' + a;
+    let r = CHI.get(k);
+    if (r === undefined) {
+      if (!alOk()) return;
+      r = null;
+      try {
+        const q = await alq('query($q:String){Character(search:$q,sort:SEARCH_MATCH){gender age description(asHtml:false) media(perPage:8){nodes{title{romaji english} synonyms}}}}', { q: n });
+        const c = q && q.Character, key = norm(a).split(' ').slice(0, 2).join(' ');
+        if (c && c.media && c.media.nodes.some(m => [m.title.romaji, m.title.english].concat(m.synonyms || []).filter(Boolean).some(t => norm(t).includes(key)))) {
+          const hm = String(c.description || '').match(/height[^\d\n]{0,8}(\d{2,3}(?:\.\d+)?\s*(?:cm|m)\b)/i);
+          r = { g: String(c.gender || '').slice(0, 20), age: String(c.age || '').slice(0, 30), h: hm ? hm[1] : '' };
+          if (!r.g && !r.age && !r.h) r = null;
+        }
+      } catch (e) {}
+      if (CHI.size > 3000) CHI.clear(); CHI.set(k, r);
+    }
+    sock.emit('ch:info', { n, a, r });
   });
   sock.on('al:find', async q => {
     if (!alOk()) return;
