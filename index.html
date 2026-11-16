@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- ag-build:20261058 -->
+<!-- ag-build:20261059 -->
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ANIME GUESS</title>
@@ -13,7 +13,8 @@
 <style>
 :root{--ink:#14142b;--line:#14142b;--sh:#14142b;--blue:#2d5bff;--sun:#ffd23f;--pink:#ff4d8d;--bg:#eef1ff;--w:#fff;--soft:#dfe6ff;--dot:#c9d2ff;--hint:#eaffe9}
 :root[data-theme=dark]{--ink:#eceeff;--line:#7f86ff;--sh:#000;--bg:#10102a;--w:#1b1b3c;--soft:#2a2a55;--dot:#23234a;--hint:#173826}
-:root[data-calm] *{animation:none!important;transition:none!important}
+@supports not selector(:not(.a .b)){:root[data-calm] *{animation:none!important;transition:none!important}}
+@supports selector(:not(.a .b)){:root[data-calm] *:not(.fb.mythic):not(.fb.mythic *){animation:none!important;transition:none!important}:root[data-calm] .fb.mythic,:root[data-calm] .fb.mythic *{transition:none!important}}
 *{box-sizing:border-box}
 body{margin:0;font-family:Kanit,sans-serif;color:var(--ink);min-height:100vh;background:var(--bg) radial-gradient(circle,var(--dot) 2px,transparent 2.5px) 0 0/22px 22px}
 main{max-width:560px;margin:0 auto;padding:6px 16px 60px}
@@ -166,11 +167,17 @@ main.game{max-width:1120px}body.gm .top{max-width:1120px}main.mid{max-width:760p
 .tile .ph{width:100%;aspect-ratio:1;object-fit:cover;object-position:top}
 /* v2.5 กรอบการ์ด + สุ่ม */
 .fb{position:relative;width:100%}
-.fb.mythic .ff{animation:mgl 2.6s ease-in-out infinite}.fb.mythic .mfx{position:absolute;inset:0;pointer-events:none;-webkit-mask:var(--fu) center/100% 100% no-repeat;mask:var(--fu) center/100% 100% no-repeat;background:linear-gradient(115deg,transparent 38%,rgba(255,255,255,.75) 50%,transparent 62%) 0 0/260% 100%;mix-blend-mode:screen;animation:msw 3.2s linear infinite}
+.fb.mythic .ff{filter:drop-shadow(0 0 6px var(--mc));animation:mbr 2.6s ease-in-out infinite;transform-origin:50% 50%}
+.fb.mythic::before{content:'';position:absolute;inset:-3%;border-radius:28%;pointer-events:none;background:radial-gradient(closest-side,transparent 64%,var(--mc));opacity:.2;animation:mgp 2.6s ease-in-out infinite}
+.fb.mythic .mfx{position:absolute;inset:0;pointer-events:none;overflow:hidden;-webkit-mask:var(--fu) center/100% 100% no-repeat;mask:var(--fu) center/100% 100% no-repeat}
+.fb.mythic .mfx::before{content:'';position:absolute;top:0;bottom:0;left:0;width:42%;background:linear-gradient(110deg,transparent,rgba(255,255,255,.8),transparent);transform:translateX(-130%) skewX(-18deg);animation:msw2 3.4s linear infinite}
 .fb.mythic .mp{position:absolute;inset:0;pointer-events:none;overflow:visible}.fb.mythic .mp b{position:absolute;border-radius:50%;background:var(--mc);box-shadow:0 0 8px 2px var(--mc);opacity:0;animation:mspk 3s ease-in-out infinite}
 .fb.mythic.fx-ember .mp b{animation-name:mmb;border-radius:50% 50% 50% 0}.fb.mythic.fx-petal .mp b{animation-name:mpt;border-radius:100% 0 100% 0;background:#ffc2dc;box-shadow:0 0 6px var(--mc)}
-@keyframes mgl{0%,100%{filter:drop-shadow(0 0 3px var(--mc))}50%{filter:drop-shadow(0 0 10px var(--mc))}}
+.fb.mythic:not(.vis) .ff,.fb.mythic:not(.vis)::before,.fb.mythic:not(.vis) .mfx::before,.fb.mythic:not(.vis) .mp b{animation-play-state:paused}
+@keyframes mbr{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
+@keyframes mgp{0%,100%{opacity:.12}50%{opacity:.5}}
 @keyframes msw{from{background-position:130% 0}to{background-position:-130% 0}}
+@keyframes msw2{to{transform:translateX(330%) skewX(-18deg)}}
 @keyframes mspk{0%,100%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1.3)}}
 @keyframes mmb{0%{opacity:0;transform:translateY(14px) scale(.6)}30%{opacity:1}100%{opacity:0;transform:translateY(-46px) scale(.2)}}
 @keyframes mpt{0%{opacity:0;transform:translate(0,-10px) rotate(0)}25%{opacity:1}100%{opacity:0;transform:translate(26px,54px) rotate(320deg)}}
@@ -329,14 +336,10 @@ input:focus,select:focus,textarea:focus{outline:0;border-color:#8f7bff;box-shado
 .sc{content-visibility:auto;contain-intrinsic-size:150px 230px}.sgg,.lg{contain:layout}
 .ph,.qimg,.lt img,.ph0{border-radius:10px}
 /* ลดภาระเครื่อง: ในตารางที่มีของเยอะๆ ปิดแอนิเมชันที่หนัก (เหลือเฉพาะตอนใช้งานจริง/ตอนสุ่มได้) */
-.shop .fb.mythic .ff,.shop .fb.mythic .mfx,.shop .fb.mythic .mp,.avw.af .mfx,.avw.af .mp{animation:none!important;display:none}
-.shop .fb.mythic .ff{display:block;filter:drop-shadow(0 0 5px var(--mc))}.avw.af .fb.mythic .ff{display:block;animation:none!important;filter:drop-shadow(0 0 4px var(--mc))}
 .shop .ttl,.shop .ttl::after{animation:none!important}.shop .ttl::after{display:none}
-.fb.mythic .ff{will-change:filter}
 /* โหมดลื่น (เปิดเป็นค่าเริ่มต้น): ตัดเงา/เรืองแสง/ฟิลเตอร์ที่กินเครื่อง เหลือหน้าตาแบบเรียบ */
 :root[data-calm] .box,:root[data-calm] button,:root[data-calm] .tile,:root[data-calm] .dc,:root[data-calm] #side,:root[data-calm] .card,:root[data-calm] .fab,:root[data-calm] #toast>div,:root[data-calm] .bub,:root[data-calm] .qbar i,:root[data-calm] .xpbar i,:root[data-calm] h1 span{box-shadow:none!important;text-shadow:none}
-:root[data-calm] .fb .ff,:root[data-calm] .fb.mythic .ff,:root[data-calm] .avw.af .fb.mythic .ff,:root[data-calm] .shop .fb.mythic .ff{filter:none!important;will-change:auto}
-:root[data-calm] .fb.mythic .mfx,:root[data-calm] .fb.mythic .mp,:root[data-calm] .ttl::after{display:none!important}
+:root[data-calm] .ttl::after{display:none!important}
 :root[data-calm] .ttl{box-shadow:none!important}
 @media(prefers-reduced-motion:reduce){.ov>.box{animation:none}}
 </style></head><body>
@@ -358,7 +361,7 @@ input:focus,select:focus,textarea:focus{outline:0;border-color:#8f7bff;box-shado
 const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิดตัวอักษร'],era:['📅','ใบ้ยุค'],ability:['⚡','ความสามารถ'],side:['🏴','ฝ่าย'],role:['⭐','บทบาท']};
 const s=io(),$=id=>document.getElementById(id);
 const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
-const VER=5,APPV='4.7.2',BUILD='20261058';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,libSc=0,libSc2=0,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
+const VER=5,APPV='4.7.3',BUILD='20261059';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,libSc=0,libSc2=0,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
 const pre=new URLSearchParams(location.search).get('room')||'';
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
@@ -1067,6 +1070,9 @@ function setPName(v){v=v.trim().slice(0,16);if(!v)return;name=v;localStorage.nam
 function equip(k,id){if(!owns(k,id))return;PF[k]=id;pfSave();syncProf();openProf('shop')}
 async function buy(k,id,price,label){if(PF.coins<price)return say('เหรียญไม่พอ ต้องการ '+price+' 🪙 (คุณมี '+PF.coins+')\nเล่นเกมเพื่อสะสมเหรียญเพิ่มได้เลย');
  if(!await ask('ซื้อ <b>'+esc(label)+'</b> ราคา '+price+' 🪙 ?','ซื้อ'))return;PF.coins-=price;PF.owned.push(k+':'+id);pfSave();SFX.buy();equip(k,id)}
+const FXIO='IntersectionObserver'in window?new IntersectionObserver(es=>es.forEach(e=>e.target.classList.toggle('vis',e.isIntersecting)),{rootMargin:'60px'}):null;let _fxT=0;
+function fxObs(){document.querySelectorAll('.fb.mythic:not([data-io])').forEach(el=>{el.dataset.io=1;if(FXIO)FXIO.observe(el);else el.classList.add('vis')})}
+new MutationObserver(()=>{clearTimeout(_fxT);_fxT=setTimeout(fxObs,150)}).observe(document.body,{childList:true,subtree:true});
 let LASTC=null;function cntUp(el,to){if(!el)return;const from=LASTC==null?to:LASTC;LASTC=to;if(from===to||document.documentElement.hasAttribute('data-calm')){el.textContent=to;return}const t0=performance.now(),d=Math.min(900,300+Math.abs(to-from)/4);(function f(t){const k=Math.min(1,(t-t0)/d),e=1-Math.pow(1-k,3);el.textContent=Math.round(from+(to-from)*e);if(k<1)requestAnimationFrame(f)})(t0)}
 function openProf(tab){pTab=tab||pTab;const lv=lvOf(PF.xp),a=40*(lv-1)*(lv-1),b=40*lv*lv,pc=Math.min(100,Math.round((PF.xp-a)/(b-a)*100));
  const me={name,fr:PF.fr,nf:PF.nf,lv,av:PF.av,af:(PF.af&&PF.cfo.includes(PF.af))?PF.af:''};
@@ -1085,7 +1091,7 @@ function openProf(tab){pTab=tab||pTab;const lv=lvOf(PF.xp),a=40*(lv-1)*(lv-1),b=
    return `<div class="it ${on?'on':''}">${pv}<div>${lb}</div>${on?'<b>✓ ใช้งานอยู่</b>':ow?`<button class="b" onclick="equip('${k}','${id}')">ใช้</button>`:`<button class="${PF.coins>=pr?'b':'g'}" onclick="buy('${k}','${id}',${pr},'${lb}')">🪙 ${pr}</button>`}</div>`}).join('');
   body=`<b>🖼️ กรอบโปรไฟล์</b><div class="shop">${it('fr',FR)}</div><b>✨ เอฟเฟกต์ชื่อ</b><div class="shop">${it('nf',NF)}</div>`}
  $('sc').innerHTML=head+body+`<button class="b" onclick="closeSet()">ปิด</button>`;$('set').style.display='flex';cntUp($('cv'),PF.coins)}
-const NEWS=['⚡ โหมดลื่นเปิดเป็นค่าเริ่มต้น: ลดแอนิเมชัน เงา และเอฟเฟกต์หนักๆ ทั้งเกม (ปิด/เปิดได้ในตั้งค่า ⚙️)'];
+const NEWS=['✨ เอฟเฟกต์กรอบ Mythic กลับมาแล้ว (ปรับให้เบาลง: เคลื่อนไหวเฉพาะกรอบที่อยู่บนจอ) · โหมดลื่นยังลดแอนิเมชันส่วนอื่นอยู่'];
 function openNews(){closeSet();dlg(`<b style="font-size:20px">📜 มีอะไรใหม่ · v${APPV}</b><ul style="text-align:left;line-height:1.6;padding-left:18px">${NEWS.map(n=>`<li>${n}</li>`).join('')}</ul>`,[['เริ่มเลย','b']])}
 // ================= v2.5: สุ่มกรอบการ์ด (Gacha) =================
 // ปรับค่าได้ที่นี่: ราคา อัตราสุ่ม (รวมต้อง = 100) ระบบการันตี และเหรียญคืนเมื่อได้ซ้ำ
@@ -1097,7 +1103,7 @@ function cfFix(){if(!CF.length)return;const gone=PF.cfo.filter(i=>!CFM[i]);if(go
 fetch('/frames.json?v='+BUILD).then(r=>r.json()).then(a=>{CF=a;CFM={};a.forEach(x=>CFM[x.id]=x);cfFix()}).catch(()=>{});
 const FXP=[[8,12,0,7,5],[24,8,1.3,9,4],[44,15,.6,6,6],[66,10,2.1,8,5],[84,14,.9,10,4],[14,60,1.7,9,5],[88,66,.3,7,6],[52,82,2.4,8,4]];
 function fbox(f,inner,cls){const w=f.win,pd=.012,my=f.t==='M';
- if(my)return `<div class="fb mythic fx-${f.fx||'spark'} ${cls||''}" style="aspect-ratio:${f.w}/${f.h};--mc:${f.mc||'#ff3df0'};--fu:url(/${f.f})"><div class="fw" style="left:${(w[0]-pd)*100}%;top:${(w[1]-pd)*100}%;width:${(w[2]-w[0]+2*pd)*100}%;height:${(w[3]-w[1]+2*pd)*100}%">${inner}</div><img class="ff" src="/${f.f}" alt="" loading="lazy"><i class="mfx"></i><span class="mp">${FXP.map(p=>`<b style="left:${p[0]}%;top:${p[1]}%;animation-delay:${p[2]}s;width:${p[3]}px;height:${p[3]}px;animation-duration:${2.4+p[4]*.4}s"></b>`).join('')}</span></div>`
+ if(my)return `<div class="fb mythic fx-${f.fx||'spark'} ${cls||''}" style="aspect-ratio:${f.w}/${f.h};--mc:${f.mc||'#ff3df0'};--fu:url(/${f.f})"><div class="fw" style="left:${(w[0]-pd)*100}%;top:${(w[1]-pd)*100}%;width:${(w[2]-w[0]+2*pd)*100}%;height:${(w[3]-w[1]+2*pd)*100}%">${inner}</div><img class="ff" src="/${f.f}" alt="" loading="lazy"><i class="mfx"></i><span class="mp">${FXP.slice(0,5).map(p=>`<b style="left:${p[0]}%;top:${p[1]}%;animation-delay:${p[2]}s;width:${p[3]}px;height:${p[3]}px;animation-duration:${2.4+p[4]*.4}s"></b>`).join('')}</span></div>`
  return `<div class="fb ${cls||''}" style="aspect-ratio:${f.w}/${f.h}"><div class="fw" style="left:${(w[0]-pd)*100}%;top:${(w[1]-pd)*100}%;width:${(w[2]-w[0]+2*pd)*100}%;height:${(w[3]-w[1]+2*pd)*100}%">${inner}</div><img class="ff" src="/${f.f}" alt="" loading="lazy"></div>`}
 const gSample=()=>PF.av?`<img class="ph" src="${PF.av}" alt="">`:`<div class="ph gs">🙂</div>`;
 function rollOne(){const g=PF.gp;g.s++;g.m=(+g.m||0)+1;let t='C',pm=false;
