@@ -613,7 +613,7 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '4.5';
+const APP_VERSION = '4.6';
 const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
 const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
 let CFIDS = new Set(), CFM = 0;
@@ -623,13 +623,13 @@ function cfIds() {
   } catch (e) { console.log('frames.json:', e.message); }
   return CFIDS;
 }
-const TTIDS = new Set(['first','win10','win50','quiz20','lv10','lv25','collector','ssr','streak7','missions','g_c1','g_c2','g_c3','g_c4','g_b1','g_b2','g_b3','g_b4','g_a1','g_a2','g_a3','g_a4','g_s1','g_s2','g_s3','g_s4','g_m1','g_m2','g_m3','g_c5','g_c6','g_c7','g_b5','g_b6','g_b7','g_a5','g_a6','g_a7','g_s5','g_s6','g_s7','g_m4','g_m5']);
+const TTIDS = new Set(['first','win10','win50','quiz20','lv10','lv25','collector','ssr','streak7','missions','g_c1','g_c2','g_c3','g_c4','g_b1','g_b2','g_b3','g_b4','g_a1','g_a2','g_a3','g_a4','g_s1','g_s2','g_s3','g_s4','g_m1','g_m2','g_m3','lv_10','lv_20','lv_30','lv_40','lv_50','lv_60','lv_70','lv_80','lv_90','lv_100','lv_110','lv_120','lv_130','lv_140','lv_150','lv_160','lv_170','lv_180','lv_190','lv_200','lv_210','lv_220','lv_230','lv_240','lv_250','lv_260','lv_270','lv_280','lv_290','lv_300','g_c5','g_c6','g_c7','g_b5','g_b6','g_b7','g_a5','g_a6','g_a7','g_s5','g_s6','g_s7','g_m4','g_m5']);
 const ONLINE = new Map();   // ชื่อบัญชี(ตัวพิมพ์เล็ก) -> Set ของ socket ที่ออนไลน์ (ใช้ส่งคำชวน)
 const unOf = sid => { const s = sid && io.sockets.sockets.get(sid); return (s && s.data && s.data.un) || ''; };
 const AV_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/;
 function cleanProf(d) {
   d = d && typeof d === 'object' ? d : {};
-  const o = { fr: FRAMES.has(d.fr) ? d.fr : 'none', nf: NFX.has(d.nf) ? d.nf : 'none', cf: (typeof d.cf === 'string' && cfIds().has(d.cf)) ? d.cf : '', af: (typeof d.af === 'string' && cfIds().has(d.af)) ? d.af : '', tt: TTIDS.has(d.tt) ? d.tt : '', lv: Math.min(99, Math.max(1, parseInt(d.lv) || 1)), av: '' };
+  const o = { fr: FRAMES.has(d.fr) ? d.fr : 'none', nf: NFX.has(d.nf) ? d.nf : 'none', cf: (typeof d.cf === 'string' && cfIds().has(d.cf)) ? d.cf : '', af: (typeof d.af === 'string' && cfIds().has(d.af)) ? d.af : '', tt: TTIDS.has(d.tt) ? d.tt : '', lv: Math.min(300, Math.max(1, parseInt(d.lv) || 1)), av: '' };
   if (typeof d.av === 'string' && d.av.length <= 24000 && AV_RE.test(d.av)) o.av = d.av;
   return o;
 }
@@ -667,7 +667,7 @@ const cxJpeg = d => { if (typeof d !== 'string' || d.length > CX_IMG_MAX * 1.4 +
 function cxAdd(e, buf) {
   const base = slugOf(e.n); const slug = (base && !hasImg(base)) ? base : 'cx-' + e.id;
   SLUGX.set(e.n, slug); CXIMG.set(slug, buf);
-  CH.push([e.n, e.al || '', e.a, e.yr ? Math.floor(e.yr / 10) * 10 + 's' : '', '', 'ใช้พลังพิเศษเฉพาะตัว', 'ไม่ระบุ', e.ro === 'M' ? 'ตัวเอก' : e.ro === 'S' ? 'ตัวสมทบ' : 'ไม่ระบุ']);
+  CH.push([e.n, e.al || '', e.a, e.er != null ? e.er : (e.yr ? Math.floor(e.yr / 10) * 10 + 's' : ''), e.wd != null ? e.wd : '', e.ab != null ? e.ab : 'ใช้พลังพิเศษเฉพาะตัว', e.sd != null ? e.sd : 'ไม่ระบุ', e.rl != null ? e.rl : (e.ro === 'M' ? 'ตัวเอก' : e.ro === 'S' ? 'ตัวสมทบ' : 'ไม่ระบุ')]);
   if (!ANIMES.includes(e.a)) { ANIMES.push(e.a); anNew(e.a); }
 }
 function cxDel(e) {
@@ -699,6 +699,7 @@ const ovOrig = n => { for (const [o, v] of OVR) if ((v.n || o) === n) return o; 
 function ovApply(v) {
   const i = CH.findIndex(c => c[0] === v.o); if (i < 0) return; const c = CH[i];
   const sl = slugOf(c[0]); if (v.n && v.n !== c[0]) { SLUGX.set(v.n, sl); c[0] = v.n; } if (v.a) c[2] = v.a; if (v.al != null) c[1] = v.al;
+  if (v.er != null) c[3] = v.er; if (v.wd != null) c[4] = v.wd; if (v.ab != null) c[5] = v.ab; if (v.sd != null) c[6] = v.sd; if (v.rl != null) c[7] = v.rl;
   if (v.h) { HIDDEN.set(v.o, c); CH.splice(i, 1); }
 }
 const CXNOTE = async (by, note) => {   // แจ้งผลให้คนเสนอ (ถ้าออนไลน์ส่งเลย ไม่งั้นเก็บรอตอนล็อกอิน)
@@ -841,7 +842,7 @@ function cleanAcct(d, old) {
     gp: Object.assign({ s: clampI(d.gp && d.gp.s, 0, 1000), r: clampI(d.gp && d.gp.r, 0, 1000) }, d.gp && typeof d.gp.m === 'number' ? { m: clampI(d.gp.m, 0, 1000) } : {}),
     dm: { d: String((d.dm && d.dm.d) || '').slice(0, 10), p: kv(d.dm && d.dm.p, 12, v => clampI(v, 0, 1000)), c: kv(d.dm && d.dm.c, 12, v => v ? 1 : 0), b: d.dm && d.dm.b ? 1 : 0 },
     sk: { n: clampI(d.sk && d.sk.n, 0, 9999), last: String((d.sk && d.sk.last) || '').slice(0, 10) },
-    tt: strs(d.tt, 60, 20).filter(i => TTIDS.has(i)), mc: clampI(d.mc, 0, 1e6),
+    tt: strs(d.tt, 140, 20).filter(i => TTIDS.has(i)), mc: clampI(d.mc, 0, 1e6),
     rp: (Array.isArray(d.rp) ? d.rp : []).slice(0, 12).map(x => ({ u: String((x && x.u) || '').slice(0, 16), n: String((x && x.n) || '').slice(0, 16), t: clampI(x && x.t, 0, 4e12) })).filter(x => x.u)
   };
   o.tu = typeof d.tu === 'string' && o.tt.includes(d.tu) ? d.tu : '';
@@ -1337,7 +1338,7 @@ io.on('connection', sock => {
   sock.on('adm:chars', q => {
     if (!adm()) return;
     const k = norm(q || ''), out = [];
-    for (const c of CH) { if (out.length >= 40) break; if (!k || norm(c[0]).includes(k) || norm(c[2]).includes(k) || c[1].split('|').some(x => norm(x).includes(k))) out.push({ n: c[0], a: c[2], al: c[1], u: [...CXOK.values()].some(e => e.n === c[0]) ? 1 : 0 }); }
+    for (const c of CH) { if (out.length >= 40) break; if (!k || norm(c[0]).includes(k) || norm(c[2]).includes(k) || c[1].split('|').some(x => norm(x).includes(k))) out.push({ n: c[0], a: c[2], al: c[1], er: c[3], wd: c[4], ab: c[5], sd: c[6], rl: c[7], u: [...CXOK.values()].some(e => e.n === c[0]) ? 1 : 0 }); }
     sock.emit('adm:chars', { items: out, hidden: [...HIDDEN.keys()], total: CH.length });
   });
   const charsPush = () => io.emit('chars:update', { animes: ANIMES, chars: metaChars() });
@@ -1357,6 +1358,48 @@ io.on('connection', sock => {
       animesFix(); charsPush(); admMsg(true, d.on ? 'ซ่อนตัวละครแล้ว' : 'นำกลับแล้ว'); sock.emit('adm:refresh');
     } catch (e) { console.log('adm:charhide', e.message); admMsg(false, 'ผิดพลาด'); }
   });
+  sock.on('adm:animerename', async d => {
+    if (!adm() || !d) return;
+    try {
+      const from = String(d.from || '').trim(), to = cxAnime(cxClean(d.to, 40)); if (!from || !to) return admMsg(false, 'ชื่อเรื่องว่าง');
+      if (!CH.some(c => c[2] === from)) return admMsg(false, 'ไม่พบเรื่อง "' + from + '"');
+      let n = 0;
+      for (const c of CH) {
+        if (c[2] !== from) continue; n++;
+        const ue = [...CXOK.values()].find(e => e.n === c[0]);
+        c[2] = to;
+        if (ue) { ue.a = to; await rcmd('HSET', 'cx:ok', ue.id, JSON.stringify(ue)); }
+        else { const o = ovOrig(c[0]), v = Object.assign({}, OVR.get(o) || {}, { o, a: to }); OVR.set(o, v); await rcmd('HSET', 'cx:ov', o, JSON.stringify(v)); }
+      }
+      animesFix(); if (!ANIMES.includes(to)) ANIMES.push(to); anNew(to); charsPush();
+      admMsg(true, 'เปลี่ยนชื่อเรื่อง "' + from + '" → "' + to + '" (' + n + ' ตัว)');
+    } catch (e) { console.log('adm:animerename', e.message); admMsg(false, 'ผิดพลาด'); }
+  });
+  const admSaveRec = async rec => {
+    rec.v = (rec.v || 0) + 1; await rcmd('SET', ukey(rec.name), JSON.stringify(rec));
+    const on = ONLINE.get(ukey(rec.name)); if (on) on.forEach(x => x.emit('auth:stale', { prof: rec.prof, v: rec.v }));
+    sock.emit('adm:user', { info: await recInfoX(rec) });
+  };
+  sock.on('adm:level', async d => {
+    if (!adm() || !d) return;
+    try {
+      const rec = await getRec(d.name); if (!rec) return sock.emit('adm:user', { err: 'ไม่พบบัญชีนี้' });
+      const cur = Math.min(300, Math.floor(Math.sqrt(Math.max(0, rec.prof.xp || 0) / 40)) + 1), n = clampI(d.n, -300, 300);
+      const lv = Math.min(300, Math.max(1, d.mode === 'set' ? n : cur + n));
+      rec.prof.xp = 40 * (lv - 1) * (lv - 1); await admSaveRec(rec); admMsg(true, 'เลเวลของ ' + rec.name + ' ตอนนี้ ' + lv);
+    } catch (e) { console.log('adm:level', e.message); }
+  });
+  sock.on('adm:grant', async d => {
+    if (!adm() || !d) return;
+    try {
+      const rec = await getRec(d.name); if (!rec) return sock.emit('adm:user', { err: 'ไม่พบบัญชีนี้' });
+      const id = String(d.id || '').slice(0, 40), p = rec.prof;
+      if (d.kind === 'tt' && TTIDS.has(id)) { p.tt = (p.tt || []).filter(x => x !== id); if (d.on) p.tt.push(id); else if (p.tu === id) p.tu = ''; }
+      else if (d.kind === 'cf' && cfIds().has(id)) { p.cfo = (p.cfo || []).filter(x => x !== id); if (d.on) p.cfo.push(id); else { if (p.cf === id) p.cf = ''; if (p.af === id) p.af = ''; } }
+      else return admMsg(false, 'ไม่รู้จักไอเทมนี้');
+      await admSaveRec(rec); admMsg(true, (d.on ? 'มอบ ' : 'ริบ ') + id + ' ' + (d.on ? 'ให้ ' : 'จาก ') + rec.name + ' แล้ว');
+    } catch (e) { console.log('adm:grant', e.message); }
+  });
   sock.on('adm:charedit', async d => {
     if (!adm() || !d) return;
     try {
@@ -1367,8 +1410,9 @@ io.on('connection', sock => {
       const sl = slugOf(n), ue = [...CXOK.values()].find(e => e.n === n);
       if (nn !== n) { SLUGX.delete(n); SLUGX.set(nn, sl); }
       c[0] = nn; c[2] = a; c[1] = al;
-      if (ue) { ue.n = nn; ue.a = a; ue.al = al; await rcmd('HSET', 'cx:ok', ue.id, JSON.stringify(ue)); }
-      else { const o = ovOrig(n), v = Object.assign({}, OVR.get(o) || {}, { o, n: nn, a, al }); OVR.set(o, v); await rcmd('HSET', 'cx:ov', o, JSON.stringify(v)); }
+      const ex = {}; [['er', 'er', 3, 12], ['sd', 'sd', 6, 30], ['rl', 'rl', 7, 30], ['ab', 'ab', 5, 100], ['wd', 'wd', 4, 120]].forEach(([k, f, ix, mx]) => { if (typeof d[k] === 'string') { ex[f] = cxClean(d[k], mx); c[ix] = ex[f]; } });
+      if (ue) { Object.assign(ue, ex); ue.n = nn; ue.a = a; ue.al = al; await rcmd('HSET', 'cx:ok', ue.id, JSON.stringify(ue)); }
+      else { const o = ovOrig(n), v = Object.assign({}, OVR.get(o) || {}, ex, { o, n: nn, a, al }); OVR.set(o, v); await rcmd('HSET', 'cx:ov', o, JSON.stringify(v)); }
       animesFix(); charsPush(); admMsg(true, 'บันทึกแล้ว'); sock.emit('adm:chars', { items: [{ n: nn, a, al, u: ue ? 1 : 0 }], hidden: [...HIDDEN.keys()], total: CH.length });
     } catch (e) { console.log('adm:charedit', e.message); admMsg(false, 'ผิดพลาด'); }
   });
