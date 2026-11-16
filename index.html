@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- ag-build:20261054 -->
+<!-- ag-build:20261055 -->
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ANIME GUESS</title>
@@ -314,7 +314,7 @@ body.bgi::before{animation:kb 55s ease-in-out infinite alternate;will-change:tra
 const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิดตัวอักษร'],era:['📅','ใบ้ยุค'],ability:['⚡','ความสามารถ'],side:['🏴','ฝ่าย'],role:['⭐','บทบาท']};
 const s=io(),$=id=>document.getElementById(id);
 const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
-const VER=5,APPV='4.6',BUILD='20261054';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,libSc=0,libSc2=0,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
+const VER=5,APPV='4.6.1',BUILD='20261055';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,libSc=0,libSc2=0,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
 const pre=new URLSearchParams(location.search).get('room')||'';
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
@@ -555,7 +555,7 @@ function openSet(){const dk=document.documentElement.dataset.theme==='dark';$('s
 const getTok=()=>{try{return localStorage.tok||''}catch(e){return ''}};
 function accSave(){if(!ACC)return;accDirty=true;clearTimeout(accTimer);accTimer=setTimeout(accFlush,1500)}
 function accFlush(){if(!ACC||accBusy||!accDirty)return;accBusy=true;accDirty=false;s.emit('auth:save',{prof:PF,base:ACC.v});setTimeout(()=>{accBusy=false},8000)}
-function accApply(p){Object.keys(PF).forEach(k=>delete PF[k]);Object.assign(PF,pfNorm(p));pfLocal();if(typeof cfFix==='function'&&CF.length)setTimeout(cfFix,0)}
+function accApply(p){Object.keys(PF).forEach(k=>delete PF[k]);Object.assign(PF,pfNorm(p));pfLocal();if(typeof cfFix==='function'&&CF.length)setTimeout(cfFix,0);setTimeout(()=>{try{checkTitles()}catch(e){}},1500)}
 s.on('meta',m=>{AUTHON=!!m.auth;const t=getTok();if(AUTHON&&t)s.emit('auth:token',t);if($('set').style.display==='flex'&&pTab==='me')openProf('me');if(!st&&!QM&&mode==='home')render()});
 s.on('auth:ok',d=>{try{localStorage.tok=d.tok}catch(e){}
  const same=ACC&&ACC.name===d.name&&ACC.v===d.v;ACC={name:d.name,v:d.v};
@@ -615,7 +615,7 @@ function claimM(id){const m=dmGet(),x=dmPick().find(y=>y.id===id);if(!x||m.c[id]
  pfSave();checkTitles();setTimeout(()=>openProf('task'),250)}
 function checkTitles(){let n=0;TT.forEach(t=>{if(!PF.tt.includes(t.id)){const [a,b]=t.pr();if(a>=b){PF.tt.push(t.id);n++;if(n<=3)setTimeout(()=>{flash('🏅 ปลดล็อกฉายา: '+t.n);SFX.levelup()},500+n*1000)}}});if(n>3)setTimeout(()=>{flash('🏅 ปลดล็อกฉายาใหม่ '+n+' แบบ! ดูที่แท็บภารกิจ');SFX.levelup()},500);if(n)pfSave()}
 function equipTt(id,tab){if(id&&!PF.tt.includes(id))return;PF.tu=id;pfSave();syncProf();openProf(tab||'task')}
-function taskBody(){const m=dmGet(),ms=dmPick(),sk=PF.sk.n,nx=30+Math.min(sk,6)*10;
+function taskBody(){try{checkTitles()}catch(e){}const m=dmGet(),ms=dmPick(),sk=PF.sk.n,nx=30+Math.min(sk,6)*10;
  let h=`<div class="box">🔥 เข้าเล่นต่อเนื่อง <b>${sk}</b> วัน<br><small>โบนัสเข้าเล่นครั้งต่อไป +${nx} 🪙 (ยิ่งเข้าติดกันหลายวัน โบนัสยิ่งเพิ่ม สูงสุด +90)</small></div><b>🎯 ภารกิจวันนี้</b> <small>(รีเซ็ตเที่ยงคืน)</small>`;
  h+=ms.map(x=>{const p=Math.min(x.t,m.p[x.id]||0),done=p>=x.t,cl=m.c[x.id];
   return `<div class="box ms ${cl?'cl':''}"><div class="row"><span>${x.n}</span><b>🪙${x.c}</b></div><div class="qbar"><i style="width:${p/x.t*100}%"></i></div><div class="row"><small>${p}/${x.t}</small>${cl?'<b>✓ รับแล้ว</b>':done?`<button class="b hot" style="width:auto;margin:0" onclick="claimM('${x.id}')">รับรางวัล</button>`:''}</div></div>`}).join('');
