@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- ag-build:20261056 -->
+<!-- ag-build:20261058 -->
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ANIME GUESS</title>
@@ -8,7 +8,7 @@
 <meta property="og:title" content="ANIME GUESS · เกมทายตัวละครอนิเมะ"><meta property="og:description" content="ชวนเพื่อนมาทายตัวละครอนิเมะ มีโหมดแฟนพันธุ์แท้ สุ่มกรอบการ์ด ภารกิจรายวัน เล่นฟรีบนมือถือ">
 <meta property="og:image" content="https://anime-guess-ehad.onrender.com/og.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:url" content="https://anime-guess-ehad.onrender.com/">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://anime-guess-ehad.onrender.com/og.jpg">
-<script>document.documentElement.dataset.theme=localStorage.theme||'light';if(localStorage.calm==='1')document.documentElement.setAttribute('data-calm','')</script>
+<script>document.documentElement.dataset.theme=localStorage.theme||'light';if(localStorage.calm!=='0')document.documentElement.setAttribute('data-calm','')</script>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;800&family=Chakra+Petch:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{--ink:#14142b;--line:#14142b;--sh:#14142b;--blue:#2d5bff;--sun:#ffd23f;--pink:#ff4d8d;--bg:#eef1ff;--w:#fff;--soft:#dfe6ff;--dot:#c9d2ff;--hint:#eaffe9}
@@ -169,7 +169,7 @@ main.game{max-width:1120px}body.gm .top{max-width:1120px}main.mid{max-width:760p
 .fb.mythic .ff{animation:mgl 2.6s ease-in-out infinite}.fb.mythic .mfx{position:absolute;inset:0;pointer-events:none;-webkit-mask:var(--fu) center/100% 100% no-repeat;mask:var(--fu) center/100% 100% no-repeat;background:linear-gradient(115deg,transparent 38%,rgba(255,255,255,.75) 50%,transparent 62%) 0 0/260% 100%;mix-blend-mode:screen;animation:msw 3.2s linear infinite}
 .fb.mythic .mp{position:absolute;inset:0;pointer-events:none;overflow:visible}.fb.mythic .mp b{position:absolute;border-radius:50%;background:var(--mc);box-shadow:0 0 8px 2px var(--mc);opacity:0;animation:mspk 3s ease-in-out infinite}
 .fb.mythic.fx-ember .mp b{animation-name:mmb;border-radius:50% 50% 50% 0}.fb.mythic.fx-petal .mp b{animation-name:mpt;border-radius:100% 0 100% 0;background:#ffc2dc;box-shadow:0 0 6px var(--mc)}
-@keyframes mgl{0%,100%{filter:drop-shadow(0 0 3px var(--mc)) brightness(1)}50%{filter:drop-shadow(0 0 12px var(--mc)) brightness(1.18)}}
+@keyframes mgl{0%,100%{filter:drop-shadow(0 0 3px var(--mc))}50%{filter:drop-shadow(0 0 10px var(--mc))}}
 @keyframes msw{from{background-position:130% 0}to{background-position:-130% 0}}
 @keyframes mspk{0%,100%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1.3)}}
 @keyframes mmb{0%{opacity:0;transform:translateY(14px) scale(.6)}30%{opacity:1}100%{opacity:0;transform:translateY(-46px) scale(.2)}}
@@ -297,23 +297,19 @@ body.bgi::before{animation:kb 55s ease-in-out infinite alternate;will-change:tra
 .tabs4 button{padding:8px 2px;font-size:13px}.ms.cl{opacity:.6}.ms .qbar{margin:6px 0}.pl.rp{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:6px 0}.shop.tt{grid-template-columns:repeat(auto-fill,minmax(105px,1fr))}.shop.tt .it{padding:6px 4px}
 
 /* ===== v4.7 NEON SKIN: กระจกฝ้า · ขอบเรืองแสง · ปุ่มไล่สี · แอนิเมชันนุ่ม ===== */
-:root{--gl:rgba(255,255,255,.84);--glb:rgba(92,82,210,.4);--glow:rgba(120,90,255,.22);--hf:'Chakra Petch',Kanit,sans-serif}
-:root[data-theme=dark]{--gl:rgba(22,22,56,.74);--glb:rgba(140,150,255,.5);--glow:rgba(130,90,255,.3)}
-body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(60% 42% at 12% -4%,rgba(150,80,255,.3),transparent 70%),radial-gradient(55% 40% at 100% 100%,rgba(0,200,255,.2),transparent 70%)}
+:root{--gl:rgba(255,255,255,.94);--glb:rgba(92,82,210,.4);--glow:rgba(120,90,255,.22);--hf:'Chakra Petch',Kanit,sans-serif}
+:root[data-theme=dark]{--gl:rgba(24,24,58,.93);--glb:rgba(140,150,255,.5);--glow:rgba(130,90,255,.3)}
 h1,h2,.logo{font-family:var(--hf);letter-spacing:.3px}
 h1 span{background:linear-gradient(135deg,#ff4d8d,#a24bff 55%,#2d9bff);color:#fff;border:0;border-radius:12px;box-shadow:0 0 22px rgba(162,75,255,.65),0 6px 0 rgba(0,0,0,.25);text-shadow:0 2px 8px rgba(0,0,0,.4)}
 .logo b{background:linear-gradient(135deg,#ffd23f,#ff8a3d);border:0;border-radius:6px;color:#14142b}
-.box{background:var(--gl);border:1px solid var(--glb);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.28),0 0 22px var(--glow),inset 0 1px 0 rgba(255,255,255,.07);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
-.ov{-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);background:rgba(8,8,26,.66)}
+.box{background:var(--gl);border:1px solid var(--glb);border-radius:16px;box-shadow:0 8px 22px rgba(0,0,0,.3),0 0 14px var(--glow),inset 0 1px 0 rgba(255,255,255,.07)}.box .box{box-shadow:none}
+.ov{background:rgba(8,8,26,.74)}
 .ov>.box{animation:dpop .26s cubic-bezier(.2,1.2,.4,1)}
 @keyframes dpop{from{opacity:0;transform:translateY(14px) scale(.94)}to{opacity:1;transform:none}}
 button{border:1px solid rgba(255,255,255,.28);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.3);background:linear-gradient(135deg,#ffe066,#ffb020);transition:transform .12s,filter .15s,box-shadow .15s}
 button:hover{transform:translateY(-1px);filter:brightness(1.1);box-shadow:0 6px 16px rgba(0,0,0,.35),0 0 14px var(--glow)}
 button:active{transform:scale(.97);box-shadow:0 2px 6px rgba(0,0,0,.3)}
 button.b{font-family:var(--hf);font-weight:700;background:linear-gradient(135deg,#4f6bff,#9b4dff);box-shadow:0 4px 14px rgba(110,80,255,.55),inset 0 1px 0 rgba(255,255,255,.3)}
-button.b:not(.fab){position:relative;overflow:hidden}
-button.b:not(.fab)::after{content:'';position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(110deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg);animation:bshine 5s ease-in-out infinite}
-@keyframes bshine{0%,70%{left:-60%}100%{left:130%}}
 button.g{background:var(--gl);border:1px solid var(--glb);box-shadow:0 3px 10px rgba(0,0,0,.18)}
 button.r{background:linear-gradient(135deg,#ff4d8d,#ff2d55);box-shadow:0 4px 14px rgba(255,60,120,.5)}
 .fab{border:1px solid rgba(255,255,255,.35)!important;box-shadow:0 6px 18px rgba(0,0,0,.4),0 0 16px var(--glow)!important}
@@ -330,9 +326,19 @@ input:focus,select:focus,textarea:focus{outline:0;border-color:#8f7bff;box-shado
 #toast>div{border:1px solid rgba(255,255,255,.4);border-radius:18px;background:linear-gradient(135deg,#ffe066,#ff9f43);box-shadow:0 0 36px rgba(255,170,60,.7),0 10px 30px rgba(0,0,0,.4)}
 .bub{border:1px solid rgba(255,255,255,.4);border-radius:99px;box-shadow:0 0 18px rgba(255,255,255,.4)}
 .sc,.it{border-radius:12px;border-width:1px}
-.sc{animation:fup .35s ease both}@keyframes fup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.sc{content-visibility:auto;contain-intrinsic-size:150px 230px}.sgg,.lg{contain:layout}
 .ph,.qimg,.lt img,.ph0{border-radius:10px}
-@media(prefers-reduced-motion:reduce){button.b::after,.sc,.ov>.box{animation:none}}
+/* ลดภาระเครื่อง: ในตารางที่มีของเยอะๆ ปิดแอนิเมชันที่หนัก (เหลือเฉพาะตอนใช้งานจริง/ตอนสุ่มได้) */
+.shop .fb.mythic .ff,.shop .fb.mythic .mfx,.shop .fb.mythic .mp,.avw.af .mfx,.avw.af .mp{animation:none!important;display:none}
+.shop .fb.mythic .ff{display:block;filter:drop-shadow(0 0 5px var(--mc))}.avw.af .fb.mythic .ff{display:block;animation:none!important;filter:drop-shadow(0 0 4px var(--mc))}
+.shop .ttl,.shop .ttl::after{animation:none!important}.shop .ttl::after{display:none}
+.fb.mythic .ff{will-change:filter}
+/* โหมดลื่น (เปิดเป็นค่าเริ่มต้น): ตัดเงา/เรืองแสง/ฟิลเตอร์ที่กินเครื่อง เหลือหน้าตาแบบเรียบ */
+:root[data-calm] .box,:root[data-calm] button,:root[data-calm] .tile,:root[data-calm] .dc,:root[data-calm] #side,:root[data-calm] .card,:root[data-calm] .fab,:root[data-calm] #toast>div,:root[data-calm] .bub,:root[data-calm] .qbar i,:root[data-calm] .xpbar i,:root[data-calm] h1 span{box-shadow:none!important;text-shadow:none}
+:root[data-calm] .fb .ff,:root[data-calm] .fb.mythic .ff,:root[data-calm] .avw.af .fb.mythic .ff,:root[data-calm] .shop .fb.mythic .ff{filter:none!important;will-change:auto}
+:root[data-calm] .fb.mythic .mfx,:root[data-calm] .fb.mythic .mp,:root[data-calm] .ttl::after{display:none!important}
+:root[data-calm] .ttl{box-shadow:none!important}
+@media(prefers-reduced-motion:reduce){.ov>.box{animation:none}}
 </style></head><body>
 <div class="top"><div class="logo"><b>ANIME</b> GUESS</div><div class="tr"><button class="gear g mt" id="mt" onclick="toggleMute()" aria-label="เปิด/ปิดเสียง">🔊</button><button class="gear g" onclick="openSet()" aria-label="ตั้งค่า">⚙️</button></div></div><div id="cn">กำลังเชื่อมต่อเซิร์ฟเวอร์ใหม่… (เซิร์ฟเวอร์ฟรีอาจใช้เวลาตื่นราว 30 วินาที) เกมของคุณยังอยู่ ไม่ต้องรีเฟรช</div>
 <div id="bg"></div><main id="app"></main>
@@ -352,7 +358,7 @@ input:focus,select:focus,textarea:focus{outline:0;border-color:#8f7bff;box-shado
 const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิดตัวอักษร'],era:['📅','ใบ้ยุค'],ability:['⚡','ความสามารถ'],side:['🏴','ฝ่าย'],role:['⭐','บทบาท']};
 const s=io(),$=id=>document.getElementById(id);
 const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
-const VER=5,APPV='4.7',BUILD='20261056';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,libSc=0,libSc2=0,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
+const VER=5,APPV='4.7.2',BUILD='20261058';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,libSc=0,libSc2=0,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
 const pre=new URLSearchParams(location.search).get('room')||'';
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
@@ -581,7 +587,7 @@ function openSet(){const dk=document.documentElement.dataset.theme==='dark';$('s
  <label class="c"><input type="checkbox" ${music?'checked':''} onchange="setMusic(this.checked)"> 🎵 เพลงพื้นหลัง</label>
  <input type="range" min="0" max="100" value="${Math.round(vM*100)}" oninput="setVol('vm',this.value/100)" aria-label="ระดับเสียงเพลง">
  <button class="g" onclick="SFX.win()">▶ ลองฟังเสียงชนะ</button><br>
- <label class="c"><input type="checkbox" ${localStorage.calm==='1'?'checked':''} onchange="setCalm(this.checked)"> ลดการเคลื่อนไหว/แอนิเมชัน</label>
+ <label class="c"><input type="checkbox" ${localStorage.calm!=='0'?'checked':''} onchange="setCalm(this.checked)"> ⚡ โหมดลื่น: ลดแอนิเมชัน/เงา/เอฟเฟกต์ (แนะนำ ถ้าเครื่องหน่วง)</label>
  <button class="g" onclick="openProf('me')">👤 โปรไฟล์ & ร้านค้า (🪙 ${PF.coins})</button>
  <button class="g" onclick="howto()">🎮 วิธีเล่น</button>
  ${st?`<button class="g" onclick="copy(location.origin+'/?room='+st.code)">🔗 คัดลอกลิงก์เชิญเพื่อน</button><button class="r" onclick="leave()">🚪 ออกจากห้อง</button>`:''}
@@ -681,7 +687,7 @@ s.on('inv:got',async d=>{if(st||QM){flash('✉️ '+d.from+' ชวนเข้�
  if(d.kind==='q')s.emit('qz:join',{code:d.code,name:n,pid,prof:profOut()});else act('join',{code:d.code,name:n,pid,prof:profOut()})});
 
 // ================= v3.1: เสนอตัวละคร + หน้าแอดมิน =================
-s.on('anime:meta',m=>{Object.assign(ANM,m||{});if($('lib').style.display==='flex'&&$('lr'))drawLib()});
+let _lbT=0,_lbS=0;s.on('anime:meta',m=>{Object.assign(ANM,m||{});if($('lib').style.display!=='flex'||!$('lr'))return;clearTimeout(_lbT);_lbT=setTimeout(function f(){if(Date.now()-_lbS<1200)return _lbT=setTimeout(f,1200);drawLib()},1500)});document.addEventListener('scroll',()=>{_lbS=Date.now()},true);
 s.on('chars:update',m=>{animes=m.animes||animes;chars=m.chars||chars;if($('lib').style.display==='flex'&&$('lr'))drawLib();if(!st&&!QM&&mode==='home')render()});
 const CXMAX=100;let cxAdm=null,cxRows=[],cxSeq=0,cxWait={},cxMine=null,cxBusy=false;
 const cxEx=n=>{const k=n.trim().toLowerCase();return !!k&&chars.some(c=>c[0].toLowerCase()===k||(c[3]||'').toLowerCase().split('|').includes(k))};
@@ -1079,7 +1085,7 @@ function openProf(tab){pTab=tab||pTab;const lv=lvOf(PF.xp),a=40*(lv-1)*(lv-1),b=
    return `<div class="it ${on?'on':''}">${pv}<div>${lb}</div>${on?'<b>✓ ใช้งานอยู่</b>':ow?`<button class="b" onclick="equip('${k}','${id}')">ใช้</button>`:`<button class="${PF.coins>=pr?'b':'g'}" onclick="buy('${k}','${id}',${pr},'${lb}')">🪙 ${pr}</button>`}</div>`}).join('');
   body=`<b>🖼️ กรอบโปรไฟล์</b><div class="shop">${it('fr',FR)}</div><b>✨ เอฟเฟกต์ชื่อ</b><div class="shop">${it('nf',NF)}</div>`}
  $('sc').innerHTML=head+body+`<button class="b" onclick="closeSet()">ปิด</button>`;$('set').style.display='flex';cntUp($('cv'),PF.coins)}
-const NEWS=['🎨 หน้าตาใหม่ทั้งเกม: การ์ดกระจกฝ้าขอบเรืองแสง · ปุ่มไล่สีมีแสงวาบ · หน้าต่างเด้งนุ่ม · ฟอนต์หัวข้อใหม่ · ตัวเลขเหรียญไล่ขึ้น (ปิดแอนิเมชันได้ในตั้งค่า)'];
+const NEWS=['⚡ โหมดลื่นเปิดเป็นค่าเริ่มต้น: ลดแอนิเมชัน เงา และเอฟเฟกต์หนักๆ ทั้งเกม (ปิด/เปิดได้ในตั้งค่า ⚙️)'];
 function openNews(){closeSet();dlg(`<b style="font-size:20px">📜 มีอะไรใหม่ · v${APPV}</b><ul style="text-align:left;line-height:1.6;padding-left:18px">${NEWS.map(n=>`<li>${n}</li>`).join('')}</ul>`,[['เริ่มเลย','b']])}
 // ================= v2.5: สุ่มกรอบการ์ด (Gacha) =================
 // ปรับค่าได้ที่นี่: ราคา อัตราสุ่ม (รวมต้อง = 100) ระบบการันตี และเหรียญคืนเมื่อได้ซ้ำ
