@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- ag-build:20261059 -->
+<!-- ag-build:20261060 -->
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ANIME GUESS</title>
@@ -174,6 +174,9 @@ main.game{max-width:1120px}body.gm .top{max-width:1120px}main.mid{max-width:760p
 .fb.mythic .mp{position:absolute;inset:0;pointer-events:none;overflow:visible}.fb.mythic .mp b{position:absolute;border-radius:50%;background:var(--mc);box-shadow:0 0 8px 2px var(--mc);opacity:0;animation:mspk 3s ease-in-out infinite}
 .fb.mythic.fx-ember .mp b{animation-name:mmb;border-radius:50% 50% 50% 0}.fb.mythic.fx-petal .mp b{animation-name:mpt;border-radius:100% 0 100% 0;background:#ffc2dc;box-shadow:0 0 6px var(--mc)}
 .fb.mythic:not(.vis) .ff,.fb.mythic:not(.vis)::before,.fb.mythic:not(.vis) .mfx::before,.fb.mythic:not(.vis) .mp b{animation-play-state:paused}
+details.tg>summary{cursor:pointer;padding:6px 2px;list-style:none}details.tg>summary::-webkit-details-marker{display:none}
+.shop .fb.mythic .mp,.fb.mythic:not(.vis) .mp,.fb.mythic:not(.vis) .mfx,.fb.mythic:not(.vis)::before{display:none}
+.shop .it{content-visibility:auto;contain-intrinsic-size:auto 230px}
 @keyframes mbr{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
 @keyframes mgp{0%,100%{opacity:.12}50%{opacity:.5}}
 @keyframes msw{from{background-position:130% 0}to{background-position:-130% 0}}
@@ -361,12 +364,12 @@ input:focus,select:focus,textarea:focus{outline:0;border-color:#8f7bff;box-shado
 const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิดตัวอักษร'],era:['📅','ใบ้ยุค'],ability:['⚡','ความสามารถ'],side:['🏴','ฝ่าย'],role:['⭐','บทบาท']};
 const s=io(),$=id=>document.getElementById(id);
 const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
-const VER=5,APPV='4.7.3',BUILD='20261059';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,libSc=0,libSc2=0,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
+const VER=5,APPV='4.7.4',BUILD='20261060';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,libSc=0,libSc2=0,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
 const pre=new URLSearchParams(location.search).get('room')||'';
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
 const AVC={},avAsk=new Map(),AVOK=/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/;
-const avSrc=p=>{if(!p)return '';if(!p.pid)return p.av||'';if((st&&p.pid===st.you)||(QM&&p.pid===QM.you))return PF.av||'';const c=AVC[p.pid];return c&&c.ah===p.ah?c.src:''};
+const avSrc=p=>{if(!p)return '';if(!p.pid)return p.av||'';if((st&&p.pid===st.you)||(QM&&p.pid===QM.you))return avUrl(PF.av)||'';const c=AVC[p.pid];return c&&c.ah===p.ah?c.src:''};
 const av=(n,p,big)=>{p=p||{};const src=avSrc(p),af=p.af&&CFM[p.af];if(af){const w=af.win,pd=.012,W=100/((w[2]-w[0])+2*pd),hh=W*af.h/af.w,hue=[...n].reduce((a,c)=>a+c.charCodeAt(0),0)*47%360;return `<span class="avw af${big?' big':''}"><span class="afb" style="width:${W}%;left:${-(w[0]-pd)*W}%;top:${-(w[1]-pd)*hh}%">${fbox(af,`<span class="afi" style="background:hsl(${hue} 85% 65%)">${src?`<img src="${src}" alt="">`:esc([...n][0]||'?')}</span>`)}</span></span>`}
  const f=p.fr&&p.fr!=='none'?' fr-'+p.fr:'';return `<span class="avw${f}${big?' big':''}"><span class="av" style="background:hsl(${[...n].reduce((a,c)=>a+c.charCodeAt(0),0)*47%360} 85% 65%)">${src?`<img src="${src}" alt="">`:esc([...n][0]||'?')}</span></span>`};
 const pnm=p=>{const n=esc(p.name);return (p.nf&&p.nf!=='none'?`<span class="nf nf-${p.nf}">${n}</span>`:n)+(p.tt&&TTM[p.tt]?` <small class="ttl ${TTM[p.tt].tr?'t-'+TTM[p.tt].tr:''}"${TTM[p.tt].h!=null?` style="--h:${TTM[p.tt].h}"`:''}>${TTM[p.tt].i}${TTM[p.tt].n}</small>`:'')+(p.lv>1?` <small class="lvb">Lv${p.lv}</small>`:'')};
@@ -1091,7 +1094,7 @@ function openProf(tab){pTab=tab||pTab;const lv=lvOf(PF.xp),a=40*(lv-1)*(lv-1),b=
    return `<div class="it ${on?'on':''}">${pv}<div>${lb}</div>${on?'<b>✓ ใช้งานอยู่</b>':ow?`<button class="b" onclick="equip('${k}','${id}')">ใช้</button>`:`<button class="${PF.coins>=pr?'b':'g'}" onclick="buy('${k}','${id}',${pr},'${lb}')">🪙 ${pr}</button>`}</div>`}).join('');
   body=`<b>🖼️ กรอบโปรไฟล์</b><div class="shop">${it('fr',FR)}</div><b>✨ เอฟเฟกต์ชื่อ</b><div class="shop">${it('nf',NF)}</div>`}
  $('sc').innerHTML=head+body+`<button class="b" onclick="closeSet()">ปิด</button>`;$('set').style.display='flex';cntUp($('cv'),PF.coins)}
-const NEWS=['✨ เอฟเฟกต์กรอบ Mythic กลับมาแล้ว (ปรับให้เบาลง: เคลื่อนไหวเฉพาะกรอบที่อยู่บนจอ) · โหมดลื่นยังลดแอนิเมชันส่วนอื่นอยู่'];
+const NEWS=['⚡ ลดภาระเครื่องอีกขั้น: หน้าสุ่มกรอบพับระดับ C–S เก็บไว้ (กดเปิดดูเมื่ออยากดู) · เอฟเฟกต์/อนุภาคทำงานเฉพาะกรอบที่อยู่บนจอเท่านั้น · อนุภาคน้อยที่สุด'];
 function openNews(){closeSet();dlg(`<b style="font-size:20px">📜 มีอะไรใหม่ · v${APPV}</b><ul style="text-align:left;line-height:1.6;padding-left:18px">${NEWS.map(n=>`<li>${n}</li>`).join('')}</ul>`,[['เริ่มเลย','b']])}
 // ================= v2.5: สุ่มกรอบการ์ด (Gacha) =================
 // ปรับค่าได้ที่นี่: ราคา อัตราสุ่ม (รวมต้อง = 100) ระบบการันตี และเหรียญคืนเมื่อได้ซ้ำ
@@ -1103,9 +1106,10 @@ function cfFix(){if(!CF.length)return;const gone=PF.cfo.filter(i=>!CFM[i]);if(go
 fetch('/frames.json?v='+BUILD).then(r=>r.json()).then(a=>{CF=a;CFM={};a.forEach(x=>CFM[x.id]=x);cfFix()}).catch(()=>{});
 const FXP=[[8,12,0,7,5],[24,8,1.3,9,4],[44,15,.6,6,6],[66,10,2.1,8,5],[84,14,.9,10,4],[14,60,1.7,9,5],[88,66,.3,7,6],[52,82,2.4,8,4]];
 function fbox(f,inner,cls){const w=f.win,pd=.012,my=f.t==='M';
- if(my)return `<div class="fb mythic fx-${f.fx||'spark'} ${cls||''}" style="aspect-ratio:${f.w}/${f.h};--mc:${f.mc||'#ff3df0'};--fu:url(/${f.f})"><div class="fw" style="left:${(w[0]-pd)*100}%;top:${(w[1]-pd)*100}%;width:${(w[2]-w[0]+2*pd)*100}%;height:${(w[3]-w[1]+2*pd)*100}%">${inner}</div><img class="ff" src="/${f.f}" alt="" loading="lazy"><i class="mfx"></i><span class="mp">${FXP.slice(0,5).map(p=>`<b style="left:${p[0]}%;top:${p[1]}%;animation-delay:${p[2]}s;width:${p[3]}px;height:${p[3]}px;animation-duration:${2.4+p[4]*.4}s"></b>`).join('')}</span></div>`
+ if(my)return `<div class="fb mythic fx-${f.fx||'spark'} ${cls||''}" style="aspect-ratio:${f.w}/${f.h};--mc:${f.mc||'#ff3df0'};--fu:url(/${f.f})"><div class="fw" style="left:${(w[0]-pd)*100}%;top:${(w[1]-pd)*100}%;width:${(w[2]-w[0]+2*pd)*100}%;height:${(w[3]-w[1]+2*pd)*100}%">${inner}</div><img class="ff" src="/${f.f}" alt="" loading="lazy"><i class="mfx"></i><span class="mp">${FXP.slice(0,3).map(p=>`<b style="left:${p[0]}%;top:${p[1]}%;animation-delay:${p[2]}s;width:${p[3]}px;height:${p[3]}px;animation-duration:${2.4+p[4]*.4}s"></b>`).join('')}</span></div>`
  return `<div class="fb ${cls||''}" style="aspect-ratio:${f.w}/${f.h}"><div class="fw" style="left:${(w[0]-pd)*100}%;top:${(w[1]-pd)*100}%;width:${(w[2]-w[0]+2*pd)*100}%;height:${(w[3]-w[1]+2*pd)*100}%">${inner}</div><img class="ff" src="/${f.f}" alt="" loading="lazy"></div>`}
-const gSample=()=>PF.av?`<img class="ph" src="${PF.av}" alt="">`:`<div class="ph gs">🙂</div>`;
+let _avK='',_avU='';function avUrl(d){if(!d||d.slice(0,5)!=='data:')return d||'';if(d===_avK)return _avU;try{const i=d.indexOf(','),m=d.slice(5,i).split(';')[0],b=atob(d.slice(i+1)),u=new Uint8Array(b.length);for(let k=0;k<b.length;k++)u[k]=b.charCodeAt(k);if(_avU)URL.revokeObjectURL(_avU);_avU=URL.createObjectURL(new Blob([u],{type:m||'image/jpeg'}));_avK=d;return _avU}catch(e){return d}}
+const gSample=()=>PF.av?`<img class="ph" src="${avUrl(PF.av)}" alt="" decoding="async">`:`<div class="ph gs">🙂</div>`;
 function rollOne(){const g=PF.gp;g.s++;g.m=(+g.m||0)+1;let t='C',pm=false;
  {let x=rnd()*100,acc=0;for(const k of TORD){acc+=GA.rates[k];if(x<acc){t=k;break}}
   if(g.s>=GA.pitySS&&TORD.indexOf(t)<3)t='S';
@@ -1132,6 +1136,7 @@ async function doRoll(n){if(!CF.length)return say('กำลังโหลด�
  if(i===0)doRoll(n);else openProf('gacha')}
 function equipAf(id){if(id&&!PF.cfo.includes(id))return;PF.af=id;pfSave();syncProf();openProf('gacha')}
 function equipCf(id){if(id&&!PF.cfo.includes(id))return;PF.cf=id;pfSave();syncProf();openProf('gacha')}
+const GOPEN={M:1};
 function gachaBody(){const g=PF.gp,own=PF.cfo.length,tot=CF.length;
  let h=`<div class="box"><b>🎰 สุ่มกรอบการ์ดตัวละคร</b><br><small>กรอบจะล้อมการ์ดตัวละครของคุณในเกมทายตัวละคร · ยิ่งระดับสูงยิ่งสุ่มยาก</small>
  <div class="rt">${TORD.map(t=>`<span style="background:${TCOL[t]}">${TN[t]||t} ${GA.rates[t]}%</span>`).join('')}</div>
@@ -1139,9 +1144,9 @@ function gachaBody(){const g=PF.gp,own=PF.cfo.length,tot=CF.length;
  <small>การันตี: ระดับ S ขึ้นไปอย่างน้อย 1 ใบทุก ${GA.pitySS} ครั้ง (ตอนนี้ ${g.s}/${GA.pitySS})<br><b style="color:${TCOL.M}">การันตี MYTHIC (กรอบ) ทุก ${GA.pityM} ครั้ง — ตอนนี้ ${Math.min(+g.m||0,GA.pityM)}/${GA.pityM}</b><br>ในการสุ่มมีโอกาสได้ <b>ฉายา</b> ด้วย (ราว 30% ของแต่ละระดับ) ยิ่งระดับสูงยิ่งเด่น<br>ได้ของซ้ำ คืนเหรียญ: ${TORD.map(t=>(TN[t]||t)+' '+GA.refund[t]).join(' · ')}<br>สะสมแล้ว ${own}/${tot} กรอบ · ${PF.tt.filter(i=>GT.some(x=>x.id===i)).length}/${GT.length} ฉายา</small></div>`;
  h+=`<div class="row" style="justify-content:flex-start"><button class="${PF.cf?'g':'b'}" onclick="equipCf('')">${PF.cf?'ถอดกรอบการ์ด':'✓ ไม่ใส่กรอบการ์ด'}</button>${PF.af?'<button class="g" onclick="equipAf(\'\')">ถอดกรอบรูปโปรไฟล์</button>':''}</div><small>กรอบเดียวกันใช้ได้ทั้งกับการ์ดตัวละครและรูปโปรไฟล์ (เลือกแยกกันได้) · เมื่อใส่กรอบกับรูปโปรไฟล์ วงแหวนจากร้านค้าจะถูกซ่อนไว้ชั่วคราว ถอดกรอบแล้วกลับมาเหมือนเดิม</small>`;
  for(const t of [...TORD].reverse()){const L=CF.filter(f=>f.t===t);if(!L.length)continue;const o=L.filter(f=>PF.cfo.includes(f.id)).length;
-  h+=`<b style="color:${TCOL[t]}">${TN[t]||t}</b> <small>${o}/${L.length}</small><div class="shop gal">${L.map(f=>{const ow=PF.cfo.includes(f.id),on=PF.cf===f.id;
+  h+=`<details class="tg" ${GOPEN[t]?'open':''} ontoggle="GOPEN['${t}']=this.open?1:0"><summary><b style="color:${TCOL[t]}">${TN[t]||t}</b> <small>${o}/${L.length} · แตะเพื่อ${GOPEN[t]?'พับ':'ดู'}</small></summary><div class="shop gal">${L.map(f=>{const ow=PF.cfo.includes(f.id),on=PF.cf===f.id;
    return `<div class="it ${on||PF.af===f.id?'on':''}" style="${ow?'':'opacity:.45;filter:grayscale(.8)'}">${fbox(f,gSample())}<div>${ow?esc(f.n):'🔒 ???'}</div>${ow?`${on?'<b>✓ กรอบการ์ด</b>':`<button class="b" onclick="equipCf('${f.id}')">ใช้กับการ์ด</button>`}${PF.af===f.id?'<b>✓ กรอบรูปโปรไฟล์</b>':`<button class="g" onclick="equipAf('${f.id}')">ใช้กับรูปโปรไฟล์</button>`}`:''}</div>`}).join('')}</div>`;
-  const TL=GT.filter(x=>x.tr===t);if(TL.length)h+=`<div class="shop gal tt" style="margin-top:6px">${TL.map(x=>{const ow=PF.tt.includes(x.id),on=PF.tu===x.id;return `<div class="it ${on?'on':''}" style="${ow?'':'opacity:.5;filter:grayscale(.8)'}"><span class="ttl t-${x.tr}">${x.i}${ow?esc(x.n):'🔒 ???'}</span>${on?'<b>✓ ใช้อยู่</b>':ow?`<button class="b" onclick="equipTt('${x.id}','gacha')">ใช้</button>`:''}</div>`}).join('')}</div>`}
+  const TL=GT.filter(x=>x.tr===t);if(TL.length)h+=`<div class="shop gal tt" style="margin-top:6px">${TL.map(x=>{const ow=PF.tt.includes(x.id),on=PF.tu===x.id;return `<div class="it ${on?'on':''}" style="${ow?'':'opacity:.5;filter:grayscale(.8)'}"><span class="ttl t-${x.tr}">${x.i}${ow?esc(x.n):'🔒 ???'}</span>${on?'<b>✓ ใช้อยู่</b>':ow?`<button class="b" onclick="equipTt('${x.id}','gacha')">ใช้</button>`:''}</div>`}).join('')}</div>`;h+='</details>'}
  return h}
 SFX.gacha=t=>{const i=TORD.indexOf(t);
  seq([392,494,587].slice(0,2+(i>0)),'triangle',.14,.09);
