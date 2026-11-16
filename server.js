@@ -613,13 +613,13 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '4.7.4';
+const APP_VERSION = '4.8.0';
 const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
 const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
-let CFIDS = new Set(), CFM = 0;
+let CFIDS = new Set(), CFM = 0, CFT = {};
 function cfIds() {
   try {
-    for (const d of [WEB, __dirname]) { const f = path.join(d, 'frames.json'); if (!fs.existsSync(f)) continue; const m = fs.statSync(f).mtimeMs; if (m !== CFM) { CFM = m; CFIDS = new Set(JSON.parse(fs.readFileSync(f, 'utf8')).map(x => x.id)); } break; }
+    for (const d of [WEB, __dirname]) { const f = path.join(d, 'frames.json'); if (!fs.existsSync(f)) continue; const m = fs.statSync(f).mtimeMs; if (m !== CFM) { CFM = m; const fa = JSON.parse(fs.readFileSync(f, 'utf8')); CFIDS = new Set(fa.map(x => x.id)); CFT = {}; fa.forEach(x => { CFT[x.id] = x.t; }); } break; }
   } catch (e) { console.log('frames.json:', e.message); }
   return CFIDS;
 }
@@ -829,7 +829,33 @@ const tooMany = k => { const f = FAILS.get(k); return !!f && f.n >= 8 && Date.no
 const noteFail = k => { const f = FAILS.get(k); if (!f || Date.now() - f.t > 600000) FAILS.set(k, { n: 1, t: Date.now() }); else { f.n++; f.t = Date.now(); } };
 const kv = (o, n, f) => { const out = {}; if (o && typeof o === 'object') Object.keys(o).slice(0, n).forEach(k => { if (/^[a-z0-9_]{1,16}$/.test(k)) out[k] = f(o[k]); }); return out; };
 const clampI = (v, a, b) => Math.min(b, Math.max(a, Math.floor(+v) || 0));
-function cleanAcct(d, old) {
+const GA = { cost: 100, cost10: 900, rates: { C: 45.99, B: 28, A: 16, S: 10, M: 0.01 }, pitySS: 10, pityM: 100, refund: { C: 15, B: 30, A: 60, S: 150, M: 1000 } };
+const TORD = ['C', 'B', 'A', 'S', 'M'];
+const SHOP = { fr: { gold: 150, sakura: 200, ice: 250, emerald: 300, neon: 400, fire: 500, royal: 600, rainbow: 800, galaxy: 1000 }, nf: { gold: 100, ice: 150, neon: 250, fire: 300, sparkle: 400, rainbow: 500 } };
+const rnd = () => nodeCrypto.randomInt(0, 1e9) / 1e9, rndI = n => nodeCrypto.randomInt(0, n);
+function gachaOne(p) {
+  const g = p.gp; g.s = (g.s || 0) + 1; g.m = (+g.m || 0) + 1; let t = 'C', pm = false;
+  const x = rnd() * 100; let acc = 0; for (const k of TORD) { acc += GA.rates[k]; if (x < acc) { t = k; break; } }
+  const hasM = Object.values(CFT).includes('M');
+  if (g.s >= GA.pitySS && TORD.indexOf(t) < 3) t = 'S';
+  if (g.m >= GA.pityM && hasM) { t = 'M'; pm = true; }
+  if (t === 'S') g.s = 0; if (t === 'M') g.m = 0;
+  const tl = [...TTIDS].filter(i => new RegExp('^g_' + t.toLowerCase() + '\\d+$').test(i));
+  if (!pm && tl.length && rnd() < .3) {
+    const id = tl[rndI(tl.length)], dup = p.tt.includes(id); if (dup) p.coins += GA.refund[t]; else p.tt.push(id);
+    return { k: 't', id, t, dup };
+  }
+  const ids = Object.keys(CFT); let pool = ids.filter(i => CFT[i] === t); if (!pool.length) { t = 'S'; pool = ids.filter(i => CFT[i] === 'S'); }
+  if (pm) { const un = pool.filter(i => !p.cfo.includes(i)); if (un.length) pool = un; }
+  const id = pool[rndI(pool.length)], dup = p.cfo.includes(id); if (dup) p.coins += GA.refund[t]; else p.cfo.push(id);
+  return { k: 'f', id, t, dup };
+}
+const ACCQ = new Map(), BKT = new Map();
+const acctRun = (key, fn) => { const p = (ACCQ.get(key) || Promise.resolve()).then(fn, fn); const q = p.catch(() => {}); ACCQ.set(key, q); q.then(() => { if (ACCQ.get(key) === q) ACCQ.delete(key); }); return p; };
+// โควตาเพิ่มเหรียญ/xp ต่อบัญชี: เติม 20 เหรียญ/วินาที (สูงสุด 6000), xp 10/วินาที (สูงสุด 3000)
+function bucket(key) { const now = Date.now(), b = BKT.get(key) || { t: now, c: 6000, x: 3000 }, dt = (now - b.t) / 1000; b.c = Math.min(6000, b.c + dt * 20); b.x = Math.min(3000, b.x + dt * 10); b.t = now; BKT.set(key, b); return { c: Math.floor(b.c), x: Math.floor(b.x) }; }
+function bucketUse(key, c, x) { const b = BKT.get(key); if (b) { b.c = Math.max(0, b.c - c); b.x = Math.max(0, b.x - x); } }
+function cleanAcct(d, old, lim) {
   d = d && typeof d === 'object' ? d : {};
   const strs = (a, n, len) => (Array.isArray(a) ? a : []).filter(x => typeof x === 'string' && x.length <= len).slice(0, n);
   const o = {
@@ -849,8 +875,16 @@ function cleanAcct(d, old) {
   o.cf = typeof d.cf === 'string' && o.cfo.includes(d.cf) ? d.cf : ''; o.af = typeof d.af === 'string' && o.cfo.includes(d.af) ? d.af : '';
   o.av = typeof d.av === 'string' && d.av.length <= 24000 && AV_RE.test(d.av) ? d.av : '';
   // กันการแก้ตัวเลขในเครื่องแบบก้าวกระโดด: เพิ่มได้ไม่เกินโควตาต่อการบันทึกหนึ่งครั้ง
-  o.coins = Math.min(o.coins, old ? old.coins + 6000 : 20000);
-  o.xp = Math.min(o.xp, old ? old.xp + 3000 : 20000);
+  o.coins = Math.min(o.coins, old ? old.coins + (lim ? lim.c : 6000) : 20000);
+  o.xp = Math.min(o.xp, old ? old.xp + (lim ? lim.x : 3000) : 20000);
+  if (old) { // บัญชีที่มีอยู่แล้ว: ของที่ได้จากสุ่ม/ซื้อ เปลี่ยนได้เฉพาะผ่านเซิร์ฟเวอร์เท่านั้น
+    o.cfo = (old.cfo || []).filter(i => cfIds().has(i)); o.owned = old.owned || []; o.gp = old.gp || o.gp;
+    const ot = old.tt || []; o.tt = ot.concat(o.tt.filter(i => !ot.includes(i) && !/^g_/.test(i)));
+    o.fr = o.fr === 'none' || o.owned.includes('fr:' + o.fr) ? o.fr : (old.fr || 'none');
+    o.nf = o.nf === 'none' || o.owned.includes('nf:' + o.nf) ? o.nf : (old.nf || 'none');
+    o.tu = typeof d.tu === 'string' && o.tt.includes(d.tu) ? d.tu : '';
+    o.cf = typeof d.cf === 'string' && o.cfo.includes(d.cf) ? d.cf : ''; o.af = typeof d.af === 'string' && o.cfo.includes(d.af) ? d.af : '';
+  }
   return o;
 }
 const sendAv = (sock, list, pids) => (Array.isArray(pids) ? pids : []).slice(0, 12).forEach(pid => {
@@ -1021,16 +1055,59 @@ io.on('connection', sock => {
       okAuth(rec0, tok);
     } catch (e) { console.log('auth:token', e.message); }
   });
-  sock.on('auth:save', async d => {
+  sock.on('auth:save', d => {
     if (!sock.data.acct || !d) return;
-    try {
-      const raw = await rcmd('GET', sock.data.acct); if (!raw) return;
-      const rec = JSON.parse(raw);
-      if (d.base !== rec.v) return sock.emit('auth:stale', { prof: rec.prof, v: rec.v });
-      rec.prof = cleanAcct(d.prof, rec.prof); rec.v++;
-      await rcmd('SET', sock.data.acct, JSON.stringify(rec));
-      sock.emit('auth:saved', { v: rec.v, prof: rec.prof });
-    } catch (e) { console.log('auth:save', e.message); }
+    const key = sock.data.acct;
+    acctRun(key, async () => {
+      try {
+        const raw = await rcmd('GET', key); if (!raw) return;
+        const rec = JSON.parse(raw);
+        if (d.base !== rec.v) return sock.emit('auth:stale', { prof: rec.prof, v: rec.v });
+        const lim = bucket(key), old = rec.prof;
+        rec.prof = cleanAcct(d.prof, old, lim); rec.v++;
+        bucketUse(key, Math.max(0, rec.prof.coins - (old.coins || 0)), Math.max(0, rec.prof.xp - (old.xp || 0)));
+        await rcmd('SET', key, JSON.stringify(rec));
+        sock.emit('auth:saved', { v: rec.v, prof: rec.prof });
+      } catch (e) { console.log('auth:save', e.message); }
+    });
+  });
+  // ===== สุ่มกรอบ / ซื้อของ คำนวณที่เซิร์ฟเวอร์ (บัญชีที่ล็อกอิน) =====
+  sock.on('gacha:roll', d => {
+    if (!sock.data.acct || !d) return;
+    const key = sock.data.acct, n = d.n === 10 ? 10 : 1;
+    acctRun(key, async () => {
+      try {
+        const raw = await rcmd('GET', key); if (!raw) return;
+        const rec = JSON.parse(raw);
+        if (d.base !== rec.v) { sock.emit('auth:stale', { prof: rec.prof, v: rec.v }); return sock.emit('gacha:err', 'ข้อมูลไม่ตรงกับบัญชี ซิงก์ใหม่แล้ว ลองอีกครั้ง'); }
+        const p = rec.prof, price = n === 10 ? GA.cost10 : GA.cost;
+        if ((p.coins || 0) < price) return sock.emit('gacha:err', 'เหรียญไม่พอ ต้องการ ' + price + ' 🪙');
+        if (!Object.keys(CFT).length) cfIds();
+        if (!Object.keys(CFT).length) return sock.emit('gacha:err', 'ยังไม่มีข้อมูลกรอบบนเซิร์ฟเวอร์ (frames.json)');
+        p.coins -= price; p.cfo = p.cfo || []; p.tt = p.tt || []; p.gp = p.gp || { s: 0, r: 0 }; p.paid = p.paid || [];
+        const rs = []; for (let i = 0; i < n; i++) rs.push(gachaOne(p));
+        rec.v++; await rcmd('SET', key, JSON.stringify(rec));
+        sock.emit('gacha:res', { rs, prof: rec.prof, v: rec.v });
+      } catch (e) { console.log('gacha:roll', e.message); sock.emit('gacha:err', 'สุ่มไม่สำเร็จ ลองใหม่'); }
+    });
+  });
+  sock.on('shop:buy', d => {
+    if (!sock.data.acct || !d) return;
+    const key = sock.data.acct, k = d.k === 'nf' ? 'nf' : d.k === 'fr' ? 'fr' : '', id = String(d.id || '').slice(0, 20), pr = SHOP[k] && SHOP[k][id];
+    if (!k || !pr) return sock.emit('shop:err', 'ไม่พบสินค้า');
+    acctRun(key, async () => {
+      try {
+        const raw = await rcmd('GET', key); if (!raw) return;
+        const rec = JSON.parse(raw);
+        if (d.base !== rec.v) { sock.emit('auth:stale', { prof: rec.prof, v: rec.v }); return sock.emit('shop:err', 'ข้อมูลไม่ตรงกับบัญชี ซิงก์ใหม่แล้ว ลองอีกครั้ง'); }
+        const p = rec.prof; p.owned = p.owned || [];
+        if (p.owned.includes(k + ':' + id)) return sock.emit('shop:err', 'มีของชิ้นนี้แล้ว');
+        if ((p.coins || 0) < pr) return sock.emit('shop:err', 'เหรียญไม่พอ ต้องการ ' + pr + ' 🪙');
+        p.coins -= pr; p.owned.push(k + ':' + id); p[k] = id;
+        rec.v++; await rcmd('SET', key, JSON.stringify(rec));
+        sock.emit('shop:ok', { prof: rec.prof, v: rec.v });
+      } catch (e) { console.log('shop:buy', e.message); sock.emit('shop:err', 'ซื้อไม่สำเร็จ ลองใหม่'); }
+    });
   });
   sock.on('auth:logout', () => { if (sock.data.tok && AUTH_ON) rcmd('DEL', 't:' + sock.data.tok).catch(() => {}); presDel(); sock.data.acct = ''; sock.data.un = ''; sock.data.tok = ''; if (sock.data.admAcct) { sock.data.adm = false; sock.data.admAcct = false; sock.emit('adm:on', { on: false }); } refreshRooms(); });
   sock.on('disconnect', presDel);

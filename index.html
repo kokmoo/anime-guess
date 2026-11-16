@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- ag-build:20261060 -->
+<!-- ag-build:20261062 -->
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ANIME GUESS</title>
@@ -167,7 +167,7 @@ main.game{max-width:1120px}body.gm .top{max-width:1120px}main.mid{max-width:760p
 .tile .ph{width:100%;aspect-ratio:1;object-fit:cover;object-position:top}
 /* v2.5 กรอบการ์ด + สุ่ม */
 .fb{position:relative;width:100%}
-.fb.mythic .ff{filter:drop-shadow(0 0 6px var(--mc));animation:mbr 2.6s ease-in-out infinite;transform-origin:50% 50%}
+.fb.mythic .ff{animation:mbr 2.6s ease-in-out infinite;transform-origin:50% 50%}
 .fb.mythic::before{content:'';position:absolute;inset:-3%;border-radius:28%;pointer-events:none;background:radial-gradient(closest-side,transparent 64%,var(--mc));opacity:.2;animation:mgp 2.6s ease-in-out infinite}
 .fb.mythic .mfx{position:absolute;inset:0;pointer-events:none;overflow:hidden;-webkit-mask:var(--fu) center/100% 100% no-repeat;mask:var(--fu) center/100% 100% no-repeat}
 .fb.mythic .mfx::before{content:'';position:absolute;top:0;bottom:0;left:0;width:42%;background:linear-gradient(110deg,transparent,rgba(255,255,255,.8),transparent);transform:translateX(-130%) skewX(-18deg);animation:msw2 3.4s linear infinite}
@@ -190,9 +190,9 @@ details.tg>summary{cursor:pointer;padding:6px 2px;list-style:none}details.tg>sum
 .tile>.fb{margin-bottom:4px}.shop.gal{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}.shop.gal .it{padding:4px}
 .rt{display:flex;gap:4px;flex-wrap:wrap;margin:8px 0}.rt span{color:#14142b;font-weight:800;font-size:12px;padding:2px 8px;border:2px solid #14142b}
 .gres{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px;max-height:56vh;overflow:auto;padding:4px}.gres.one{display:block;max-width:230px;margin:0 auto}
-.gc{text-align:center;font-size:12px;opacity:0;animation:gpop .5s cubic-bezier(.2,1.4,.4,1) forwards;filter:drop-shadow(0 0 6px var(--tc))}.gc.big{font-size:15px;filter:drop-shadow(0 0 16px var(--tc))}
+.gc{text-align:center;font-size:12px;opacity:0;animation:gpop .5s cubic-bezier(.2,1.4,.4,1) forwards}.gc.big{font-size:15px}
 .gc .gt{display:inline-block;background:var(--tc);color:#14142b;font-weight:900;padding:0 8px;margin-top:2px}.gc .nw{color:#b8860b}.gc.ssr{animation:gpop .5s cubic-bezier(.2,1.4,.4,1) forwards,gglow 1s ease-in-out infinite alternate}
-@keyframes gpop{0%{opacity:0;transform:scale(.3) rotate(-8deg)}100%{opacity:1;transform:none}}@keyframes gglow{to{filter:drop-shadow(0 0 22px #ff4d8d) hue-rotate(40deg)}}
+@keyframes gpop{0%{opacity:0;transform:scale(.3) rotate(-8deg)}100%{opacity:1;transform:none}}@keyframes gglow{to{opacity:.9}}
 /* lobby seats */
 .seats{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px;margin-top:10px}
 .seat{border:3px solid var(--line);background:var(--w);padding:12px 6px 8px;text-align:center;position:relative;min-height:128px;display:flex;flex-direction:column;align-items:center;gap:4px}
@@ -247,7 +247,7 @@ input,select{transition:border-color .2s,box-shadow .25s var(--ease)}input:focus
 /* หน้าต่างป๊อปอัป: เฟดพื้นหลัง + เด้งเข้า/ค่อย ๆ ออก */
 @keyframes ovin{from{opacity:0}}@keyframes ovout{to{opacity:0}}
 @keyframes boxin{from{opacity:0;transform:translateY(26px) scale(.93)}}@keyframes boxout{to{opacity:0;transform:translateY(14px) scale(.96)}}
-#set,#dlg{animation:ovin .22s var(--ease);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+#set,#dlg{animation:ovin .22s var(--ease)}
 #set>.box,#dlg>.box{animation:boxin .42s var(--spring)}
 #set.out,#dlg.out{animation:ovout .17s forwards}#set.out>.box,#dlg.out>.box{animation:boxout .17s forwards}
 #sc,#dc,.gres,#lib{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
@@ -345,6 +345,11 @@ input:focus,select:focus,textarea:focus{outline:0;border-color:#8f7bff;box-shado
 :root[data-calm] .ttl::after{display:none!important}
 :root[data-calm] .ttl{box-shadow:none!important}
 @media(prefers-reduced-motion:reduce){.ov>.box{animation:none}}
+
+/* v4.8: หน้าแรกบนมือถือให้สั้นลง */
+.anl{max-height:240px;overflow:auto;border:2px solid var(--line);padding:6px 8px;margin-top:4px;border-radius:8px;-webkit-overflow-scrolling:touch}
+details.how>summary{cursor:pointer;list-style:none}details.how>summary::-webkit-details-marker{display:none}details.how[open]>summary{margin-bottom:6px}
+@media(max-width:700px){.home{gap:12px}.home .sub,.home .chips,.home .mq{display:none}.logoimg{width:min(300px,78%)}.fc{padding:4px;animation:none}.fc img,.fc .qq{aspect-ratio:1}.fc b{font-size:12px;margin-top:3px}.fc small{display:none}.demo{margin:8px 0}.mini2{margin:0}.home .box{margin-bottom:0}}
 </style></head><body>
 <div class="top"><div class="logo"><b>ANIME</b> GUESS</div><div class="tr"><button class="gear g mt" id="mt" onclick="toggleMute()" aria-label="เปิด/ปิดเสียง">🔊</button><button class="gear g" onclick="openSet()" aria-label="ตั้งค่า">⚙️</button></div></div><div id="cn">กำลังเชื่อมต่อเซิร์ฟเวอร์ใหม่… (เซิร์ฟเวอร์ฟรีอาจใช้เวลาตื่นราว 30 วินาที) เกมของคุณยังอยู่ ไม่ต้องรีเฟรช</div>
 <div id="bg"></div><main id="app"></main>
@@ -364,7 +369,7 @@ input:focus,select:focus,textarea:focus{outline:0;border-color:#8f7bff;box-shado
 const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิดตัวอักษร'],era:['📅','ใบ้ยุค'],ability:['⚡','ความสามารถ'],side:['🏴','ฝ่าย'],role:['⭐','บทบาท']};
 const s=io(),$=id=>document.getElementById(id);
 const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
-const VER=5,APPV='4.7.4',BUILD='20261060';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,libSc=0,libSc2=0,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
+const VER=5,APPV='4.8.0',BUILD='20261062';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,libSc=0,libSc2=0,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
 const pre=new URLSearchParams(location.search).get('room')||'';
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
@@ -488,7 +493,7 @@ function sendGuess(){const v=$('gs').value.trim();if(!v)return;ask(`ตอบว
 s.on('react',({name,ans})=>{SFX[ans]();const d=document.createElement('div');d.className='bub '+ans;d.textContent=(ans==='yes'?'✅ ใช่':'❌ ไม่')+' · '+name;d.style.top=(70+document.querySelectorAll('.bub').length*54)+'px';document.body.appendChild(d);setTimeout(()=>d.remove(),2600)});
 s.on('kicked',()=>{st=null;lastKey='';chatMsgs=[];unread=0;closeChat();updBadge();sessionStorage.removeItem('room');mode='home';render();say('คุณถูกเจ้าของห้องเชิญออกจากห้อง')});
 function kick(p){ask('เตะผู้เล่นคนนี้ออกจากห้อง?','เตะออก','r').then(ok=>ok&&act('kick',p))}
-function openLib(){if(libLocked()){closeSet();return say('โหมดยาก: ห้ามเปิดดูคลังตัวละครระหว่างเกม 🔒')}closeSet();$('lc').innerHTML=`<div class="row"><h2>📚 ตัวละครในเกม (${chars.length})</h2><button class="g" style="width:auto" onclick="closeLib()">ปิด ✕</button></div>${st?'':'<button class="b" style="margin:0 0 8px" onclick="openCx()">➕ เสนอตัวละครใหม่ (ชื่อ + เรื่อง + รูป)</button>'}${ADMIN?'<button class="g" style="margin:0 0 8px" onclick="cxAdmin()">🛡️ หน้าแอดมิน</button>':''}<input id="lq" value="${esc(libQ)}" placeholder="ค้นหาชื่อตัวละคร หรือชื่อเรื่อง" oninput="libQ=this.value;libN=60;libA='';drawLib()"><div id="lg" class="gchips"></div><div id="lr"></div>`;$('lib').style.display='flex';drawLib();$('lib').scrollTop=libSc}
+function openLib(){if(libLocked()){closeSet();return say('โหมดยาก: ห้ามเปิดดูคลังตัวละครระหว่างเกม 🔒')}closeSet();$('lc').innerHTML=`<div class="row"><h2>📚 ตัวละครในเกม (${chars.length})</h2><button class="g" style="width:auto" onclick="closeLib()">ปิด ✕</button></div>${st?'':'<button class="b" style="margin:0 0 8px" onclick="openCx()">➕ เสนอตัวละครใหม่ (ชื่อ + เรื่อง + รูป)</button>'}${ADMIN?'<button class="g" style="margin:0 0 8px" onclick="cxAdmin()">🛡️ หน้าแอดมิน</button>':''}<input id="lq" value="${esc(libQ)}" placeholder="ค้นหาชื่อตัวละคร หรือชื่อเรื่อง" oninput="libQ=this.value;libN=60;libSN=60;libA='';drawLib()"><div id="lg" class="gchips"></div><div id="lr"></div>`;$('lib').style.display='flex';drawLib();$('lib').scrollTop=libSc}
 async function libInfo(i){const c=chars[i];if(!c)return;const al=(c[3]||'').split('|').filter(Boolean);
  const kp=dlg((c[2]?`<img src="/img/${c[2]}.jpg" style="width:100%;max-height:45vh;object-fit:contain;border:3px solid var(--line)">`:'')+`<div style="text-align:center;font-weight:800;margin-top:8px">${esc(c[0])}</div><div style="text-align:center"><small>${al.length?'ชื่อเรียกอื่น: '+esc(al.join(', ')):'ยังไม่มีชื่อเรียกอื่น/ชื่อไทย'}</small></div><div style="font-size:15px;margin-top:6px">${chBlock(c[0])}</div>`,[['✏️ เสนอชื่อไทย / ชื่อเรียกอื่น','b'],['🚩 แจ้งว่าตัวละครนี้ผิด','g'],['ปิด','g']]);chAsk(c[0]);const k=await kp;
  if(k===0){if(!ACC)return flash('⚠️ ต้องล็อกอินก่อน');const v=prompt('เสนอชื่อไทยหรือชื่อเรียกอื่นของ '+c[0]+'\n(ผู้เล่นพิมพ์ชื่อนี้ตอนทายแล้วจะผ่าน เมื่อแอดมินอนุมัติ)');if(v&&v.trim())s.emit('cx:alias',{n:c[0],al:v.trim()})}
@@ -509,15 +514,16 @@ function libSer(a,n,list,ts){const m=anmOf(a,ts);return `<div class="sc" onclick
 function libOpenA(a){libSc2=$('lib').scrollTop;libA=a;libN=60;drawLib();$('lib').scrollTop=0}
 function libBack(){libA='';libN=60;drawLib();$('lib').scrollTop=libSc2}
 function libTile(c){return `<div class="lt" style="cursor:pointer" onclick="libInfo(${chars.indexOf(c)})">${c[2]?`<img loading="lazy" src="/img/${c[2]}.jpg" alt="">`:'<div class="ph0">?</div>'}<small>${esc(c[0])}</small></div>`}
-function drawLib(){const q=libQ.trim().toLowerCase(),FM=franMap(),by={},tsOf={};chars.forEach(c=>{const f=FM[c[1]],nm=f?f.name:c[1];(by[nm]=by[nm]||[]).push(c);tsOf[nm]=f?f.ts:[c[1]]});
+let LBC=null;function libGrp(){const key=chars.length+':'+Object.keys(ANM).length;if(LBC&&LBC.k===key)return LBC;const FM=franMap(),by={},tsOf={};chars.forEach(c=>{const f=FM[c[1]],nm=f?f.name:c[1];(by[nm]=by[nm]||[]).push(c);tsOf[nm]=f?f.ts:[c[1]]});const gc={};Object.keys(by).forEach(a=>{const m=anmOf(a,tsOf[a]);((m&&m[1])||[]).forEach(g=>gc[g]=(gc[g]||0)+1)});return LBC={k:key,by,tsOf,gc,names:Object.keys(by).sort((x,y)=>x.localeCompare(y))}}
+let libSN=60;
+function drawLib(){const q=libQ.trim().toLowerCase(),{by,tsOf,gc,names}=libGrp();
  const gOf=a=>{const m=anmOf(a,tsOf[a]);return(m&&m[1])||[]};
- const gc={};Object.keys(by).forEach(a=>{gOf(a).forEach(g=>gc[g]=(gc[g]||0)+1)});
  const gs=Object.keys(gc).sort((x,y)=>gc[y]-gc[x]);if(libG&&!gc[libG])libG='';
- if($('lg'))$('lg').innerHTML=gs.length?`<span class="gc${libG?'':' on'}" onclick="libG='';libA='';drawLib()">ทั้งหมด</span>`+gs.map(g=>`<span class="gc${libG===g?' on':''}" data-g="${esc(g)}" onclick="libG=this.dataset.g;libA='';drawLib()">${esc(GTH[g]||g)} ${gc[g]}</span>`).join(''):'';
+ if($('lg'))$('lg').innerHTML=gs.length?`<span class="gc${libG?'':' on'}" onclick="libG='';libA='';libSN=60;drawLib()">ทั้งหมด</span>`+gs.map(g=>`<span class="gc${libG===g?' on':''}" data-g="${esc(g)}" onclick="libG=this.dataset.g;libA='';libSN=60;drawLib()">${esc(GTH[g]||g)} ${gc[g]}</span>`).join(''):'';
  const gOk=a=>!libG||gOf(a).includes(libG),back=libA?`<button class="g" style="margin:6px 0" onclick="libBack()">← กลับไปรายชื่อเรื่อง</button>`:'';
- if(libA&&by[libA]){const m=anmOf(libA,tsOf[libA]);$('lr').innerHTML=back+`<div style="display:flex;gap:10px;align-items:center;margin:6px 0"><div class="sc1">${libCover(libA,by[libA],tsOf[libA])}</div><div><b>${esc(libA)}</b><br><small>${by[libA].length} ตัว${m?' · '+((m[1]||[]).map(g=>GTH[g]||g).join(' / ')):''}</small></div></div><div class="lg">${by[libA].map(libTile).join('')}</div>`;return}
- const ser=Object.keys(by).filter(a=>gOk(a)&&(!q||a.toLowerCase().includes(q)||tsOf[a].some(t=>t.toLowerCase().includes(q))||by[a].some(c=>c[0].toLowerCase().includes(q)||(c[3]||'').toLowerCase().includes(q))));
- if(!q){$('lr').innerHTML=ser.length?'<div class="sgg">'+ser.sort((x,y)=>x.localeCompare(y)).map(a=>libSer(a,by[a].length,by[a],tsOf[a])).join('')+'</div>':'<p>ไม่พบเรื่อง</p>';return}
+ if(libA&&by[libA]){const m=anmOf(libA,tsOf[libA]);$('lr').innerHTML=back+`<div style="display:flex;gap:10px;align-items:center;margin:6px 0"><div class="sc1">${libCover(libA,by[libA],tsOf[libA])}</div><div><b>${esc(libA)}</b><br><small>${by[libA].length} ตัว${m?' · '+((m[1]||[]).map(g=>GTH[g]||g).join(' / ')):''}</small></div></div><div class="lg">${by[libA].slice(0,libN).map(libTile).join('')}</div>${by[libA].length>libN?`<button class="g" onclick="libN+=60;drawLib()">แสดงเพิ่ม (${libN}/${by[libA].length})</button>`:''}`;return}
+ const ser=names.filter(a=>gOk(a)&&(!q||a.toLowerCase().includes(q)||tsOf[a].some(t=>t.toLowerCase().includes(q))||by[a].some(c=>c[0].toLowerCase().includes(q)||(c[3]||'').toLowerCase().includes(q))));
+ if(!q){$('lr').innerHTML=ser.length?'<div class="sgg">'+ser.slice(0,libSN).map(a=>libSer(a,by[a].length,by[a],tsOf[a])).join('')+'</div>'+(ser.length>libSN?`<button class="g" onclick="libSN+=60;drawLib()">แสดงเพิ่ม (${libSN}/${ser.length} เรื่อง)</button>`:''):'<p>ไม่พบเรื่อง</p>';return}
  const st0=ser.filter(a=>a.toLowerCase().includes(q)||tsOf[a].some(t=>t.toLowerCase().includes(q))).sort((x,y)=>(y.toLowerCase().startsWith(q)-x.toLowerCase().startsWith(q))||x.localeCompare(y));
  const cs=chars.filter(c=>gOk(franOf(c[1]))&&(c[0].toLowerCase().includes(q)||(c[3]||'').toLowerCase().includes(q))).sort((x,y)=>(y[0].toLowerCase().startsWith(q)-x[0].toLowerCase().startsWith(q)));
  $('lr').innerHTML=(st0.length?`<h3 class="lh">📺 เรื่อง (${st0.length})</h3><div class="sgg">${st0.slice(0,30).map(a=>libSer(a,by[a].length,by[a],tsOf[a])).join('')}</div>`:'')+(cs.length?`<h3 class="lh">🧑 ตัวละคร (${cs.length})</h3><div class="lg">${cs.slice(0,libN).map(libTile).join('')}</div>${cs.length>libN?`<button class="g" onclick="libN+=60;drawLib()">แสดงเพิ่ม</button>`:''}`:'')||'<p>ไม่พบ</p>'}
@@ -605,6 +611,8 @@ function openSet(){const dk=document.documentElement.dataset.theme==='dark';$('s
 const getTok=()=>{try{return localStorage.tok||''}catch(e){return ''}};
 function accSave(){if(!ACC)return;accDirty=true;clearTimeout(accTimer);accTimer=setTimeout(accFlush,1500)}
 function accFlush(){if(!ACC||accBusy||!accDirty)return;accBusy=true;accDirty=false;s.emit('auth:save',{prof:PF,base:ACC.v});setTimeout(()=>{accBusy=false},8000)}
+function accSync(){return new Promise(r=>{if(!ACC||(!accDirty&&!accBusy))return r();accBusy=false;accDirty=true;let T;const done=()=>{clearTimeout(T);s.off('auth:saved',done);s.off('auth:stale',done);r()};T=setTimeout(done,4000);s.once('auth:saved',done);s.once('auth:stale',done);accFlush()})}
+function srvCall(ev,data,okEv,errEv){return new Promise((res,rej)=>{let T;const off=()=>{clearTimeout(T);s.off(okEv,ok);s.off(errEv,er)};const ok=d=>{off();res(d)},er=m=>{off();rej(m)};T=setTimeout(()=>{off();rej('เซิร์ฟเวอร์ไม่ตอบสนอง ลองใหม่')},12000);s.on(okEv,ok);s.on(errEv,er);s.emit(ev,Object.assign({base:ACC.v},data))})}
 function accApply(p){Object.keys(PF).forEach(k=>delete PF[k]);Object.assign(PF,pfNorm(p));pfLocal();if(typeof cfFix==='function'&&CF.length)setTimeout(cfFix,0);setTimeout(()=>{try{checkTitles()}catch(e){}},1500)}
 s.on('meta',m=>{AUTHON=!!m.auth;const t=getTok();if(AUTHON&&t)s.emit('auth:token',t);if($('set').style.display==='flex'&&pTab==='me')openProf('me');if(!st&&!QM&&mode==='home')render()});
 s.on('auth:ok',d=>{try{localStorage.tok=d.tok}catch(e){}
@@ -857,7 +865,7 @@ function openRoomSet(){if(!st||!st.owner||st.phase!=='lobby')return;const c=st.s
   จำนวนผู้เล่นสูงสุด<input id="lmx" type="number" min="${Math.max(2,st.players.length)}" max="10" value="${c.max}">
   <b>ระดับความยาก</b><br><label class="c"><input type="radio" name="lmd" value="easy" ${c.mode!=='hard'?'checked':''}> 🟢 ง่าย (เปิดดูคลังตัวละครระหว่างเกมได้)</label><br><label class="c"><input type="radio" name="lmd" value="hard" ${c.mode==='hard'?'checked':''}> 🔴 ยาก (ห้ามดูคลังตัวละครระหว่างเกม)</label><br><br>
   <b>หมวดอนิเมะ</b><br><label class="c"><input type="checkbox" id="lall" ${all?'checked':''} onchange="document.querySelectorAll('.lan').forEach(x=>x.checked=false)"> ALL ANIME</label><br>
-  ${animes.map(a=>`<label class="c"><input type="checkbox" class="lan" value="${esc(a)}" ${!all&&c.animes.includes(a)?'checked':''} onchange="if(this.checked)$('lall').checked=false"> ${esc(a)} (${chars.filter(x=>x[1]===a).length})</label>`).join('')}<br><br>
+  <div class="anl">${animes.map(a=>`<label class="c"><input type="checkbox" class="lan" value="${esc(a)}" ${!all&&c.animes.includes(a)?'checked':''} onchange="if(this.checked)$('lall').checked=false"> ${esc(a)} (${chars.filter(x=>x[1]===a).length})</label>`).join('')}</div><br>
   <label class="c"><input type="checkbox" id="lcs" ${c.cards?'checked':''}> เปิดการ์ดพิเศษ</label>
   จำนวนการ์ดต่อคน<input id="lcc" type="number" min="1" max="5" value="${c.cardCount}">
   <button class="b" onclick="saveRoomSet()">💾 บันทึก</button><button class="g" onclick="closeSet()">ยกเลิก</button>`;$('set').style.display='flex'}
@@ -881,13 +889,13 @@ function draw(){
   <div class="joinrow"><input id="cd" placeholder="รหัสห้อง เช่น A7K9P" value="${esc(pre)}" style="text-transform:uppercase"><button class="b" onclick="joinRoom()">🔑 เข้าร่วม</button></div></div>
   <div class="box feat" onclick="quizHome()" role="button" tabindex="0"><div class="ft">🧠 โหมดแฟนพันธุ์แท้</div><small>ตอบคำถามเฉพาะเรื่อง แข่งคะแนนกับเพื่อนในห้อง หรือเล่นคนเดียว</small><button class="r big">เข้าโหมดแฟนพันธุ์แท้ →</button></div>
   <div class="mini2"><button class="g" onclick="openLib()">📚 ตัวละครในเกม</button><button class="g" onclick="openProf('me')">👤 โปรไฟล์ & ร้านค้า<br><small>🪙 ${PF.coins}</small>${AUTHON&&!ACC?'<br><small>⚠ ยังไม่ได้ล็อกอิน</small>':''}${dmReady()?'<br><small>🎯 มีภารกิจรอรับรางวัล</small>':''}</button></div>
-  <div class="box"><h2>เล่นยังไง?</h2><ol class="steps"><li>สร้างห้อง แล้วส่งรหัสให้เพื่อน</li><li>ทุกคนสุ่มได้ตัวละคร เห็นแค่ของเพื่อน</li><li>ถามเพื่อนผ่าน Discord ตอบได้แค่ ใช่/ไม่</li><li>ถึงตาคุณใช้การ์ดถามคำถามปลายเปิดได้ 1 ใบ เพื่อนช่วยตอบ</li><li>ทายชื่อตัวละครให้ถูกก่อนหมดเวลา!</li></ol></div><p class="ver">ANIME GUESS v${APPV} · เซิร์ฟเวอร์ <span id="sv">${SRVV?'v'+SRVV:'…'}</span> · <a href="#" onclick="openNews();return false">มีอะไรใหม่</a></p></div></div>`;
+  <details class="box how"><summary><b>❓ เล่นยังไง?</b> <small>แตะเพื่อดู</small></summary><ol class="steps"><li>สร้างห้อง แล้วส่งรหัสให้เพื่อน</li><li>ทุกคนสุ่มได้ตัวละคร เห็นแค่ของเพื่อน</li><li>ถามเพื่อนผ่าน Discord ตอบได้แค่ ใช่/ไม่</li><li>ถึงตาคุณใช้การ์ดถามคำถามปลายเปิดได้ 1 ใบ เพื่อนช่วยตอบ</li><li>ทายชื่อตัวละครให้ถูกก่อนหมดเวลา!</li></ol></details><p class="ver">ANIME GUESS v${APPV} · เซิร์ฟเวอร์ <span id="sv">${SRVV?'v'+SRVV:'…'}</span> · <a href="#" onclick="openNews();return false">มีอะไรใหม่</a></p></div></div>`;
   else A.innerHTML=`<h2>ตั้งค่าห้อง</h2><div class="box">
   เวลาเกม (นาที)<select id="tm0"><option>8</option><option selected>10</option><option>15</option><option>20</option><option>30</option><option value="0">ไม่จำกัดเวลา (เจ้าของห้องกดจบเกมเอง)</option></select>
   จำนวนผู้เล่นสูงสุด<input id="mx" type="number" min="2" max="10" value="4">
   <b>ระดับความยาก</b><br><label class="c"><input type="radio" name="md" value="easy" checked> 🟢 ง่าย (เปิดดูคลังตัวละครระหว่างเกมได้)</label><br><label class="c"><input type="radio" name="md" value="hard"> 🔴 ยาก (ห้ามดูคลังตัวละครระหว่างเกม)</label><br><br>
   <b>หมวดอนิเมะ</b><br><label class="c"><input type="checkbox" id="all" checked> ALL ANIME</label><br>
-  ${animes.map(a=>`<label class="c"><input type="checkbox" class="an" value="${esc(a)}"> ${esc(a)} (${chars.filter(c=>c[1]===a).length})</label>`).join('')}<br><br>
+  <div class="anl">${animes.map(a=>`<label class="c"><input type="checkbox" class="an" value="${esc(a)}"> ${esc(a)} (${chars.filter(c=>c[1]===a).length})</label>`).join('')}</div><br>
   <label class="c"><input type="checkbox" id="cs" checked> เปิดการ์ดพิเศษ</label>
   จำนวนการ์ดต่อคน<input id="cc" type="number" min="1" max="5" value="2">
   <button class="b" onclick="mk()">CREATE ROOM</button><button class="g" onclick="mode='home';render()">← กลับ</button></div>`;
@@ -1072,7 +1080,8 @@ function delAv(){PF.av='';pfSave();syncProf();openProf('me')}
 function setPName(v){v=v.trim().slice(0,16);if(!v)return;name=v;localStorage.name=v;if(st)act('rename',v)}
 function equip(k,id){if(!owns(k,id))return;PF[k]=id;pfSave();syncProf();openProf('shop')}
 async function buy(k,id,price,label){if(PF.coins<price)return say('เหรียญไม่พอ ต้องการ '+price+' 🪙 (คุณมี '+PF.coins+')\nเล่นเกมเพื่อสะสมเหรียญเพิ่มได้เลย');
- if(!await ask('ซื้อ <b>'+esc(label)+'</b> ราคา '+price+' 🪙 ?','ซื้อ'))return;PF.coins-=price;PF.owned.push(k+':'+id);pfSave();SFX.buy();equip(k,id)}
+ if(!await ask('ซื้อ <b>'+esc(label)+'</b> ราคา '+price+' 🪙 ?','ซื้อ'))return;if(ACC&&AUTHON){try{await accSync();const r=await srvCall('shop:buy',{k,id},'shop:ok','shop:err');ACC.v=r.v;accDirty=false;accApply(r.prof);syncProf();SFX.buy();openProf('shop')}catch(e){say(String(e))}return}
+ PF.coins-=price;PF.owned.push(k+':'+id);pfSave();SFX.buy();equip(k,id)}
 const FXIO='IntersectionObserver'in window?new IntersectionObserver(es=>es.forEach(e=>e.target.classList.toggle('vis',e.isIntersecting)),{rootMargin:'60px'}):null;let _fxT=0;
 function fxObs(){document.querySelectorAll('.fb.mythic:not([data-io])').forEach(el=>{el.dataset.io=1;if(FXIO)FXIO.observe(el);else el.classList.add('vis')})}
 new MutationObserver(()=>{clearTimeout(_fxT);_fxT=setTimeout(fxObs,150)}).observe(document.body,{childList:true,subtree:true});
@@ -1094,7 +1103,7 @@ function openProf(tab){pTab=tab||pTab;const lv=lvOf(PF.xp),a=40*(lv-1)*(lv-1),b=
    return `<div class="it ${on?'on':''}">${pv}<div>${lb}</div>${on?'<b>✓ ใช้งานอยู่</b>':ow?`<button class="b" onclick="equip('${k}','${id}')">ใช้</button>`:`<button class="${PF.coins>=pr?'b':'g'}" onclick="buy('${k}','${id}',${pr},'${lb}')">🪙 ${pr}</button>`}</div>`}).join('');
   body=`<b>🖼️ กรอบโปรไฟล์</b><div class="shop">${it('fr',FR)}</div><b>✨ เอฟเฟกต์ชื่อ</b><div class="shop">${it('nf',NF)}</div>`}
  $('sc').innerHTML=head+body+`<button class="b" onclick="closeSet()">ปิด</button>`;$('set').style.display='flex';cntUp($('cv'),PF.coins)}
-const NEWS=['⚡ ลดภาระเครื่องอีกขั้น: หน้าสุ่มกรอบพับระดับ C–S เก็บไว้ (กดเปิดดูเมื่ออยากดู) · เอฟเฟกต์/อนุภาคทำงานเฉพาะกรอบที่อยู่บนจอเท่านั้น · อนุภาคน้อยที่สุด'];
+const NEWS=['🔒 สุ่มกรอบและซื้อของคำนวณที่เซิร์ฟเวอร์ (บัญชีที่ล็อกอิน) กันโกง · 📚 คลังตัวละครแบ่งหน้า โหลดเร็วขึ้น · 📱 หน้าแรก/ตั้งค่าห้องสั้นลง เลื่อนน้อยลง'];
 function openNews(){closeSet();dlg(`<b style="font-size:20px">📜 มีอะไรใหม่ · v${APPV}</b><ul style="text-align:left;line-height:1.6;padding-left:18px">${NEWS.map(n=>`<li>${n}</li>`).join('')}</ul>`,[['เริ่มเลย','b']])}
 // ================= v2.5: สุ่มกรอบการ์ด (Gacha) =================
 // ปรับค่าได้ที่นี่: ราคา อัตราสุ่ม (รวมต้อง = 100) ระบบการันตี และเหรียญคืนเมื่อได้ซ้ำ
@@ -1124,7 +1133,10 @@ function rollOne(){const g=PF.gp;g.s++;g.m=(+g.m||0)+1;let t='C',pm=false;
  return {f,dup,t}}
 async function doRoll(n){if(!CF.length)return say('กำลังโหลดข้อมูลกรอบ ลองใหม่อีกครั้ง');
  const price=n===10?GA.cost10:GA.cost;if(PF.coins<price)return say('เหรียญไม่พอ ต้องการ '+price+' 🪙 (คุณมี '+PF.coins+')');
- PF.coins-=price;mp('gacha',n);const rs=[];for(let i=0;i<n;i++)rs.push(rollOne());pfSave();syncProf();checkTitles();
+ let rs=[];
+ if(ACC&&AUTHON){try{await accSync();const r=await srvCall('gacha:roll',{n},'gacha:res','gacha:err');ACC.v=r.v;accDirty=false;accApply(r.prof);rs=r.rs.map(x=>({t:x.t,dup:x.dup,f:x.k==='f'?CFM[x.id]:undefined,ti:x.k==='t'?GT.find(g=>g.id===x.id):undefined})).filter(x=>x.f||x.ti);syncProf();mp('gacha',n);pfSave()}catch(e){return say(String(e))}}
+ else{PF.coins-=price;mp('gacha',n);for(let i=0;i<n;i++)rs.push(rollOne());pfSave();syncProf()}
+ checkTitles();
  const best=rs.reduce((m,r)=>Math.max(m,TORD.indexOf(r.t)),0),bt=TORD[best];SFX.charge();
  setTimeout(()=>{SFX.gacha(bt);vib(bt==='SSR'?[40,60,40,60,140]:bt==='S'?[30,50,70]:12);const d=$('dc').getBoundingClientRect();if(best>=3){burst(d.left+d.width/2,d.top+d.height*.4,TCOL[bt],bt==='SSR'?70:36);vflash(TCOL[bt]+'aa')}},1000);
  const back=rs.reduce((s,r)=>s+(r.dup?GA.refund[r.t]:0),0);
@@ -1145,8 +1157,8 @@ function gachaBody(){const g=PF.gp,own=PF.cfo.length,tot=CF.length;
  h+=`<div class="row" style="justify-content:flex-start"><button class="${PF.cf?'g':'b'}" onclick="equipCf('')">${PF.cf?'ถอดกรอบการ์ด':'✓ ไม่ใส่กรอบการ์ด'}</button>${PF.af?'<button class="g" onclick="equipAf(\'\')">ถอดกรอบรูปโปรไฟล์</button>':''}</div><small>กรอบเดียวกันใช้ได้ทั้งกับการ์ดตัวละครและรูปโปรไฟล์ (เลือกแยกกันได้) · เมื่อใส่กรอบกับรูปโปรไฟล์ วงแหวนจากร้านค้าจะถูกซ่อนไว้ชั่วคราว ถอดกรอบแล้วกลับมาเหมือนเดิม</small>`;
  for(const t of [...TORD].reverse()){const L=CF.filter(f=>f.t===t);if(!L.length)continue;const o=L.filter(f=>PF.cfo.includes(f.id)).length;
   h+=`<details class="tg" ${GOPEN[t]?'open':''} ontoggle="GOPEN['${t}']=this.open?1:0"><summary><b style="color:${TCOL[t]}">${TN[t]||t}</b> <small>${o}/${L.length} · แตะเพื่อ${GOPEN[t]?'พับ':'ดู'}</small></summary><div class="shop gal">${L.map(f=>{const ow=PF.cfo.includes(f.id),on=PF.cf===f.id;
-   return `<div class="it ${on||PF.af===f.id?'on':''}" style="${ow?'':'opacity:.45;filter:grayscale(.8)'}">${fbox(f,gSample())}<div>${ow?esc(f.n):'🔒 ???'}</div>${ow?`${on?'<b>✓ กรอบการ์ด</b>':`<button class="b" onclick="equipCf('${f.id}')">ใช้กับการ์ด</button>`}${PF.af===f.id?'<b>✓ กรอบรูปโปรไฟล์</b>':`<button class="g" onclick="equipAf('${f.id}')">ใช้กับรูปโปรไฟล์</button>`}`:''}</div>`}).join('')}</div>`;
-  const TL=GT.filter(x=>x.tr===t);if(TL.length)h+=`<div class="shop gal tt" style="margin-top:6px">${TL.map(x=>{const ow=PF.tt.includes(x.id),on=PF.tu===x.id;return `<div class="it ${on?'on':''}" style="${ow?'':'opacity:.5;filter:grayscale(.8)'}"><span class="ttl t-${x.tr}">${x.i}${ow?esc(x.n):'🔒 ???'}</span>${on?'<b>✓ ใช้อยู่</b>':ow?`<button class="b" onclick="equipTt('${x.id}','gacha')">ใช้</button>`:''}</div>`}).join('')}</div>`;h+='</details>'}
+   return `<div class="it ${on||PF.af===f.id?'on':''}" style="${ow?'':'opacity:.4'}">${fbox(f,gSample())}<div>${ow?esc(f.n):'🔒 ???'}</div>${ow?`${on?'<b>✓ กรอบการ์ด</b>':`<button class="b" onclick="equipCf('${f.id}')">ใช้กับการ์ด</button>`}${PF.af===f.id?'<b>✓ กรอบรูปโปรไฟล์</b>':`<button class="g" onclick="equipAf('${f.id}')">ใช้กับรูปโปรไฟล์</button>`}`:''}</div>`}).join('')}</div>`;
+  const TL=GT.filter(x=>x.tr===t);if(TL.length)h+=`<div class="shop gal tt" style="margin-top:6px">${TL.map(x=>{const ow=PF.tt.includes(x.id),on=PF.tu===x.id;return `<div class="it ${on?'on':''}" style="${ow?'':'opacity:.45'}"><span class="ttl t-${x.tr}">${x.i}${ow?esc(x.n):'🔒 ???'}</span>${on?'<b>✓ ใช้อยู่</b>':ow?`<button class="b" onclick="equipTt('${x.id}','gacha')">ใช้</button>`:''}</div>`}).join('')}</div>`;h+='</details>'}
  return h}
 SFX.gacha=t=>{const i=TORD.indexOf(t);
  seq([392,494,587].slice(0,2+(i>0)),'triangle',.14,.09);
