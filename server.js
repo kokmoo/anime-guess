@@ -613,7 +613,7 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '4.8.0';
+const APP_VERSION = '4.8.1';
 const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
 const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
 let CFIDS = new Set(), CFM = 0, CFT = {};
@@ -1419,6 +1419,22 @@ io.on('connection', sock => {
     sock.emit('adm:chars', { items: out, hidden: [...HIDDEN.keys()], total: CH.length });
   });
   const charsPush = () => io.emit('chars:update', { animes: ANIMES, chars: metaChars() });
+  sock.on('adm:chardel', async d => {
+    if (!adm() || !d) return;
+    try {
+      const n = String(d.n || ''), i = CH.findIndex(c => c[0] === n);
+      if (i >= 0) {
+        const ue = [...CXOK.values()].find(e => e.n === n);
+        if (ue) { CXOK.delete(ue.id); cxDel(ue); await rcmd('HDEL', 'cx:ok', ue.id); rcmd('DEL', 'cx:img:' + ue.id).catch(() => {}); }
+        else { const o = ovOrig(n), v = Object.assign({}, OVR.get(o) || {}, { o, h: 1 }); OVR.set(o, v); HIDDEN.set(o, CH[i]); CH.splice(i, 1); await rcmd('HSET', 'cx:ov', o, JSON.stringify(v)); }
+        animesFix(); charsPush(); await cxList();
+      }
+      // ปิดรายงานทั้งหมดที่ชี้ตัวละครนี้
+      const all = await rcmd('HGETALL', 'cx:rp'); const arr = Array.isArray(all) ? all : [];
+      for (let k = 0; k + 1 < arr.length; k += 2) { try { if (JSON.parse(arr[k + 1]).n === n) await rcmd('HDEL', 'cx:rp', arr[k]); } catch (e) {} }
+      await propsPush(); admMsg(true, 'ลบ "' + n + '" ออกจากเกมแล้ว'); sock.emit('adm:refresh');
+    } catch (e) { console.log('adm:chardel', e.message); admMsg(false, 'ผิดพลาด'); }
+  });
   sock.on('adm:charhide', async d => {
     if (!adm() || !d) return;
     try {
