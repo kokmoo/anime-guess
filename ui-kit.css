@@ -62,3 +62,26 @@ button.ki.gr{--c1:#5be67f;--c2:#1fb455;--e:#0b6430}button.ki.or{--c1:#ffc24a;--c
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#ff3d6e;box-shadow:0 0 0 2px #fff;vertical-align:2px;margin-left:2px}
 .chips .ic,.sec .ic,.ft .ic,button .ic{margin-right:2px}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* ===== v4.10 ปรับทั้งเกมให้เป็นภาษาภาพเดียว (candy HUD) ===== */
+body{padding-bottom:84px}
+/* ปุ่มลอย: แถวล่างขวา ไม่บังเนื้อหากลางจอ */
+.fab{width:54px!important;height:54px!important;bottom:12px!important;display:none;flex-direction:column;gap:1px;font-size:0!important;line-height:1}
+.fab[style*="display: flex"],.fab[style*="display:flex"]{display:flex!important}
+.fab .ic{width:22px;height:22px;stroke-width:2.4;filter:drop-shadow(0 1px 0 rgba(0,0,0,.3))}
+.fab .fl{position:static!important;display:block!important;transform:none!important;background:none!important;border:0!important;padding:0!important;color:#fff!important;font:800 9.5px/1 var(--k-hf)!important;letter-spacing:0;margin-top:1px;text-shadow:0 1px 0 rgba(0,0,0,.4)}
+#chatBtn{right:12px!important}#libBtn{right:72px!important}#noteBtn{right:132px!important}
+/* กล่อง: ความลึกแบบชั้นกระดาษ */
+.box{box-shadow:0 5px 0 rgba(112,84,28,.28),0 14px 26px rgba(12,22,70,.28)}
+.box .box{box-shadow:none}
+.sec,.box>b:first-child{font-family:var(--k-hf);letter-spacing:.3px}
+/* ตั๋วรหัสห้อง */
+.code{border:0!important;border-radius:14px;background:linear-gradient(180deg,#ffe27a,#ffc32e)!important;color:#2a1b00;font-family:var(--k-hf);transform:rotate(-1.2deg);outline:2px dashed rgba(60,35,0,.45);outline-offset:-9px;padding:12px 8px!important;
+ -webkit-mask:radial-gradient(circle 10px at 0 50%,#0000 97%,#000) left/52% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 97%,#000) right/52% 100% no-repeat;mask:radial-gradient(circle 10px at 0 50%,#0000 97%,#000) left/52% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 97%,#000) right/52% 100% no-repeat;
+ filter:drop-shadow(0 4px 0 rgba(130,80,0,.45))}
+/* แถบการันตี */
+.pity{display:grid;gap:10px;margin:10px 0 6px}.pity span{display:block;font:700 13px var(--k-hf);margin-bottom:3px}.pity small{opacity:.65;font-weight:400}
+.pity .kbar{height:22px}
+/* แท็บโปรไฟล์ */
+.tabs4{gap:6px}.tabs4 button{font-size:13px;padding:9px 4px;white-space:nowrap}.tabs4 button .ic{width:15px;height:15px}
+.ic.gold{color:#e0a100}
