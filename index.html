@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- ag-build:20261067 -->
+<!-- ag-build:20261068 -->
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ANIME GUESS</title>
@@ -400,7 +400,7 @@ const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิด
 const I=(n,c)=>`<svg class="ic${c?' '+c:''}"><use href="#i-${n}"/></svg>`;
 const s=io(),$=id=>document.getElementById(id);
 const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
-const VER=5,APPV='4.10.0',BUILD='20261067';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,libSc=0,libSc2=0,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
+const VER=5,APPV='4.10.1',BUILD='20261068';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,libSc=0,libSc2=0,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
 const pre=new URLSearchParams(location.search).get('room')||'';
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
@@ -539,7 +539,8 @@ function franMap(){if(FRM&&FRN===chars.length)return FRM;const cnt={},base={};ch
  const grp={};T.forEach(t=>{const k=root[base[t].toLowerCase()]||base[t].toLowerCase();(grp[k]=grp[k]||[]).push(t)});
  FRM={};Object.keys(grp).forEach(k=>{const ts=grp[k],nm=ts.find(t=>t.toLowerCase()===k)||ts.slice().sort((x,y)=>cnt[y]-cnt[x])[0],disp=ts.find(t=>t.toLowerCase()===k)||(franBase(nm));ts.forEach(t=>{FRM[t]={k,name:disp,ts}})});FRN=chars.length;return FRM}
 function franOf(a){const m=franMap()[a];return m?m.name:a}
-function anmOf(name,ts){return ANM[name]||(ts||[]).map(t=>ANM[t]).find(Boolean)}
+// ปกเรื่อง = ซีซั่นล่าสุด (ปีฉายมากสุดที่มีรูปปก) ถ้าไม่มีปีใช้อันแรกที่มี
+function anmOf(name,ts){const L=[...new Set([name,...(ts||[])])].map(t=>ANM[t]).filter(Boolean);if(!L.length)return;const yr=m=>+m[2]||0,C=L.filter(m=>m[0]);return(C.length?C:L).reduce((b,m)=>yr(m)>=yr(b)?m:b)}
 function libCover(a,list,ts){const m=anmOf(a,ts),f=list&&list[0]&&list[0][2];const u=m&&m[0]?m[0]:(f?'/img/'+f+'.jpg':'');return u?`<img loading="lazy" referrerpolicy="no-referrer" src="${esc(u)}" alt="" onerror="if(!this.dataset.f&&'${f||''}'){this.dataset.f=1;this.src='/img/${f||''}.jpg'}else this.remove()">`:'<div class="ph0">?</div>'}
 function libSer(a,n,list,ts){const m=anmOf(a,ts);return `<div class="sc" onclick="libOpenA(this.dataset.a)" data-a="${esc(a)}">${libCover(a,list,ts)}<b>${esc(a)}</b><small>${n} ตัว${m&&m[2]?' · '+m[2]:''}</small></div>`}
 function libOpenA(a){libSc2=$('lib').scrollTop;libA=a;libN=60;drawLib();$('lib').scrollTop=0}
@@ -1145,7 +1146,7 @@ function openProf(tab){pTab=tab||pTab;const lv=lvOf(PF.xp),a=40*(lv-1)*(lv-1),b=
    return `<div class="it ${on?'on':''}">${pv}<div>${lb}</div>${on?'<b>✓ ใช้งานอยู่</b>':ow?`<button class="b" onclick="equip('${k}','${id}')">ใช้</button>`:`<button class="${PF.coins>=pr?'b':'g'}" onclick="buy('${k}','${id}',${pr},'${lb}')">🪙 ${pr}</button>`}</div>`}).join('');
   body=`<b>🖼️ กรอบโปรไฟล์</b><div class="shop">${it('fr',FR)}</div><b>✨ เอฟเฟกต์ชื่อ</b><div class="shop">${it('nf',NF)}</div>`}
  $('sc').innerHTML=head+body+`<button class="b" onclick="closeSet()">ปิด</button>`;$('set').style.display='flex';cntUp($('cv'),PF.coins)}
-const NEWS=['🎨 ปรับหน้าตาทุกหน้า: ไอคอนชุดเดียวกันแทนอีโมจิ · ปุ่มลอยย้ายลงแถวล่างไม่บังเนื้อหา · แถบการันตีสุ่มกรอบ · ตั๋วรหัสห้อง'];
+const NEWS=['🖼️ คลังตัวละคร: ปกเรื่องใช้รูปซีซั่นล่าสุดของแต่ละเรื่อง'];
 function openNews(){closeSet();dlg(`<b style="font-size:20px">📜 มีอะไรใหม่ · v${APPV}</b><ul style="text-align:left;line-height:1.6;padding-left:18px">${NEWS.map(n=>`<li>${n}</li>`).join('')}</ul>`,[['เริ่มเลย','b']])}
 // ================= v2.5: สุ่มกรอบการ์ด (Gacha) =================
 // ปรับค่าได้ที่นี่: ราคา อัตราสุ่ม (รวมต้อง = 100) ระบบการันตี และเหรียญคืนเมื่อได้ซ้ำ
