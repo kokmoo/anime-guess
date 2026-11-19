@@ -1,6 +1,6 @@
 const express = require('express'), http = require('http'), { Server } = require('socket.io');
 const fs = require('fs'), path = require('path');
-const app = express(), srv = http.createServer(app), io = new Server(srv, { pingInterval: 10000, pingTimeout: 8000 });
+const app = express(), srv = http.createServer(app), io = new Server(srv, { pingInterval: 10000, pingTimeout: 8000, perMessageDeflate: { threshold: 1024 } });
 const PUB = path.join(__dirname, 'public');
 const CANDS = [PUB, __dirname];
 // ถ้ามี index.html ทั้งในราก และ public ให้ใช้ฉบับที่ใหม่กว่า (ดูจากเลข <!-- ag-build:xxxx --> ใน index.html)
@@ -10,10 +10,25 @@ const IMGDIRS = [path.join(WEB, 'img'), path.join(PUB, 'img'), __dirname];
 const CXIMG = new Map(); // รูปตัวละครที่ผู้เล่นเสนอและอนุมัติแล้ว: slug -> Buffer(jpeg)
 const hasImg = slug => CXIMG.has(slug) || IMGDIRS.some(d => fs.existsSync(path.join(d, slug + '.jpg')));
 app.get('/img/:f', (req, res, next) => { const m = /^([a-z0-9-]+)\.jpg$/.exec(req.params.f), b = m && CXIMG.get(m[1]); if (!b) return next(); res.set('Cache-Control', 'public, max-age=86400').type('jpeg').send(b); });
-IMGDIRS.forEach(d => app.use('/img', express.static(d)));
-app.use(express.static(WEB));
-CANDS.filter(d => d !== WEB).forEach(d => app.use(express.static(d)));
-app.get('/', (req, res) => res.sendFile(path.join(WEB, 'index.html')));
+// บีบอัด gzip ให้ไฟล์ข้อความ (เก็บผลไว้ในหน่วยความจำ) + แคชรูป/เสียง
+const zlib = require('zlib'), GZC = new Map();
+const staticOpt = { setHeaders: (res, p) => { res.setHeader('Cache-Control', /\.(webp|jpg|jpeg|png|mp3|woff2?)$/i.test(p) ? 'public, max-age=86400, stale-while-revalidate=604800' : 'no-cache'); } };
+app.use((req, res, next) => {
+  if (req.method !== 'GET' || !/gzip/.test(req.headers['accept-encoding'] || '')) return next();
+  const u = req.path === '/' ? '/index.html' : req.path; if (!/\.(html|json|js|css|svg)$/.test(u) || u.includes('..')) return next();
+  for (const d of [WEB, ...CANDS]) {
+    const f = path.join(d, u); let st; try { st = fs.statSync(f); } catch (e) { continue; } if (!st.isFile()) continue;
+    const k = f + ':' + st.mtimeMs; let b = GZC.get(k);
+    if (!b) { b = zlib.gzipSync(fs.readFileSync(f), { level: 9 }); for (const x of GZC.keys()) if (x.startsWith(f + ':')) GZC.delete(x); GZC.set(k, b); }
+    res.set({ 'Content-Encoding': 'gzip', 'Content-Type': (express.static.mime || { lookup: () => 'text/plain' }).lookup(u) + '; charset=utf-8', 'Cache-Control': 'no-cache', 'ETag': 'W/"' + st.mtimeMs + '-' + b.length + '"', 'Vary': 'Accept-Encoding' });
+    if (req.headers['if-none-match'] === res.get('ETag')) return res.status(304).end();
+    return res.send(b);
+  }
+  next();
+});
+IMGDIRS.forEach(d => app.use('/img', express.static(d, staticOpt)));
+app.use(express.static(WEB, staticOpt));
+CANDS.filter(d => d !== WEB).forEach(d => app.use(express.static(d, staticOpt)));
 app.get('/__info', (req, res) => res.json({ web: path.basename(WEB) === 'public' ? 'public/' : 'root', builds: CANDS.map(d => [path.basename(d) === 'public' ? 'public/' : 'root', buildOf(d)]), quizQuestions: qzBank().length, version: APP_VERSION, quizRooms: Object.keys(QROOMS).length, rooms: Object.keys(rooms).length }));
 const GRACE = +process.env.AG_GRACE || 120000, GRACE_LOBBY = +process.env.AG_GRACE_LOBBY || 60000;
 
@@ -613,7 +628,7 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '4.8.1';
+const APP_VERSION = '4.9.1';
 const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
 const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
 let CFIDS = new Set(), CFM = 0, CFT = {};
@@ -909,7 +924,9 @@ function view(r, p) {
     }))
   };
 }
-const send = r => r.players.forEach(p => p.sid && io.to(p.sid).emit('state', view(r, p)));
+const send = r => r.players.forEach(p => { if (!p.sid) return; const v = view(r, p); p._sk = JSON.stringify(Object.assign({}, v, { left: 0 })); p._st = Date.now(); io.to(p.sid).emit('state', v); });
+// ใช้กับตัวจับเวลารายวินาที: ส่งเมื่อสถานะเปลี่ยน หรือทุก 10 วินาทีเพื่อซิงก์เวลา
+const sendTick = r => r.players.forEach(p => { if (!p.sid) return; const v = view(r, p), k = JSON.stringify(Object.assign({}, v, { left: 0 })), now = Date.now(); if (p._sk === k && now - (p._st || 0) < 10000) return; p._sk = k; p._st = now; io.to(p.sid).emit('state', v); });
 const unresolved = r => r.players.filter(p => !p.res);
 const nextTurn = r => {
   r.cardUsed = false; r.qa = null;
@@ -939,11 +956,11 @@ setInterval(() => {
     if (r.phase === 'play') {
       if (!unresolved(r).length) finish(r);
       else if (r.endsAt && now >= r.endsAt) { r.phase = 'final'; r.finalEnd = now + 30000; send(r); }
-      else send(r);
+      else sendTick(r);
     } else if (r.phase === 'final') {
       if (!unresolved(r).length) finish(r);
       else if (now >= r.finalEnd) { unresolved(r).forEach(p => p.res = 'lose'); finish(r); }
-      else send(r);
+      else sendTick(r);
     }
   }
 }, 1000);
@@ -1844,5 +1861,9 @@ io.on('connection', sock => {
   sock.on('disconnect', () => { const r = qfind(), p = qme(r); if (!r || !p) return; p.online = false; p.sid = null; qzDrop(r, p); });
 });
 
+app.use((req, res) => {
+  if (req.method !== 'GET' || /\.(js|css|jpg|webp|png|mp3|json|svg)$/.test(req.path)) return res.status(404).end();
+  res.status(404).type('html').send('<!doctype html><html lang="th"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>หลงทางแล้ว · ANIME GUESS</title><body style="margin:0;min-height:100vh;display:grid;place-items:center;background:#0f1240;color:#fff;font-family:Kanit,system-ui,sans-serif;text-align:center;padding:24px"><div><div style="font-size:84px;font-weight:700;letter-spacing:-3px;line-height:1;color:#ffd23f;transform:rotate(-4deg)">404</div><p style="font-size:20px;margin:14px 0 4px">ตัวละครตัวนี้ไม่อยู่ในเกม</p><p style="opacity:.7;margin:0 0 22px">ลิงก์ผิด หรือห้องนี้ถูกลบไปแล้ว</p><a href="/" style="display:inline-block;background:#ffb020;color:#2a1600;font-weight:700;padding:12px 26px;border-radius:14px;text-decoration:none;box-shadow:0 4px 0 #9a4a05">กลับหน้าแรก</a></div></body></html>');
+});
 srv.listen(process.env.PORT || 3000, () => console.log('ANIME GUESS running on :' + (process.env.PORT || 3000)));
 setTimeout(() => { cxLoad(0).finally(() => anInit()); }, 500);

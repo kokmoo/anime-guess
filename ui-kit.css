@@ -1,0 +1,64 @@
+/* ANIME GUESS UI KIT v1 — ชุด UI สไตล์เกม (กลาส + นีออน) ไม่มีแอนิเมชันวนซ้ำ เบาเครื่อง */
+:root{--k-ink:#0d0f2b;--k-line:rgba(255,255,255,.28);--k-glass:linear-gradient(160deg,rgba(40,44,120,.82),rgba(22,24,72,.9));--k-hf:'Chakra Petch',Kanit,sans-serif}
+/* ===== ปุ่มตัวอักษร (kb) 5 สี: ใส่ class kb + สี ===== */
+button.kb,button.b,button.r,button.kb-gr,button.kb-or,button.kb-bl,button.kb-pk,button.kb-rd{--c1:#6c8bff;--c2:#3a52e6;--e:#1d2a94;
+ font-family:var(--k-hf);font-weight:700;letter-spacing:.2px;color:#fff;text-shadow:0 2px 0 var(--e);
+ background:linear-gradient(180deg,var(--c1),var(--c2));border:2px solid rgba(255,255,255,.4);border-radius:14px;
+ box-shadow:0 4px 0 var(--e),0 8px 14px rgba(0,0,0,.35),inset 0 2px 0 rgba(255,255,255,.45);margin-bottom:10px}
+button.kb::before,button.b::before,button.r::before,button.kb-gr::before,button.kb-or::before,button.kb-bl::before,button.kb-pk::before,button.kb-rd::before{content:"";position:absolute;left:6px;right:6px;top:3px;height:44%;border-radius:10px 10px 40px 40px/10px 10px 14px 14px;background:linear-gradient(180deg,rgba(255,255,255,.42),rgba(255,255,255,.04));pointer-events:none}
+button.kb:hover:not(:disabled),button.b:hover:not(:disabled),button.r:hover:not(:disabled),button.kb-gr:hover:not(:disabled),button.kb-or:hover:not(:disabled),button.kb-bl:hover:not(:disabled),button.kb-pk:hover:not(:disabled),button.kb-rd:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.08);box-shadow:0 5px 0 var(--e),0 10px 18px rgba(0,0,0,.4),inset 0 2px 0 rgba(255,255,255,.5)}
+button.kb:active:not(:disabled),button.b:active:not(:disabled),button.r:active:not(:disabled),button.kb-gr:active:not(:disabled),button.kb-or:active:not(:disabled),button.kb-bl:active:not(:disabled),button.kb-pk:active:not(:disabled),button.kb-rd:active:not(:disabled){transform:translateY(3px);filter:none;box-shadow:0 1px 0 var(--e),0 3px 6px rgba(0,0,0,.3),inset 0 2px 0 rgba(255,255,255,.35)}
+button.b{--c1:#7a7bff;--c2:#5a3df0;--e:#2b1a9e}
+button.r,button.kb-rd{--c1:#ff6b6b;--c2:#e2203f;--e:#7d0c25}
+button.kb-gr{--c1:#5be67f;--c2:#1fb455;--e:#0b6430}
+button.kb-or,button.kb-bl,button.kb-pk,button.kb-rd{--c1:#ffc24a;--c2:#ff8a1e;--e:#9a4a05}
+button.kb-bl{--c1:#4fc3ff;--c2:#1c7be0;--e:#0b3f8f}
+button.kb-pk{--c1:#ff7ac8;--c2:#d63aa0;--e:#7d1560}
+button.kb:disabled,button.kb-gr:disabled,button.kb-or:disabled,button.kb-bl:disabled,button.kb-pk:disabled,button.kb-rd:disabled{filter:grayscale(.7);opacity:.5}
+/* ===== ปุ่มไอคอน (ki) สี่เหลี่ยมมน ===== */
+button.ki{--c1:#6c8bff;--c2:#3a52e6;--e:#1d2a94;width:52px;height:52px;padding:0;margin:0;display:inline-grid;place-items:center;border-radius:16px;color:#fff;
+ background:linear-gradient(180deg,var(--c1),var(--c2));border:2px solid rgba(255,255,255,.45);box-shadow:0 4px 0 var(--e),0 7px 12px rgba(0,0,0,.35),inset 0 2px 0 rgba(255,255,255,.45)}
+button.ki::before{content:"";position:absolute;left:5px;right:5px;top:3px;height:42%;border-radius:12px 12px 30px 30px;background:linear-gradient(180deg,rgba(255,255,255,.4),rgba(255,255,255,0));pointer-events:none}
+button.ki:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--e),inset 0 2px 0 rgba(255,255,255,.3)}
+button.ki.gr{--c1:#5be67f;--c2:#1fb455;--e:#0b6430}button.ki.or{--c1:#ffc24a;--c2:#ff8a1e;--e:#9a4a05}button.ki.rd{--c1:#ff6b6b;--c2:#e2203f;--e:#7d0c25}button.ki.bl{--c1:#4fc3ff;--c2:#1c7be0;--e:#0b3f8f}button.ki.pk{--c1:#ff7ac8;--c2:#d63aa0;--e:#7d1560}
+.ic{width:1.15em;height:1.15em;vertical-align:-.2em;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 0 rgba(0,0,0,.35))}
+.ic.fill{fill:currentColor;stroke:none}.ki .ic{width:26px;height:26px}
+/* ===== แผง (kp) และกรอบรูป (kf) ===== */
+.kp{background:var(--k-glass);border:2px solid var(--k-line);border-radius:20px;box-shadow:0 10px 24px rgba(0,0,0,.4),inset 0 2px 0 rgba(255,255,255,.18);padding:14px;color:#fff;position:relative}
+.kp.cream{background:linear-gradient(180deg,#fff4dc,#f3dcae);color:#3b2a14;border-color:#fff;box-shadow:0 6px 0 #c9a566,0 12px 20px rgba(0,0,0,.35),inset 0 2px 0 #fff}
+.kf{border-radius:22px;padding:6px;background:linear-gradient(180deg,#ffe9b0,#e6b865);box-shadow:0 5px 0 #a8742a,0 10px 18px rgba(0,0,0,.35)}
+.kf>.in{border-radius:16px;overflow:hidden;background:linear-gradient(180deg,#9fe7ff,#5ec2f2);aspect-ratio:1;display:grid;place-items:center;box-shadow:inset 0 3px 8px rgba(0,60,120,.35)}
+.kf>.in>img{width:100%;height:100%;object-fit:cover;display:block}
+/* ===== ริบบิ้นหัวข้อ (kr) ===== */
+.kr{--c1:#5ec8ff;--c2:#2a8be8;--e:#14529e;position:relative;display:block;text-align:center;font-family:var(--k-hf);font-weight:700;color:#fff;text-shadow:0 2px 0 var(--e);padding:8px 34px;margin:10px auto;max-width:92%;background:linear-gradient(180deg,var(--c1),var(--c2));
+ clip-path:polygon(0 12%,12px 12%,12px 0,calc(100% - 12px) 0,calc(100% - 12px) 12%,100% 12%,calc(100% - 14px) 56%,100% 100%,calc(100% - 12px) 100%,calc(100% - 12px) 88%,12px 88%,12px 100%,0 100%,14px 56%)}
+.kr.or{--c1:#ffb35a;--c2:#f07a22;--e:#8f400a}.kr.gr{--c1:#6bea8a;--c2:#23ad55;--e:#0b5f2c}.kr.pk{--c1:#ff8ad0;--c2:#d83fa4;--e:#7d1560}
+/* ===== หลอดความคืบหน้า (kbar) ===== */
+.kbar{height:20px;border-radius:12px;background:#2a1c14;border:2px solid rgba(255,255,255,.35);box-shadow:inset 0 3px 5px rgba(0,0,0,.6),0 3px 0 rgba(0,0,0,.3);overflow:hidden;position:relative}
+.kbar>i{display:block;height:100%;width:var(--p,50%);border-radius:10px;background:linear-gradient(180deg,#8dff8d,#2fc24a 55%,#1b9a38);box-shadow:inset 0 2px 0 rgba(255,255,255,.55);transition:width .5s var(--ease,ease)}
+.kbar.or>i{background:linear-gradient(180deg,#ffd36b,#ff9b21 55%,#e07300)}.kbar.pk>i{background:linear-gradient(180deg,#ff9bdc,#e24aaf 55%,#b72d88)}.kbar.bl>i{background:linear-gradient(180deg,#8fdcff,#2f9cf0 55%,#1a6fc4)}
+.kbar>b{position:absolute;inset:0;display:grid;place-items:center;font:700 12px var(--k-hf);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7)}
+/* ===== แถบทรัพยากร (kres): ไอคอน + ค่า + ปุ่มบวก ===== */
+.kres{display:flex;align-items:center;gap:8px;height:34px;padding:0 4px 0 0;border-radius:20px;background:linear-gradient(180deg,#f7d9d9,#e9b8b8);border:2px solid #fff;box-shadow:0 3px 0 rgba(0,0,0,.35),inset 0 2px 4px rgba(0,0,0,.18);color:#4a2323;font:700 14px var(--k-hf);min-width:120px}
+.kres>.ic{width:36px;height:36px;margin:-4px 0 -4px -6px;padding:5px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff8fa3,#d6203f);stroke:#fff;stroke-width:2;box-sizing:border-box;filter:drop-shadow(0 2px 2px rgba(0,0,0,.4))}
+.kres.coin>.ic{background:radial-gradient(circle at 35% 30%,#ffe27a,#f2a100)}.kres.gem>.ic{background:radial-gradient(circle at 35% 30%,#e29bff,#9a2fe0)}
+.kres.coin{background:linear-gradient(180deg,#fbeab8,#efd08a);color:#4a3410}.kres.gem{background:linear-gradient(180deg,#efd9fb,#d9b8f0);color:#3d1f55}
+.kres>span{flex:1}.kres>em{font-style:normal;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#8dff8d,#1fa84a);color:#fff;border:2px solid #fff;font-size:16px;line-height:1}
+/* ===== ป้าย/ตรา (kbadge) ===== */
+.kseal{width:64px;height:64px;display:grid;place-items:center;font:700 13px var(--k-hf);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);background:radial-gradient(circle at 35% 30%,var(--c1,#b98cf0),var(--c2,#8a52d8));
+ clip-path:polygon(50% 0,60% 6%,72% 4%,78% 14%,90% 16%,92% 28%,100% 36%,96% 48%,100% 60%,92% 68%,90% 80%,78% 84%,72% 96%,60% 94%,50% 100%,40% 94%,28% 96%,22% 84%,10% 80%,8% 68%,0 60%,4% 48%,0 36%,8% 28%,10% 16%,22% 14%,28% 4%,40% 6%)}
+.kseal.rd{--c1:#ff7a7a;--c2:#d8283f}.kseal.gd{--c1:#ffe27a;--c2:#f2a100}
+.ktag{display:inline-block;padding:4px 12px 4px 18px;font:700 13px var(--k-hf);color:#fff;background:linear-gradient(180deg,#ff6fb0,#e0307f);border-radius:4px 14px 14px 4px;clip-path:polygon(10px 0,100% 0,100% 100%,10px 100%,0 50%);box-shadow:0 3px 0 #8a1550}
+.klv{display:inline-grid;place-items:center;min-width:34px;height:34px;padding:0 6px;border-radius:12px;transform:rotate(45deg);background:linear-gradient(180deg,#ffd75a,#f08a00);border:2px solid #fff;box-shadow:0 3px 0 #8a4a00;font:700 14px var(--k-hf);color:#4a2a00}
+.klv>span{transform:rotate(-45deg)}
+@media(prefers-reduced-motion:reduce){button.kb,button.ki{transition:none}}
+
+.kf .ic{width:48%;height:48%;color:#fff}
+
+/* ===== รายละเอียดเล็กๆ ===== */
+::selection{background:#ffd23f;color:#14142b}
+*{scrollbar-width:thin;scrollbar-color:#6b5cff55 transparent}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:#6b5cff88;border-radius:8px}::-webkit-scrollbar-track{background:transparent}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#ff3d6e;box-shadow:0 0 0 2px #fff;vertical-align:2px;margin-left:2px}
+.chips .ic,.sec .ic,.ft .ic,button .ic{margin-right:2px}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
