@@ -29,7 +29,7 @@ app.use((req, res, next) => {
 IMGDIRS.forEach(d => app.use('/img', express.static(d, staticOpt)));
 app.use(express.static(WEB, staticOpt));
 CANDS.filter(d => d !== WEB).forEach(d => app.use(express.static(d, staticOpt)));
-app.get('/__info', (req, res) => res.json({ web: path.basename(WEB) === 'public' ? 'public/' : 'root', builds: CANDS.map(d => [path.basename(d) === 'public' ? 'public/' : 'root', buildOf(d)]), quizQuestions: qzBank().length, version: APP_VERSION, quizRooms: Object.keys(QROOMS).length, rooms: Object.keys(rooms).length }));
+app.get('/__info', (req, res) => res.json({ web: path.basename(WEB) === 'public' ? 'public/' : 'root', builds: CANDS.map(d => [path.basename(d) === 'public' ? 'public/' : 'root', buildOf(d)]), quizQuestions: qzBank().length, version: APP_VERSION, quizRooms: Object.keys(QROOMS).length, sceneRooms: Object.keys(SCR).length, rooms: Object.keys(rooms).length }));
 const GRACE = +process.env.AG_GRACE || 120000, GRACE_LOBBY = +process.env.AG_GRACE_LOBBY || 60000;
 
 // [name, aliases, anime, era, world, ability, side, role]
@@ -628,7 +628,7 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '4.10.1';
+const APP_VERSION = '4.11.0';
 const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
 const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
 let CFIDS = new Set(), CFM = 0, CFT = {};
@@ -1859,6 +1859,182 @@ io.on('connection', sock => {
     p.online = false; qzDrop(r, p);
   });
   sock.on('disconnect', () => { const r = qfind(), p = qme(r); if (!r || !p) return; p.online = false; p.sid = null; qzDrop(r, p); });
+});
+
+// ================= โหมดทายฉาก: เปิด trailer สั้นๆ 1 วินาที ทายว่าเรื่องอะไร (ใช้ event sc:*) =================
+// ไม่เก็บ/ไม่ส่งไฟล์วิดีโอเอง: ดึงรหัส trailer ของ YouTube จาก AniList แล้วให้ตัวเล่น YouTube ที่ฝังในหน้าเว็บเล่นช่วงสั้นๆ
+const SCR = {};
+const SC_PTS = [100, 70, 50, 35, 20];           // คะแนนถ้าตอบถูกตอนดู 1,2,3,4,5 วินาที
+const SC_WIN_MS = 15000, SC_REVEAL_MS = 8000, SC_COUNTS = [5, 10, 15, 20];
+let SCPOOL = [], SCPOOL_T = 0, SCPOOL_P = null;
+const scNorm = s => String(s || '').normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
+const scLev = (a, b) => { const m = a.length, n = b.length; let p = Array.from({ length: n + 1 }, (_, j) => j); for (let i = 1; i <= m; i++) { const c = [i]; for (let j = 1; j <= n; j++) c[j] = Math.min(p[j] + 1, c[j - 1] + 1, p[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); p = c; } return p[n]; };
+function scVars(a) {
+  const v = new Set();
+  a.ti.forEach(t => { const n = scNorm(t); if (n.length >= 2) v.add(n); t.split(/\s*[:\-–]\s+/).forEach((x, i) => { if (i === 0) { const nn = scNorm(x); if (nn.length >= 4) v.add(nn); } }); });
+  return v;
+}
+function scMatch(a, g) {
+  const n = scNorm(g); if (n.length < 2) return false;
+  a.v = a.v || scVars(a); if (a.v.has(n)) return true;
+  for (const x of a.v) if (x.length >= 7 && Math.abs(x.length - n.length) <= 2 && scLev(x, n) <= (x.length >= 14 ? 2 : 1)) return true;
+  return false;
+}
+function scLoadPool() {
+  if (SCPOOL.length && Date.now() - SCPOOL_T < 6 * 3600 * 1000) return Promise.resolve(SCPOOL);
+  if (SCPOOL_P) return SCPOOL_P;
+  SCPOOL_P = (async () => {
+    const out = [], seen = new Set();
+    for (let p = 1; p <= 6; p++) {
+      try {
+        const d = await alq('query($p:Int){Page(page:$p,perPage:50){media(type:ANIME,sort:POPULARITY_DESC,isAdult:false){id title{romaji english native} synonyms trailer{id site}}}}', { p });
+        for (const m of (d.Page && d.Page.media) || []) {
+          if (!m || !m.trailer || m.trailer.site !== 'youtube' || !/^[\w-]{11}$/.test(m.trailer.id || '') || seen.has(m.id)) continue;
+          const ti = [m.title && m.title.english, m.title && m.title.romaji, m.title && m.title.native, ...(m.synonyms || [])].map(x => String(x || '').trim().slice(0, 80)).filter(Boolean);
+          if (!ti.length) continue; seen.add(m.id);
+          out.push({ id: m.id, yt: m.trailer.id, name: ti[0].slice(0, 60), ti });
+        }
+      } catch (e) { if (p === 1) break; }
+    }
+    if (out.length) { SCPOOL = out; SCPOOL_T = Date.now(); }
+    return SCPOOL;
+  })().finally(() => { SCPOOL_P = null; });
+  return SCPOOL_P;
+}
+const scLive = r => r.players.filter(p => p.online);
+function scView(r, p) {
+  const c = r.cur, now = Date.now();
+  const v = {
+    code: r.code, phase: r.phase, you: p.pid, rid: r.rid || 0, owner: r.owner === p.pid, ownerPid: r.owner, set: r.set, n: r.n || 0, i: r.i, pool: SCPOOL.length,
+    players: r.players.map(x => ({ pid: x.pid, name: x.name, score: x.score, ok: x.ok, online: x.online, fr: x.fr || 'none', nf: x.nf || 'none', cf: x.cf || '', af: x.af || '', tt: x.tt || '', un: unOf(x.sid), lv: x.lv || 1, ah: x.ah || 0,
+      voted: r.phase === 'play' ? !!(c && c.votes.has(x.pid)) : undefined, ready: r.phase === 'load' ? !!(c && c.ready.has(x.pid)) : undefined, wrong: r.phase === 'play' && c ? x.wk === c.k : undefined, got: r.phase === 'reveal' && c ? (c.winner === x.pid) : undefined }))
+  };
+  if (c && (r.phase === 'load' || r.phase === 'play')) {
+    v.cur = { yt: c.a.yt, seed: c.seed, k: c.k || 0, len: (c.k || 0) + 1, pts: SC_PTS[c.k || 0], playIn: r.phase === 'play' ? Math.max(0, c.t0 - now) : 0, left: r.phase === 'play' ? Math.max(0, c.dl - now) : 0, votes: c.votes.size, on: scLive(r).length, voted: c.votes.has(p.pid), wrong: p.wk === c.k, maxLen: SC_PTS.length };
+  }
+  if (c && r.phase === 'reveal') v.rev = { name: c.a.name, yt: c.a.yt, win: c.winner || '', pts: c.pts || 0, k: c.k, nextIn: Math.max(0, r.nextAt - now) };
+  return v;
+}
+const scSend = r => r.players.forEach(p => p.sid && p.online && io.to(p.sid).emit('sc:state', scView(r, p)));
+const scClear = r => { clearTimeout(r.timer); clearTimeout(r.auto); clearTimeout(r.ltimer); };
+function scLoad(r) {
+  scClear(r);
+  const pool = SCPOOL.filter(a => !a.bad), fresh = pool.filter(a => !r.used.has(a.id)), from = fresh.length ? fresh : pool;
+  if (!from.length) { r.phase = 'lobby'; r.cur = null; scSend(r); r.players.forEach(p => p.sid && io.to(p.sid).emit('sc:err', 'ไม่มีตัวอย่างอนิเมะให้เล่นแล้ว')); return; }
+  const a = from[Math.floor(Math.random() * from.length)]; r.used.add(a.id);
+  r.cur = { a, seed: Math.random(), k: 0, votes: new Set(), ready: new Set(), t0: 0, dl: 0, winner: '', pts: 0 };
+  r.players.forEach(p => { p.wk = -1; });
+  r.phase = 'load'; scSend(r);
+  r.ltimer = setTimeout(() => scPlay(r), r.i === 0 && !r.warm ? 25000 : 11000);
+}
+function scPlay(r) {
+  if (r.phase !== 'load') return;
+  clearTimeout(r.ltimer); r.warm = true; r.phase = 'play'; scAttempt(r, 0);
+}
+function scAttempt(r, k) {
+  const c = r.cur; c.k = k; c.votes.clear(); c.t0 = Date.now() + (k === 0 ? 1500 : 900); c.dl = c.t0 + (k + 1) * 1000 + SC_WIN_MS;
+  clearTimeout(r.timer); r.timer = setTimeout(() => scEscalate(r, k), c.dl - Date.now() + 200);
+  scSend(r);
+}
+function scEscalate(r, k) {
+  if (r.phase !== 'play' || !r.cur || r.cur.k !== k) return;
+  if (k + 1 >= SC_PTS.length) return scReveal(r, '');
+  scAttempt(r, k + 1);
+}
+function scReveal(r, winPid) {
+  if (r.phase !== 'play') return;
+  scClear(r); const c = r.cur; c.winner = winPid || '';
+  if (winPid) { const w = r.players.find(p => p.pid === winPid); c.pts = SC_PTS[c.k]; if (w) { w.score += c.pts; w.ok++; } }
+  r.phase = 'reveal'; r.nextAt = Date.now() + SC_REVEAL_MS; scSend(r);
+  r.auto = setTimeout(() => scNext(r), SC_REVEAL_MS);
+}
+function scNext(r) {
+  if (r.phase !== 'reveal') return;
+  scClear(r);
+  if (r.i + 1 >= r.n) { r.phase = 'end'; scSend(r); return; }
+  r.i++; scLoad(r);
+}
+function scCheckReady(r) { if (r.phase !== 'load') return; const on = scLive(r); if (on.length && on.every(p => r.cur.ready.has(p.pid))) scPlay(r); }
+function scCheckVotes(r) {
+  if (r.phase !== 'play' || Date.now() < r.cur.t0 + (r.cur.k + 1) * 1000) return;
+  const on = scLive(r); if (on.length && r.cur.votes.size * 2 > on.length) scEscalate(r, r.cur.k);
+}
+function scDrop(r, p) {
+  if (r.owner === p.pid) { const n = r.players.find(x => x.online && x.pid !== p.pid); if (n) r.owner = n.pid; }
+  if (!r.players.some(x => x.online)) r.emptyAt = Date.now();
+  if (r.cur) r.cur.votes.delete(p.pid);
+  scSend(r); scCheckReady(r); scCheckVotes(r);
+}
+setInterval(() => { Object.keys(SCR).forEach(k => { const r = SCR[k]; if (!r.players.some(p => p.online) && Date.now() - (r.emptyAt || 0) > 20 * 60 * 1000) { scClear(r); delete SCR[k]; } }); }, 60 * 1000);
+
+io.on('connection', sock => {
+  const sfind = () => Object.values(SCR).find(r => r.players.some(p => p.sid === sock.id));
+  const sme = r => r && r.players.find(p => p.sid === sock.id);
+  const serr = m => sock.emit('sc:err', m);
+  const newP = (pid, name, sid) => ({ pid, name: String(name || '').trim().slice(0, 16) || 'Player', sid, online: true, score: 0, ok: 0, wk: -1 });
+  const titles = () => sock.emit('sc:titles', SCPOOL.map(a => a.name));
+  sock.on('sc:create', ({ name, pid, prof }) => {
+    if (!pid) return;
+    const old = sfind(); if (old) { const o = sme(old); o.online = false; o.sid = null; scDrop(old, o); }
+    let code; do { code = Math.random().toString(36).slice(2, 7).toUpperCase(); } while (SCR[code] || QROOMS[code]);
+    const r = SCR[code] = { code, owner: pid, phase: 'lobby', players: [newP(pid, name, sock.id)], set: { rounds: 10 }, used: new Set(), cur: null, i: 0, n: 0 };
+    if (prof) applyProf(r.players[0], prof);
+    scSend(r); scLoadPool().then(() => { scSend(r); titles(); }).catch(() => {});
+  });
+  sock.on('sc:join', ({ code, name, pid, prof }) => {
+    const r = SCR[String(code || '').trim().toUpperCase()];
+    if (!r || !pid) return serr('ไม่พบห้องนี้');
+    let p = r.players.find(x => x.pid === pid);
+    if (!p && name) { const g = r.players.find(x => !x.online && x.name.toLowerCase() === String(name).trim().toLowerCase()); if (g) { if (r.owner === g.pid) r.owner = pid; g.pid = pid; p = g; } }
+    if (p) { p.sid = sock.id; p.online = true; if (name) p.name = String(name).trim().slice(0, 16) || p.name; }
+    else { if (r.players.length >= 12) return serr('ห้องเต็มแล้ว (สูงสุด 12 คน)'); p = newP(pid, name, sock.id); r.players.push(p); }
+    if (prof) applyProf(p, prof);
+    r.emptyAt = 0; scSend(r); titles();
+  });
+  sock.on('sc:prof', d => { const r = sfind(), p = sme(r); if (!r || !p) return; applyProf(p, d); scSend(r); });
+  sock.on('sc:getav', pids => { const r = sfind(); if (r) sendAv(sock, r.players, pids); });
+  sock.on('sc:set', d => { const r = sfind(), p = sme(r); if (!r || !p || r.owner !== p.pid || r.phase !== 'lobby') return; r.set = { rounds: SC_COUNTS.includes(+(d && d.rounds)) ? +d.rounds : 10 }; scSend(r); });
+  sock.on('sc:start', async () => {
+    const r = sfind(), p = sme(r); if (!r || !p || r.owner !== p.pid || r.phase !== 'lobby') return;
+    r.phase = 'starting';
+    const pool = (await scLoadPool().catch(() => [])).filter(a => !a.bad);
+    if (r.phase !== 'starting') return;
+    if (pool.length < 3) { r.phase = 'lobby'; scSend(r); return serr('ดึงตัวอย่างอนิเมะจาก AniList ไม่ได้ในตอนนี้ ลองใหม่อีกครั้งในอีกสักครู่'); }
+    r.n = Math.min(r.set.rounds, pool.length); r.rid = (r.rid || 0) + 1; r.i = 0; r.warm = false; r.used = new Set();
+    r.players.forEach(x => { x.score = 0; x.ok = 0; x.wk = -1; });
+    scLoad(r); titles();
+  });
+  sock.on('sc:ready', () => { const r = sfind(), p = sme(r); if (!r || !p || r.phase !== 'load') return; r.cur.ready.add(p.pid); scSend(r); scCheckReady(r); });
+  sock.on('sc:bad', id => {   // ตัวเล่นเปิดวิดีโอนี้ไม่ได้ (ถูกปิดการฝัง/ถูกลบ) -> ตัดออกจากคลังแล้วสุ่มเรื่องใหม่
+    const r = sfind(), p = sme(r); if (!r || !p || !r.cur || (r.phase !== 'load' && r.phase !== 'play') || r.cur.a.yt !== id) return;
+    r.cur.a.bad = true; r.used.add(r.cur.a.id); scLoad(r);
+  });
+  sock.on('sc:guess', g => {
+    const r = sfind(), p = sme(r); if (!r || !p || r.phase !== 'play') return;
+    const c = r.cur; if (Date.now() < c.t0) return;
+    g = String(g || '').slice(0, 100); if (!scNorm(g)) return;
+    if (p.wk === c.k) return serr('คุณตอบผิดไปแล้วในรอบนี้ รอดูเพิ่มอีกนิดก่อนนะ');
+    if (scMatch(c.a, g)) return scReveal(r, p.pid);
+    p.wk = c.k; sock.emit('sc:wrong'); scSend(r);
+  });
+  sock.on('sc:skip', () => {
+    const r = sfind(), p = sme(r); if (!r || !p || r.phase !== 'play') return;
+    const c = r.cur; if (Date.now() < c.t0 + (c.k + 1) * 1000) return;
+    if (c.votes.has(p.pid)) c.votes.delete(p.pid); else c.votes.add(p.pid);
+    scSend(r); scCheckVotes(r);
+  });
+  sock.on('sc:next', () => { const r = sfind(), p = sme(r); if (r && p && r.owner === p.pid) scNext(r); });
+  sock.on('sc:again', () => {
+    const r = sfind(), p = sme(r); if (!r || !p || r.owner !== p.pid || r.phase !== 'end') return;
+    r.phase = 'lobby'; r.cur = null; r.i = 0; r.n = 0; r.players.forEach(x => { x.score = 0; x.ok = 0; x.wk = -1; }); scSend(r);
+  });
+  sock.on('sc:leave', () => {
+    const r = sfind(), p = sme(r); if (!r || !p) return;
+    r.players = r.players.filter(x => x !== p);
+    if (!r.players.length) { scClear(r); delete SCR[r.code]; return; }
+    p.online = false; scDrop(r, p);
+  });
+  sock.on('disconnect', () => { const r = sfind(), p = sme(r); if (!r || !p) return; p.online = false; p.sid = null; scDrop(r, p); });
 });
 
 app.use((req, res) => {

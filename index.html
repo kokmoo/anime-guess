@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- ag-build:20261068 -->
+<!-- ag-build:20261069 -->
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ANIME GUESS</title>
@@ -379,6 +379,8 @@ button.b:active:not(:disabled),button.r:active:not(:disabled),button.g:active:no
 .seal{display:inline-grid;place-items:center;min-width:34px;height:34px;padding:0 6px;border:2px solid #7a2a8c;border-radius:50% 50% 50% 50%/55% 55% 45% 45%;background:radial-gradient(circle at 35% 28%,#e9a6ff,#9438d8);color:#fff;font-weight:800;font-size:13px;text-shadow:0 1px 0 rgba(60,0,80,.6)}
 .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 12px;border:2px solid #b9923f;border-bottom-width:4px;border-radius:99px;background:linear-gradient(180deg,#fff7de,#f1d79c);color:#4a3410;font-weight:700}
 .tagsale{display:inline-block;padding:3px 12px;border-radius:99px;background:linear-gradient(180deg,#ff7fd0,#e0268f);border:2px solid #8e0f5a;color:#fff;font-weight:800;font-size:12px}
+#ytwrap{position:fixed;left:50%;top:8px;transform:translateX(-50%);width:min(94vw,520px);aspect-ratio:16/9;z-index:30;background:#000;border:4px solid #14142b;border-radius:16px;overflow:hidden;box-shadow:0 6px 0 #14142b;visibility:hidden;pointer-events:none}#ytwrap.on{visibility:visible;pointer-events:auto}#ytwrap iframe{width:100%;height:100%;border:0}#ytsh{position:absolute;inset:0}#ytcov{position:absolute;inset:0;display:none;place-items:center;text-align:center;background:linear-gradient(160deg,#1b1f5e,#0c1030);color:#fff;font-weight:700;font-size:20px;padding:14px;line-height:1.5}#ytcov.on{display:grid}#ytcov img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}#ytcov b{position:relative;font-size:22px;text-shadow:0 2px 0 #000}.ytsp{width:min(94vw,520px);aspect-ratio:16/9;margin:0 auto 12px}
+.new{background:#ff4d8d;color:#fff;border-radius:10px;padding:1px 7px;margin-left:6px;font-size:12px}
 </style>
 <link rel="stylesheet" href="/ui-kit.css"></head><body><svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="i-replay" viewBox="0 0 24 24"><path d="M5 12a7 7 0 1 0 2.2-5.1"/><path d="M5 4v4.5h4.5"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M5 13l4.5 4.5L19 7"/></symbol><symbol id="i-pad" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="10" rx="5"/><path d="M8 11v4M6 13h4"/><circle cx="15.5" cy="12" r=".8" fill="currentColor" stroke="none"/><circle cx="17.5" cy="14" r=".8" fill="currentColor" stroke="none"/></symbol><symbol id="i-info" viewBox="0 0 24 24"><path d="M12 11v6"/><circle cx="12" cy="7.5" r=".9" fill="currentColor" stroke="none"/></symbol><symbol id="i-mail" viewBox="0 0 24 24"><rect x="3.5" y="6" width="17" height="12" rx="2.5"/><path d="M4 8l8 6 8-6"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol><symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="currentColor" stroke="none"/></symbol><symbol id="i-sync" viewBox="0 0 24 24"><path d="M19 8a7.5 7.5 0 0 0-13-1.5M5 4v3.5h3.5"/><path d="M5 16a7.5 7.5 0 0 0 13 1.5M19 20v-3.5h-3.5"/></symbol><symbol id="i-list" viewBox="0 0 24 24"><path d="M9 7h10M9 12h10M9 17h10"/><circle cx="5" cy="7" r=".9" fill="currentColor" stroke="none"/><circle cx="5" cy="12" r=".9" fill="currentColor" stroke="none"/><circle cx="5" cy="17" r=".9" fill="currentColor" stroke="none"/></symbol><symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.6 4.3 4.3 0 0 1 19.5 10C19.5 15.4 12 20 12 20z" fill="currentColor" stroke="none"/></symbol><symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5"/><path d="M12 8v8M9.5 10.2c0-1 1-1.6 2.5-1.6s2.5.6 2.5 1.6-1 1.4-2.5 1.6-2.5.6-2.5 1.6 1 1.6 2.5 1.6 2.5-.6 2.5-1.6"/></symbol><symbol id="i-gem" viewBox="0 0 24 24"><path d="M7 5h10l4 5-9 9-9-9z" fill="currentColor" stroke="none"/><path d="M3 10h18M9.5 5L8 10l4 9 4-9-1.5-5" stroke="rgba(255,255,255,.55)" fill="none"/></symbol><symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.5l2.7 5.6 6.1.8-4.5 4.2 1.1 6-5.4-2.9-5.4 2.9 1.1-6-4.5-4.2 6.1-.8z" fill="currentColor" stroke="none"/></symbol><symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.5 3L5.5 13.5h5L9.5 21l8-10.5h-5z" fill="currentColor" stroke="none"/></symbol><symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19c.5-3.6 2.8-5.4 5.5-5.4s5 1.8 5.5 5.4"/><circle cx="17" cy="9.5" r="2.5"/><path d="M16 14.2c2.6-.3 4.2 1.2 4.7 4.3"/></symbol><symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12.5" r="7.5"/><path d="M12 8v4.5l3 2"/><path d="M6 4l-2 2M18 4l2 2"/></symbol><symbol id="i-trophy" viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 0 1-10 0z" fill="currentColor" stroke="none"/><path d="M7 6H4v1.5A3.5 3.5 0 0 0 7.5 11M17 6h3v1.5A3.5 3.5 0 0 1 16.5 11M12 14v4M8.5 20h7"/></symbol><symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11l8-6.5 8 6.5v8a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/></symbol><symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="14" r="3.6"/><path d="M10.6 11.4L19 3M15.5 6.5l2.5 2.5M13.5 8.5l2 2"/></symbol><symbol id="i-cart" viewBox="0 0 24 24"><path d="M3.5 5h2.5l2 10h9.5l2-7.5H7"/><circle cx="9.5" cy="19" r="1.4" fill="currentColor" stroke="none"/><circle cx="16.5" cy="19" r="1.4" fill="currentColor" stroke="none"/></symbol><symbol id="i-dice" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="9" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="9" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="9" cy="15" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="15" r="1.2" fill="currentColor" stroke="none"/></symbol><symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></symbol><symbol id="i-book" viewBox="0 0 24 24"><path d="M5 5.5A2 2 0 0 1 7 4h12v14H7a2 2 0 0 0-2 2z"/><path d="M5 18.5V5.5M9 8h6"/></symbol><symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.6-4 3.4-6 7-6s6.4 2 7 6"/></symbol><symbol id="i-brain" viewBox="0 0 24 24"><path d="M9.5 4.5a3 3 0 0 0-3 3 3 3 0 0 0-1.5 5.2 3 3 0 0 0 2 4.8 3 3 0 0 0 5.5.5V5.5a2.5 2.5 0 0 0-3-1z"/><path d="M14.5 4.5a3 3 0 0 1 3 3 3 3 0 0 1 1.5 5.2 3 3 0 0 1-2 4.8 3 3 0 0 1-3.5 1.5"/></symbol><symbol id="i-tv" viewBox="0 0 24 24"><rect x="3.5" y="6.5" width="17" height="11.5" rx="3"/><path d="M9 3.5l3 3 3-3"/></symbol><symbol id="i-cards" viewBox="0 0 24 24"><rect x="4" y="6" width="10" height="13" rx="2" transform="rotate(-8 9 12.5)"/><rect x="10" y="5" width="10" height="13" rx="2" transform="rotate(8 15 11.5)"/></symbol><symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 3.5v2.4M12 18.1v2.4M3.5 12h2.4M18.1 12h2.4M6 6l1.7 1.7M16.3 16.3L18 18M18 6l-1.7 1.7M7.7 16.3L6 18"/></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1"/></symbol><symbol id="i-image" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M5 17l4.5-4.5 3 3 2-2L19 17"/></symbol><symbol id="i-note" viewBox="0 0 24 24"><path d="M4.5 19.5l1-4L16 5l3 3L8.5 18.5z"/><path d="M14 7l3 3"/></symbol><symbol id="i-chat" viewBox="0 0 24 24"><path d="M5 6h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-7l-4.5 3.5V17H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/><path d="M8 10.5h8M8 13.5h5"/></symbol></defs></svg>
 <div class="top"><div class="logo"><b>ANIME</b> GUESS</div><div class="tr"><button class="gear g mt" id="mt" onclick="toggleMute()" aria-label="เปิด/ปิดเสียง">🔊</button><button class="gear g" onclick="openSet()" aria-label="ตั้งค่า">⚙️</button></div></div><div id="cn">กำลังเชื่อมต่อเซิร์ฟเวอร์ใหม่… (เซิร์ฟเวอร์ฟรีอาจใช้เวลาตื่นราว 30 วินาที) เกมของคุณยังอยู่ ไม่ต้องรีเฟรช</div>
@@ -400,7 +402,7 @@ const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิด
 const I=(n,c)=>`<svg class="ic${c?' '+c:''}"><use href="#i-${n}"/></svg>`;
 const s=io(),$=id=>document.getElementById(id);
 const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
-const VER=5,APPV='4.10.1',BUILD='20261068';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,libSc=0,libSc2=0,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
+const VER=5,APPV='4.11.0',BUILD='20261069';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,SM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,libSc=0,libSc2=0,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
 const pre=new URLSearchParams(location.search).get('room')||'';
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
@@ -410,7 +412,7 @@ const av=(n,p,big)=>{p=p||{};const src=avSrc(p),af=p.af&&CFM[p.af];if(af){const 
  const f=p.fr&&p.fr!=='none'?' fr-'+p.fr:'';return `<span class="avw${f}${big?' big':''}"><span class="av" style="background:hsl(${[...n].reduce((a,c)=>a+c.charCodeAt(0),0)*47%360} 85% 65%)">${src?`<img src="${src}" alt="">`:esc([...n][0]||'?')}</span></span>`};
 const pnm=p=>{const n=esc(p.name);return (p.nf&&p.nf!=='none'?`<span class="nf nf-${p.nf}">${n}</span>`:n)+(p.tt&&TTM[p.tt]?` <small class="ttl ${TTM[p.tt].tr?'t-'+TTM[p.tt].tr:''}"${TTM[p.tt].h!=null?` style="--h:${TTM[p.tt].h}"`:''}>${TTM[p.tt].i}${TTM[p.tt].n}</small>`:'')+(p.lv>1?` <small class="lvb">Lv${p.lv}</small>`:'')};
 const gline=(p,big)=>{if(!p||p.res!=='lose'||!p.g)return '';const g=p.g,t=esc(g.th||g.n)+(g.th?` <small>(${esc(g.n)})</small>`:'');return `<div class="wg${big?' big':''}">${g.i?`<img src="/img/${g.i}.jpg" alt="" onerror="this.remove()">`:''}❌ ${big?esc(p.name)+' ':''}ตอบ: ${t}</div>`};
-function needAv(list){const now=Date.now(),need=list.filter(p=>p.ah&&!((st&&p.pid===st.you)||(QM&&p.pid===QM.you))&&!(AVC[p.pid]&&AVC[p.pid].ah===p.ah)&&!(now-(avAsk.get(p.pid+':'+p.ah)||0)<2500));if(need.length){need.forEach(p=>avAsk.set(p.pid+':'+p.ah,now));s.emit(st?'getav':'qz:getav',need.map(p=>p.pid))}}
+function needAv(list){const now=Date.now(),need=list.filter(p=>p.ah&&!((st&&p.pid===st.you)||(QM&&p.pid===QM.you)||(SM&&p.pid===SM.you))&&!(AVC[p.pid]&&AVC[p.pid].ah===p.ah)&&!(now-(avAsk.get(p.pid+':'+p.ah)||0)<2500));if(need.length){need.forEach(p=>avAsk.set(p.pid+':'+p.ah,now));s.emit(st?'getav':SM?'sc:getav':'qz:getav',need.map(p=>p.pid))}}
 setInterval(()=>{const l=(st&&st.players)||(QM&&QM.players);if(l)needAv(l)},3000);s.on('connect',()=>avAsk.clear());
 s.on('av',({pid,ah,src})=>{if(typeof src==='string'&&src.length<=24000&&AVOK.test(src)){AVC[pid]={ah,src};render()}});
 // ---- sound (synthesized, no files) ----
@@ -911,6 +913,8 @@ function draw(){
  const A=$('app');const wide=!st&&mode==='home',gm=!!(st&&(st.phase==='play'||st.phase==='final')),md=!!(st&&st.phase==='over');A.className=wide?'wide':gm?'game':md?'mid':'';document.body.classList.toggle('w',wide);document.body.classList.toggle('gm',gm);document.body.classList.toggle('md',md);
  if(!st){
   if(QM){drawQM(A);return}
+  if(SM){drawSM(A);return}
+  if(mode==='sm0'){drawSM0(A);return}
   if(mode.startsWith('quiz')){drawQuiz(A);return}
   if(mode==='home')A.innerHTML=`<div class="home"><div><img class="logoimg" src="/logo.webp" alt="ANIME GUESS" onerror="this.outerHTML='<h1><span>ANIME</span> GUESS</h1>'">
   <p class="sub">เกมทายตัวละครอนิเมะกับเพื่อนผ่าน Discord<br>เห็นตัวละครของเพื่อนทุกคน…ยกเว้นของตัวเอง 🙈</p>
@@ -922,6 +926,7 @@ function draw(){
   <div class="or"><span>หรือ ใส่รหัสห้องที่เพื่อนส่งให้</span></div>
   <div class="joinrow"><input id="cd" placeholder="รหัสห้อง เช่น A7K9P" value="${esc(pre)}" style="text-transform:uppercase"><button class="b" onclick="joinRoom()">${I('key')} เข้าร่วม</button></div></div>
   <div class="box feat" onclick="quizHome()" role="button" tabindex="0"><div class="ft">${I('brain')} โหมดแฟนพันธุ์แท้</div><small>ตอบคำถามเฉพาะเรื่อง แข่งคะแนนกับเพื่อนในห้อง หรือเล่นคนเดียว</small><button class="r big">เข้าโหมดแฟนพันธุ์แท้ →</button></div>
+  <div class="box feat" onclick="smHome()" role="button" tabindex="0"><div class="ft">${I('tv')} ทายฉาก 1 วิ <small class="new">ใหม่</small></div><small>เปิดตัวอย่างอนิเมะแค่ 1 วินาที ใครทายชื่อเรื่องได้ก่อนได้คะแนนเยอะ ไม่มีใครรู้ก็โหวตดูเพิ่ม</small><button class="r big">เข้าโหมดทายฉาก →</button></div>
   <div class="mini2"><button class="g" onclick="openLib()">${I('book')} ตัวละครในเกม</button><button class="g" onclick="openProf('me')">${I('user')} โปรไฟล์ & ร้านค้า<br><small>${I('coin')} ${PF.coins}</small>${AUTHON&&!ACC?'<br><small>⚠ ยังไม่ได้ล็อกอิน</small>':''}${dmReady()?'<br><small>🎯 มีภารกิจรอรับรางวัล</small>':''}</button></div>
   <details class="box how"><summary><b>❓ เล่นยังไง?</b> <small>แตะเพื่อดู</small></summary><ol class="steps"><li>สร้างห้อง แล้วส่งรหัสให้เพื่อน</li><li>ทุกคนสุ่มได้ตัวละคร เห็นแค่ของเพื่อน</li><li>ถามเพื่อนผ่าน Discord ตอบได้แค่ ใช่/ไม่</li><li>ถึงตาคุณใช้การ์ดถามคำถามปลายเปิดได้ 1 ใบ เพื่อนช่วยตอบ</li><li>ทายชื่อตัวละครให้ถูกก่อนหมดเวลา!</li></ol></details><p class="ver">ANIME GUESS v${APPV} · เซิร์ฟเวอร์ <span id="sv">${SRVV?'v'+SRVV:'…'}</span> · <a href="#" onclick="openNews();return false">มีอะไรใหม่</a></p></div></div>`;
   else A.innerHTML=`<h2>ตั้งค่าห้อง</h2><div class="box">
@@ -1087,6 +1092,85 @@ function drawQM(A){
  A.innerHTML=`<h2>🏁 จบเกม</h2><div class="box" style="text-align:center"><div class="big" style="font-size:64px">🏆</div><b style="font-size:24px">${esc(rank[0].name)} ชนะ!</b><p>${rank[0].score} คะแนน · ตอบถูก ${rank[0].ok}/${QM.n} ข้อ</p></div>
  ${board(false)}${QM.owner?'<button class="b" onclick="s.emit(\'qz:again\')">🔄 เล่นอีกรอบ (กลับไปล็อบบี้)</button>':'<p style="text-align:center">รอเจ้าของห้องเริ่มรอบใหม่…</p>'}${leaveBtn}`}
 if(pqroom)quizHome();
+// ---- โหมดทายฉาก 1 วิ (ตรรกะอยู่ที่ server.js ส่วน sc:*) : ใช้ trailer ของ YouTube ผ่านตัวเล่นที่ฝังในหน้า ไม่เก็บวิดีโอเอง ----
+let SMT=[],SMOK=false,SMERR='',YTP=null,YTMK=false,YTCB=[],YTPR=[],YTMODE='idle',YTDUR=0,smKey='',smLoadKey='',smTm=[],smPoll=0,smTick=0,smShown=false;
+const psroom=(new URLSearchParams(location.search).get('sroom')||'').toUpperCase();
+function smHome(){mode='sm0';render()}
+function smName(){const n=$('sn').value.trim();if(!n){say('ใส่ชื่อก่อน');return ''}name=n;localStorage.name=n;return n}
+function smCreate(){const n=smName();if(n)s.emit('sc:create',{name:n,pid,prof:profOut()})}
+function smJoin(){const n=smName(),c=$('smc').value.trim();if(!n)return;if(!c)return say('ใส่รหัสห้อง');s.emit('sc:join',{code:c,name:n,pid,prof:profOut()})}
+function ytWrap(){let w=$('ytwrap');if(!w){w=document.createElement('div');w.id='ytwrap';w.innerHTML='<div id="ytp"></div><div id="ytcov"></div><div id="ytsh"></div>';document.body.appendChild(w)}return w}
+function ytApi(cb){if(window.YT&&YT.Player)return cb();YTCB.push(cb);if(!document.getElementById('ytapi')){window.onYouTubeIframeAPIReady=()=>{const q=YTCB;YTCB=[];q.forEach(f=>f())};const e=document.createElement('script');e.id='ytapi';e.src='https://www.youtube.com/iframe_api';e.onerror=()=>{SMERR='โหลดตัวเล่น YouTube ไม่สำเร็จ (เครือข่ายอาจบล็อก youtube.com)';if(SM)render()};document.head.appendChild(e)}}
+function ytEnsure(cb){ytWrap();if(YTP&&YTMK){cb();return}YTPR.push(cb);if(YTP)return;ytApi(()=>{if(YTP)return;YTP=new YT.Player('ytp',{width:'100%',height:'100%',playerVars:{controls:0,disablekb:1,fs:0,modestbranding:1,rel:0,iv_load_policy:3,playsinline:1,origin:location.origin},events:{onReady:()=>{YTMK=true;const q=YTPR;YTPR=[];q.forEach(f=>f())},onStateChange:ytState,onError:ytErr}})})}
+function ytDestroy(){smStop();try{YTP&&YTP.destroy()}catch(e){}YTP=null;YTMK=false;YTPR=[];YTMODE='idle';YTDUR=0;smKey='';smLoadKey='';const w=$('ytwrap');if(w)w.remove()}
+function setCover(k,x){const c=$('ytcov');if(!c)return;c.className=k?'on':'';const T={load:'⏳ กำลังโหลดวิดีโอ…',wait:'🎬 เตรียมตัว… ฉากกำลังจะเริ่ม',q:'❓ นี่คือเรื่องอะไร?',nov:'📵 เปิดวิดีโอไม่ได้บนเครื่องนี้<br><small>ยังโหวต/ตอบตามเพื่อนได้</small>',idle:''};
+ c.innerHTML=k==='rev'&&x?`<img src="https://i.ytimg.com/vi/${esc(x.yt)}/hqdefault.jpg" alt="" onerror="this.remove()"><b>${esc(x.name)}</b>`:`<div>${T[k]||''}</div>`}
+function ytErr(){if(SM&&SM.cur)s.emit('sc:bad',SM.cur.yt)}
+function ytState(e){if(YTMODE==='load'&&e.data===1){const t=n=>{const d=YTP.getDuration();if(d>0){YTDUR=d;YTMODE='idle';try{YTP.pauseVideo()}catch(x){}s.emit('sc:ready')}else if(n<12)setTimeout(()=>YTMODE==='load'&&t(n+1),300)};t(0)}}
+function smPrep(){if(!SM||SM.phase!=='load'||!SM.cur||!SMOK)return;const k=SM.rid+':'+SM.i+':'+SM.cur.yt;if(smLoadKey===k)return;smLoadKey=k;YTDUR=0;smKey='';smStop();setCover('load');
+ ytEnsure(()=>{YTMODE='load';YTP.mute();YTP.loadVideoById(SM.cur.yt)})}
+function smStop(){smTm.forEach(clearTimeout);smTm=[];clearInterval(smPoll);smShown=false}
+function smSchedule(){if(!SM||SM.phase!=='play'||!SM.cur)return;const c=SM.cur,key=SM.rid+':'+SM.i+':'+c.k;if(smKey===key)return;smKey=key;smStop();
+ if(!YTP||!YTMK||!YTDUR){setCover('nov');return}
+ const dur=YTDUR,start=Math.max(0,Math.min(dur-6,dur*(.12+.7*c.seed))),len=c.len,wait=Math.max(0,c.playIn-(Date.now()-SM._t));setCover('wait');
+ smTm.push(setTimeout(()=>{if(!YTP)return;YTMODE='play';smShown=false;try{YTP.seekTo(start,true);YTP.unMute();YTP.setVolume(Math.round(vS*100));YTP.playVideo()}catch(e){}
+  smPoll=setInterval(()=>{let t=0;try{t=YTP.getCurrentTime()}catch(e){}if(!smShown&&t>=start-.05){smShown=true;setCover('')}if(smShown&&t>=start+len)smEnd()},40);
+  smTm.push(setTimeout(smEnd,(len+6)*1000))},wait))}
+function smEnd(){clearInterval(smPoll);try{YTP&&YTP.pauseVideo()}catch(e){}YTMODE='idle';if(SM&&SM.phase==='play')setCover('q')}
+function smStartTap(){SMOK=true;SMERR='';smPrep();render()}
+function smGuess(){const e=$('smg');if(!e)return;const v=e.value.trim();if(!v)return;s.emit('sc:guess',v);e.value=''}
+function smSkip(){s.emit('sc:skip')}
+async function smLeave(){if(!await ask('ออกจากห้องทายฉากนี้?','ออกจากห้อง','r'))return;s.emit('sc:leave');SM=null;clearInterval(smTick);sessionStorage.removeItem('sroom');ytDestroy();mode='home';render()}
+function smSet(){s.emit('sc:set',{rounds:+$('smr').value})}
+function smRun(){clearInterval(smTick);if(!SM||SM.phase==='lobby'||SM.phase==='end')return;
+ smTick=setInterval(()=>{if(!SM){clearInterval(smTick);return}const gone=Date.now()-SM._t;
+  if(SM.phase==='play'){const c=SM.cur,over=gone>=c.playIn+c.len*1000,e=$('smleft'),b=$('smskip');if(e)e.textContent=Math.ceil(Math.max(0,c.left-gone)/1000);if(b)b.disabled=!over}
+  else if(SM.phase==='reveal'){const e=$('smn');if(e)e.textContent=Math.ceil(Math.max(0,SM.rev.nextIn-gone)/1000)}},250)}
+s.on('sc:state',x=>{const was=SM&&SM.phase;if(!SM||SM.code!==x.code)s.emit('sc:prof',profOut());SM=x;SM._t=Date.now();needAv(x.players);sessionStorage.sroom=x.code;mode='sm';
+ const w=$('ytwrap');if(w)w.classList.toggle('on',x.phase==='load'||x.phase==='play'||x.phase==='reveal');
+ if(x.phase==='lobby'||x.phase==='end'||x.phase==='starting'){smStop();smKey='';smLoadKey=''}
+ render();smRun();
+ if(x.phase==='load')smPrep();
+ if(x.phase==='play'){ytWrap().classList.add('on');smSchedule()}
+ if(x.phase==='reveal'){smStop();try{YTP&&YTP.pauseVideo()}catch(e){}ytWrap().classList.add('on');setCover('rev',x.rev);if(was!=='reveal'){x.rev.win===x.you?SFX.ding():SFX.buzz()}}
+ if(x.phase==='end'&&was!=='end'){awardSc(x);confetti();const rk=[...x.players].sort((a,b)=>b.score-a.score);rk[0]&&rk[0].pid===x.you?SFX.win():SFX.gameover()}});
+s.on('sc:err',m=>{if(!SM)sessionStorage.removeItem('sroom');say(m)});
+s.on('sc:wrong',()=>{SFX.buzz();flash('❌ ยังไม่ใช่ ลองดูเพิ่มอีกนิด')});
+s.on('sc:titles',t=>{SMT=Array.isArray(t)?t:[];if(SM&&SM.phase==='play'){const d=$('smdl');if(d&&!d.children.length)d.innerHTML=SMT.map(x=>`<option value="${esc(x)}">`).join('')}});
+s.on('meta',()=>{if(sessionStorage.sroom)s.emit('sc:join',{code:sessionStorage.sroom,name,pid,prof:profOut()})});
+function drawSM0(A){A.className='';document.body.classList.remove('w');
+ A.innerHTML=`<h2>${I('tv')} ทายฉาก 1 วิ</h2><div class="box"><p style="margin:0 0 8px;line-height:1.6">เปิดตัวอย่างอนิเมะให้ดูแค่ <b>1 วินาที</b> ใครพิมพ์ชื่อเรื่องถูกก่อนได้คะแนนเยอะสุด ถ้าไม่มีใครรู้ โหวตข้ามเพื่อดูเพิ่มเป็น 2, 3… วินาที แต่คะแนนจะลดลง</p>
+ <input id="sn" maxlength="16" value="${esc(name)}" placeholder="ชื่อของคุณ"><button class="b" onclick="smCreate()">🏠 สร้างห้อง</button>
+ <input id="smc" placeholder="รหัสห้อง เช่น A7K9P" value="${esc(psroom)}" style="text-transform:uppercase"><button class="g" onclick="smJoin()">🔑 เข้าร่วมห้อง</button></div>
+ <button class="g" onclick="mode='home';render()">← กลับหน้าแรก</button>`}
+function drawSM(A){A.className='';document.body.classList.remove('w');
+ const rank=[...SM.players].sort((a,b)=>b.score-a.score),leaveBtn=`<button class="g" onclick="smLeave()">🚪 ออกจากห้อง</button>`,sp='<div class="ytsp"></div>';
+ const board=(rev)=>`<div class="box"><b>🏆 อันดับ</b>${rank.map((p,i)=>`<div class="pl">${av(p.name,p)}<span class="gr">${['🥇','🥈','🥉'][i]||(i+1)+'.'} ${pnm(p)}${p.pid===SM.you?' (คุณ)':''}${p.pid===SM.ownerPid?' 👑':''}${p.online?'':' <small>(หลุด)</small>'}${SM.phase==='play'&&p.voted?' ⏭':''}${SM.phase==='play'&&p.wrong?' ❌':''}${SM.phase==='load'?(p.ready?' ✅':' ⏳'):''}${rev&&p.got?' ✅':''}</span><b>${p.score}</b></div>`).join('')}</div>`;
+ if(SM.phase==='lobby'||SM.phase==='starting'){const st0=SM.phase==='starting';
+  A.innerHTML=`<h2>${I('tv')} ห้องทายฉาก 1 วิ</h2><div class="code">${esc(SM.code)}</div><button class="g" onclick="copy(location.origin+'/?sroom='+SM.code)">🔗 คัดลอกลิงก์เชิญเพื่อน</button>
+  <div class="box"><b>ผู้เล่น (${SM.players.length})</b>${SM.players.map(p=>`<div class="pl">${av(p.name,p)}<span class="gr">${pnm(p)}${p.pid===SM.you?' (คุณ)':''}${p.pid===SM.ownerPid?' 👑':''}${p.online?'':' <small>(หลุด)</small>'}</span></div>`).join('')}</div>
+  <div class="box"><b>ตั้งค่า</b>${SM.owner?`<select id="smr" onchange="smSet()">${[5,10,15,20].map(n=>`<option value="${n}" ${SM.set.rounds===n?'selected':''}>${n} ฉาก</option>`).join('')}</select>`:`<p style="margin:6px 0">จำนวน: <b>${SM.set.rounds}</b> ฉาก</p>`}
+  <small>${SM.pool?`มีตัวอย่างอนิเมะให้สุ่ม ${SM.pool} เรื่อง (ดึงจาก AniList)`:'กำลังโหลดรายชื่อเรื่องจาก AniList…'}</small></div>
+  <details class="box how"><summary><b>❓ กติกา</b></summary><ol class="steps"><li>ดูตัวอย่าง 1 วินาที พิมพ์ชื่อเรื่อง ใครถูกก่อนได้ 100 คะแนน</li><li>ถ้าไม่มีใครรู้ โหวตข้าม (ต้องเกินครึ่งห้อง) เพื่อดูเพิ่ม: 2 วิ = 70, 3 วิ = 50, 4 วิ = 35, 5 วิ = 20</li><li>ตอบผิดได้ 1 ครั้งต่อการดู 1 รอบ</li><li>พิมพ์ชื่อภาษาอังกฤษหรือโรมาจิก็ได้ มีรายชื่อให้เลือกตอนพิมพ์</li></ol></details>
+  ${SM.owner?`<button class="b hot" ${st0?'disabled':''} onclick="s.emit('sc:start')">${st0?'กำลังเตรียมเกม…':'▶ เริ่มเกม'}</button>`:'<p style="text-align:center">รอเจ้าของห้องกดเริ่ม…</p>'}${leaveBtn}`;return}
+ if(SM.phase==='load'){const c=SM.cur,rd=SM.players.filter(p=>p.ready).length,on=SM.players.filter(p=>p.online).length;
+  A.innerHTML=`${sp}<div class="row"><b>ฉากที่ ${SM.i+1}/${SM.n}</b></div>
+  <div class="box" style="text-align:center">${SMOK?`<b>⏳ กำลังโหลดวิดีโอ…</b><p><small>พร้อมแล้ว ${rd}/${on} คน ${SMERR?'<br>⚠ '+esc(SMERR):''}</small></p>`:`<p style="margin:0 0 10px;line-height:1.6">แตะปุ่มด้านล่างเพื่อเตรียมวิดีโอและเปิดเสียง<br><small>(มือถือต้องแตะก่อนจึงจะเล่นเสียงได้)</small></p><button class="b hot" onclick="smStartTap()">🔊 แตะเพื่อเตรียมพร้อม</button>`}</div>${board(false)}${leaveBtn}`;return}
+ if(SM.phase==='play'){const c=SM.cur,gone=Date.now()-SM._t,need=Math.floor(c.on/2)+1,over=gone>=c.playIn+c.len*1000;
+  A.innerHTML=`${sp}<div class="row"><b>ฉากที่ ${SM.i+1}/${SM.n}</b><small>ดู ${c.len} วินาที (ครั้งที่ ${c.len}/${c.maxLen}) · ⭐ ${(SM.players.find(p=>p.pid===SM.you)||{}).score||0}</small></div>
+  <div class="box"><div class="row"><span>ตอบถูกตอนนี้ได้ <b class="win">${c.pts}</b> คะแนน</span><small>หมดเวลาใน <b id="smleft">${Math.ceil(Math.max(0,c.left-gone)/1000)}</b> วิ</small></div>
+  <input id="smg" list="smdl" autocomplete="off" autocapitalize="off" placeholder="พิมพ์ชื่อเรื่องอนิเมะ" onkeydown="if(event.key==='Enter')smGuess()"><datalist id="smdl">${SMT.map(x=>`<option value="${esc(x)}">`).join('')}</datalist>
+  <button class="b hot" onclick="smGuess()">✅ ส่งคำตอบ</button>${c.wrong?'<small>❌ คุณตอบผิดไปแล้วในรอบนี้ รอดูเพิ่มก่อน</small>':''}
+  <button class="g" id="smskip" ${over?'':'disabled'} onclick="smSkip()">${c.voted?'↩ ยกเลิกโหวต':'⏭ ขอดูเพิ่ม (+1 วิ)'} · โหวต ${c.votes}/${need}</button>
+  <small>ต้องมีคนโหวตเกินครึ่งห้อง หรือรอครบเวลา จึงจะดูเพิ่ม · ดูได้สูงสุด ${c.maxLen} วินาที</small></div>${board(false)}${leaveBtn}`;return}
+ if(SM.phase==='reveal'){const r=SM.rev,w=SM.players.find(p=>p.pid===r.win);
+  A.innerHTML=`${sp}<div class="box" style="text-align:center"><b class="${w?'win':'lose'}" style="font-size:20px">${w?`✅ ${esc(w.name)} ตอบถูก! +${r.pts}`:'😢 ไม่มีใครตอบได้'}</b><p style="font-size:22px;font-weight:700;margin:8px 0">${esc(r.name)}</p>
+   ${SM.owner?`<button class="b" onclick="s.emit('sc:next')">${SM.i+1<SM.n?'ฉากต่อไป ▶':'ดูผลรวม 🏁'}</button>`:''}<small>ไปต่ออัตโนมัติใน <span id="smn">${Math.ceil(r.nextIn/1000)}</span> วินาที</small></div>${board(true)}${leaveBtn}`;return}
+ A.innerHTML=`<h2>🏁 จบเกม</h2><div class="box" style="text-align:center"><div class="big" style="font-size:64px">🏆</div><b style="font-size:24px">${esc(rank[0].name)} ชนะ!</b><p>${rank[0].score} คะแนน · ตอบถูก ${rank[0].ok}/${SM.n} ฉาก</p></div>
+ ${board(false)}${SM.owner?'<button class="b" onclick="s.emit(\'sc:again\')">🔄 เล่นอีกรอบ (กลับไปล็อบบี้)</button>':'<p style="text-align:center">รอเจ้าของห้องเริ่มรอบใหม่…</p>'}${leaveBtn}`}
+function awardSc(x){const m=x.players.find(p=>p.pid===x.you);if(!m)return;const rk=[...x.players].sort((a,b)=>b.score-a.score),k='sc:'+x.code+':'+x.rid;if(PF.paid.includes(k))return;
+ const c=Math.min(150,Math.round(m.score/10))+(x.players.length>1&&rk[0].pid===m.pid&&rk[0].score>0?20:0)+5;gain(c,c,k,'จบเกมทายฉาก');checkTitles()}
+if(psroom)smHome();
 
 // ================= โปรไฟล์ / เหรียญ / ร้านค้า / มีอะไรใหม่ =================
 const FR=[['none','ไม่มีกรอบ',0],['gold','กรอบทอง',150],['sakura','กรอบซากุระ',200],['ice','กรอบน้ำแข็ง',250],['emerald','กรอบมรกต',300],['neon','กรอบนีออน',400],['fire','กรอบเปลวไฟ',500],['royal','กรอบราชวงศ์',600],['rainbow','กรอบสายรุ้ง',800],['galaxy','กรอบกาแล็กซี่',1000]];
@@ -1146,7 +1230,7 @@ function openProf(tab){pTab=tab||pTab;const lv=lvOf(PF.xp),a=40*(lv-1)*(lv-1),b=
    return `<div class="it ${on?'on':''}">${pv}<div>${lb}</div>${on?'<b>✓ ใช้งานอยู่</b>':ow?`<button class="b" onclick="equip('${k}','${id}')">ใช้</button>`:`<button class="${PF.coins>=pr?'b':'g'}" onclick="buy('${k}','${id}',${pr},'${lb}')">🪙 ${pr}</button>`}</div>`}).join('');
   body=`<b>🖼️ กรอบโปรไฟล์</b><div class="shop">${it('fr',FR)}</div><b>✨ เอฟเฟกต์ชื่อ</b><div class="shop">${it('nf',NF)}</div>`}
  $('sc').innerHTML=head+body+`<button class="b" onclick="closeSet()">ปิด</button>`;$('set').style.display='flex';cntUp($('cv'),PF.coins)}
-const NEWS=['🖼️ คลังตัวละคร: ปกเรื่องใช้รูปซีซั่นล่าสุดของแต่ละเรื่อง'];
+const NEWS=['🎬 โหมดใหม่ "ทายฉาก 1 วิ": เปิดตัวอย่างอนิเมะ 1 วินาที ใครพิมพ์ชื่อเรื่องถูกก่อนได้คะแนนเต็ม ไม่มีใครรู้ก็โหวตดูเพิ่มเป็น 2-5 วินาที (คะแนนลดลง)'];
 function openNews(){closeSet();dlg(`<b style="font-size:20px">📜 มีอะไรใหม่ · v${APPV}</b><ul style="text-align:left;line-height:1.6;padding-left:18px">${NEWS.map(n=>`<li>${n}</li>`).join('')}</ul>`,[['เริ่มเลย','b']])}
 // ================= v2.5: สุ่มกรอบการ์ด (Gacha) =================
 // ปรับค่าได้ที่นี่: ราคา อัตราสุ่ม (รวมต้อง = 100) ระบบการันตี และเหรียญคืนเมื่อได้ซ้ำ
