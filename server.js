@@ -628,7 +628,7 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '4.11.2';
+const APP_VERSION = '4.11.3';
 const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
 const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
 let CFIDS = new Set(), CFM = 0, CFT = {};
@@ -1865,7 +1865,7 @@ io.on('connection', sock => {
 // ไม่เก็บ/ไม่ส่งไฟล์วิดีโอเอง: ดึงรหัส trailer ของ YouTube จาก AniList แล้วให้ตัวเล่น YouTube ที่ฝังในหน้าเว็บเล่นช่วงสั้นๆ
 const SCR = {};
 const SC_PTS = [100, 70, 50, 35, 20];           // คะแนนถ้าตอบถูกตอนดู 1,2,3,4,5 วินาที
-const SC_WIN_MS = 15000, SC_REVEAL_MS = 8000, SC_COUNTS = [5, 10, 15, 20];
+const SC_IDLE_MS = 180000, SC_REVEAL_MS = 8000, SC_COUNTS = [5, 10, 15, 20];
 let SCPOOL = [], SCPOOL_T = 0, SCPOOL_P = null;
 const scNorm = s => String(s || '').normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
 const scLev = (a, b) => { const m = a.length, n = b.length; let p = Array.from({ length: n + 1 }, (_, j) => j); for (let i = 1; i <= m; i++) { const c = [i]; for (let j = 1; j <= n; j++) c[j] = Math.min(p[j] + 1, c[j - 1] + 1, p[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); p = c; } return p[n]; };
@@ -1880,6 +1880,25 @@ function scMatch(a, g) {
   for (const x of a.v) if (x.length >= 7 && Math.abs(x.length - n.length) <= 2 && scLev(x, n) <= (x.length >= 14 ? 2 : 1)) return true;
   return false;
 }
+// ฉากดัง/มีมที่เลือกเอง: ใส่ใน scenes.json [{"yt":"รหัสวิดีโอ 11 ตัว","t":วินาทีที่เริ่ม,"title":"ชื่อเรื่อง","alt":["ชื่ออื่น"]}]
+function scCurated() {
+  try {
+    const arr = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, 'scenes.json'), 'utf8'));
+    return (Array.isArray(arr) ? arr : []).filter(x => x && /^[\w-]{11}$/.test(x.yt || '') && x.title && +x.t >= 0).map(x => ({ id: 'c_' + x.yt + '_' + (+x.t), yt: x.yt, name: String(x.title).slice(0, 60), ti: [String(x.title).slice(0, 80), ...((x.alt || []).map(a => String(a).slice(0, 80)))], t: +x.t, rank: -1, year: 0, cur: true }));
+  } catch (e) { return []; }
+}
+// น้ำหนักตอนสุ่ม: ฉากที่เลือกเอง > เรื่องฮิต (อันดับความนิยมสูง) > เรื่องทั่วไป ; เรื่องใหม่ (2013+) เด่นขึ้น เรื่องเก่ามากลดลง ยกเว้นเรื่องดังมาก
+function scW(a) {
+  if (a.cur) return 6;
+  const base = a.rank < 60 ? 3 : a.rank < 150 ? 2 : 1;
+  const yr = !a.year ? 1 : a.year >= 2013 ? 1.5 : a.year >= 2000 ? 1 : (a.rank < 60 ? 1 : 0.25);
+  return base * yr;
+}
+function scPick(list) {
+  const tot = list.reduce((s, a) => s + scW(a), 0); let x = Math.random() * tot;
+  for (const a of list) { x -= scW(a); if (x <= 0) return a; }
+  return list[list.length - 1];
+}
 function scLoadPool() {
   if (SCPOOL.length && Date.now() - SCPOOL_T < 6 * 3600 * 1000) return Promise.resolve(SCPOOL);
   if (SCPOOL_P) return SCPOOL_P;
@@ -1887,15 +1906,18 @@ function scLoadPool() {
     const out = [], seen = new Set();
     for (let p = 1; p <= 6; p++) {
       try {
-        const d = await alq('query($p:Int){Page(page:$p,perPage:50){media(type:ANIME,sort:POPULARITY_DESC,isAdult:false){id title{romaji english native} synonyms trailer{id site}}}}', { p });
+        const d = await alq('query($p:Int){Page(page:$p,perPage:50){media(type:ANIME,sort:POPULARITY_DESC,isAdult:false){id title{romaji english native} synonyms trailer{id site} startDate{year}}}}', { p });
+        let ix = -1;
         for (const m of (d.Page && d.Page.media) || []) {
+          ix++;
           if (!m || !m.trailer || m.trailer.site !== 'youtube' || !/^[\w-]{11}$/.test(m.trailer.id || '') || seen.has(m.id)) continue;
           const ti = [m.title && m.title.english, m.title && m.title.romaji, m.title && m.title.native, ...(m.synonyms || [])].map(x => String(x || '').trim().slice(0, 80)).filter(Boolean);
           if (!ti.length) continue; seen.add(m.id);
-          out.push({ id: m.id, yt: m.trailer.id, name: ti[0].slice(0, 60), ti });
+          out.push({ id: m.id, yt: m.trailer.id, name: ti[0].slice(0, 60), ti, rank: (p - 1) * 50 + ix, year: m.startDate && m.startDate.year || 0 });
         }
       } catch (e) { if (p === 1) break; }
     }
+    for (const c of scCurated()) if (!seen.has(c.id)) out.push(c);
     if (out.length) { SCPOOL = out; SCPOOL_T = Date.now(); }
     return SCPOOL;
   })().finally(() => { SCPOOL_P = null; });
@@ -1910,7 +1932,7 @@ function scView(r, p) {
       voted: r.phase === 'play' ? !!(c && c.votes.has(x.pid)) : undefined, ready: r.phase === 'load' ? !!(c && c.ready.has(x.pid)) : undefined, wrong: r.phase === 'play' && c ? x.wk === c.k : undefined, got: r.phase === 'reveal' && c ? (c.winner === x.pid) : undefined }))
   };
   if (c && (r.phase === 'load' || r.phase === 'play')) {
-    v.cur = { yt: c.a.yt, seed: c.seed, k: c.k || 0, len: (c.k || 0) + 1, pts: SC_PTS[c.k || 0], playIn: r.phase === 'play' ? Math.max(0, c.t0 - now) : 0, left: r.phase === 'play' ? Math.max(0, c.dl - now) : 0, votes: c.votes.size, on: scLive(r).length, voted: c.votes.has(p.pid), wrong: p.wk === c.k, maxLen: SC_PTS.length };
+    v.cur = { yt: c.a.yt, seed: c.seed, start: c.a.t != null ? c.a.t : undefined, k: c.k || 0, len: (c.k || 0) + 1, pts: SC_PTS[c.k || 0], playIn: r.phase === 'play' ? Math.max(0, c.t0 - now) : 0, left: r.phase === 'play' ? Math.max(0, c.dl - now) : 0, votes: c.votes.size, on: scLive(r).length, voted: c.votes.has(p.pid), wrong: p.wk === c.k, maxLen: SC_PTS.length };
   }
   if (c && r.phase === 'reveal') v.rev = { name: c.a.name, yt: c.a.yt, win: c.winner || '', pts: c.pts || 0, k: c.k, nextIn: Math.max(0, r.nextAt - now) };
   return v;
@@ -1921,7 +1943,7 @@ function scLoad(r) {
   scClear(r);
   const pool = SCPOOL.filter(a => !a.bad), fresh = pool.filter(a => !r.used.has(a.id)), from = fresh.length ? fresh : pool;
   if (!from.length) { r.phase = 'lobby'; r.cur = null; scSend(r); r.players.forEach(p => p.sid && io.to(p.sid).emit('sc:err', 'ไม่มีตัวอย่างอนิเมะให้เล่นแล้ว')); return; }
-  const a = from[Math.floor(Math.random() * from.length)]; r.used.add(a.id);
+  const a = scPick(from); r.used.add(a.id);
   r.cur = { a, seed: Math.random(), k: 0, votes: new Set(), ready: new Set(), t0: 0, dl: 0, winner: '', pts: 0 };
   r.players.forEach(p => { p.wk = -1; });
   r.phase = 'load'; scSend(r);
@@ -1932,7 +1954,7 @@ function scPlay(r) {
   clearTimeout(r.ltimer); r.warm = true; r.phase = 'play'; scAttempt(r, 0);
 }
 function scAttempt(r, k) {
-  const c = r.cur; c.k = k; c.votes.clear(); c.t0 = Date.now() + (k === 0 ? 1500 : 900); c.dl = c.t0 + (k + 1) * 1000 + SC_WIN_MS;
+  const c = r.cur; c.k = k; c.votes.clear(); c.t0 = Date.now() + (k === 0 ? 1500 : 900); c.dl = c.t0 + (k + 1) * 1000 + SC_IDLE_MS;
   clearTimeout(r.timer); r.timer = setTimeout(() => scEscalate(r, k), c.dl - Date.now() + 200);
   scSend(r);
 }
