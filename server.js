@@ -628,7 +628,7 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '4.12.4';
+const APP_VERSION = '4.12.5';
 const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
 const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
 let CFIDS = new Set(), CFM = 0, CFT = {};
@@ -1865,7 +1865,7 @@ io.on('connection', sock => {
 // ไม่เก็บ/ไม่ส่งไฟล์วิดีโอเอง: ดึงรหัส trailer ของ YouTube จาก AniList แล้วให้ตัวเล่น YouTube ที่ฝังในหน้าเว็บเล่นช่วงสั้นๆ
 const SCR = {};
 const SC_PTS = [100, 70, 50, 35, 20];           // คะแนนถ้าตอบถูกตอนดู 1,2,3,4,5 วินาที
-const SC_IDLE_MS = 180000, SC_REVEAL_MS = 30000, SC_COUNTS = [5, 10, 15, 20], SC_POOLS = ['all', 'hot', 'new'], SC_LENS = [3, 5], SC_HINT_COST = 15, SC_FAST_MS = 3000, SC_FAST_BONUS = 10;
+const SC_IDLE_MS = 180000, SC_REVEAL_MS = 30000, SC_COUNTS = [5, 10, 15, 20], SC_POOLS = ['all', 'hot', 'new', 'meme'], SC_LENS = [3, 5], SC_HINT_COST = 15, SC_FAST_MS = 3000, SC_FAST_BONUS = 10;
 const SC_FMT = { TV: 'ทีวีซีรีส์', TV_SHORT: 'ทีวีตอนสั้น', MOVIE: 'ภาพยนตร์', OVA: 'OVA', ONA: 'ONA', SPECIAL: 'ตอนพิเศษ', MUSIC: 'มิวสิก' };
 const SCCUSTOM = new Map();
 let SCPOOL = [], SCPOOL_T = 0, SCPOOL_P = null;
@@ -1926,8 +1926,13 @@ function scCurated() {
   } catch (e) { return []; }
 }
 // น้ำหนักตอนสุ่ม: ฉากที่เลือกเอง > เรื่องฮิต (อันดับความนิยมสูง) > เรื่องทั่วไป ; เรื่องใหม่ (2013+) เด่นขึ้น เรื่องเก่ามากลดลง ยกเว้นเรื่องดังมาก
+const SCBAN = new Set(), SCSTAT = new Map();
+let SCDAILY = { date: '', a: null };
+const scEnc = id => Buffer.from(String(id).split('').reverse().join('')).toString('base64'); // กันแอบดูรหัสวิดีโอจากข้อมูลตรงๆ (ไม่ใช่การเข้ารหัสจริงจัง)
 const SCRATE = new Map(); // id -> {u,d}
 async function scLoadRates() {
+  try { const b = await rcmd('HGETALL', 'sc:ban'); (Array.isArray(b) ? b : []).forEach((x, i) => { if (i % 2 === 0) SCBAN.add(String(x)); }); } catch (e) {}
+  try { const all = await rcmd('HGETALL', 'sc:stat'), arr = Array.isArray(all) ? all : []; for (let k = 0; k + 1 < arr.length; k += 2) { try { const o = JSON.parse(arr[k + 1]); SCSTAT.set(arr[k], { p: +o.p || 0, s: +o.s || 0, k: +o.k || 0 }); } catch (e) {} } } catch (e) {}
   try { const all = await rcmd('HGETALL', 'sc:rate'), arr = Array.isArray(all) ? all : []; for (let k = 0; k + 1 < arr.length; k += 2) { try { const o = JSON.parse(arr[k + 1]); SCRATE.set(arr[k], { u: +o.u || 0, d: +o.d || 0 }); } catch (e) {} } } catch (e) {}
 }
 const scRateW = a => { const r = SCRATE.get(String(a.id)); return r ? Math.max(0.3, Math.min(2, (r.u + 1.5) / (r.d + 1.5))) : 1; };
@@ -1987,16 +1992,16 @@ function scLoadPool() {
 }
 const scLive = r => r.players.filter(p => p.online);
 const scPts = c => Math.max(10, SC_PTS[c.k || 0] - SC_HINT_COST * (c.hints || 0));
-const scPoolFor = r => SCPOOL.filter(a => !a.bad && (r.set.pool === 'hot' ? (a.cur || a.rank < 100) : r.set.pool === 'new' ? (a.cur || a.year >= 2012) : true));
+const scPoolFor = r => SCPOOL.filter(a => !a.bad && !SCBAN.has(String(a.id)) && (r.set.pool === 'meme' ? a.cur : r.set.pool === 'hot' ? (a.cur || a.rank < 100) : r.set.pool === 'new' ? (a.cur || a.year >= 2012) : true));
 function scView(r, p) {
   const c = r.cur, now = Date.now();
   const v = {
-    code: r.code, phase: r.phase, you: p.pid, rid: r.rid || 0, owner: r.owner === p.pid, ownerPid: r.owner, set: r.set, n: r.n || 0, i: r.i, pool: SCPOOL.length,
+    code: r.code, phase: r.phase, you: p.pid, rid: r.rid || 0, owner: r.owner === p.pid, ownerPid: r.owner, set: r.set, n: r.n || 0, i: r.i, pool: SCPOOL.length, memes: SCPOOL.filter(a => a.cur && !a.bad && !SCBAN.has(String(a.id))).length,
     players: r.players.map(x => ({ pid: x.pid, name: x.name, score: x.score, ok: x.ok, online: x.online, fr: x.fr || 'none', nf: x.nf || 'none', cf: x.cf || '', af: x.af || '', tt: x.tt || '', un: unOf(x.sid), lv: x.lv || 1, ah: x.ah || 0,
       rw: r.phase === 'end' ? x.rw : undefined, voted: r.phase === 'play' ? !!(c && c.votes.has(x.pid)) : undefined, ready: r.phase === 'load' ? !!(c && c.ready.has(x.pid)) : undefined, wrong: r.phase === 'play' && c ? x.wk === c.k : undefined, got: r.phase === 'reveal' && c ? (c.winner === x.pid) : undefined }))
   };
   if (c && (r.phase === 'load' || r.phase === 'play')) {
-    v.cur = { yt: c.a.yt, seed: c.seed, start: c.a.t != null ? c.a.t : undefined, k: c.k || 0, len: (c.k || 0) + 1, pts: scPts(c), hints: c.a.hints.slice(0, c.hints), hmax: c.a.hints.length, hvotes: c.hv.size, hvoted: c.hv.has(p.pid), gvotes: c.gv.size, gvoted: c.gv.has(p.pid), flags: c.fl.size, flagged: c.fl.has(p.pid), maxLen: r.set.maxLen || 5, playIn: r.phase === 'play' ? Math.max(0, c.t0 - now) : 0, left: r.phase === 'play' ? Math.max(0, c.dl - now) : 0, votes: c.votes.size, on: scLive(r).length, voted: c.votes.has(p.pid), wrong: p.wk === c.k, };
+    v.cur = { yt: scEnc(c.a.yt), seed: c.seed, start: c.a.t != null ? c.a.t : undefined, k: c.k || 0, len: (c.k || 0) + 1, pts: scPts(c), hints: c.a.hints.slice(0, c.hints), hmax: c.a.hints.length, hvotes: c.hv.size, hvoted: c.hv.has(p.pid), gvotes: c.gv.size, gvoted: c.gv.has(p.pid), flags: c.fl.size, flagged: c.fl.has(p.pid), maxLen: r.set.maxLen || 5, playIn: r.phase === 'play' ? Math.max(0, c.t0 - now) : 0, left: r.phase === 'play' ? Math.max(0, c.dl - now) : 0, votes: c.votes.size, on: scLive(r).length, voted: c.votes.has(p.pid), wrong: p.wk === c.k, };
   }
   if (c && r.phase === 'reveal') v.rev = { start: c.a.t != null ? c.a.t : undefined, seed: c.seed, nvotes: c.nv.size, nvoted: c.nv.has(p.pid), lk: c.lk.get(p.pid) || 0, giveup: c.gu ? 1 : 0, name: c.a.name, yt: c.a.yt, win: c.winner || '', pts: c.pts || 0, bonus: c.bonus || 0, hints: c.hints, k: c.k, nextIn: Math.max(0, r.nextAt - now) };
   return v;
@@ -2031,6 +2036,7 @@ function scReveal(r, winPid, fast) {
   if (r.phase !== 'play') return;
   scClear(r); const c = r.cur; c.winner = winPid || ''; c.gu = !winPid && c.gv.size * 2 > scLive(r).length;
   if (winPid) { const w = r.players.find(p => p.pid === winPid); c.bonus = fast ? SC_FAST_BONUS : 0; c.pts = scPts(c) + c.bonus; if (w) { w.score += c.pts; w.ok++; } }
+  { const id = String(c.a.id), o = SCSTAT.get(id) || { p: 0, s: 0, k: 0 }; o.p++; if (winPid) { o.s++; o.k += c.k || 0; } SCSTAT.set(id, o); rcmd('HSET', 'sc:stat', id, JSON.stringify(o)).catch(() => {}); }
   r.phase = 'reveal'; r.nextAt = Date.now() + SC_REVEAL_MS; scSend(r);
   r.auto = setTimeout(() => scNext(r), SC_REVEAL_MS);
 }
@@ -2257,6 +2263,66 @@ io.on('connection', sock => {
     const o = SCRATE.get(id) || { u: 0, d: 0 }; if (old === 1) o.u--; if (old === -1) o.d--; if (nv === 1) o.u++; if (nv === -1) o.d++; o.u = Math.max(0, o.u); o.d = Math.max(0, o.d);
     SCRATE.set(id, o); if (nv) c.lk.set(p.pid, nv); else c.lk.delete(p.pid);
     rcmd('HSET', 'sc:rate', id, JSON.stringify(o)).catch(() => {}); scSend(r);
+  });
+  sock.on('sc:adm:stats', async () => {
+    if (!sock.data.adm) return; await scLoadRates();
+    const nm = id => { const a = SCPOOL.find(x => String(x.id) === id); return a ? a.name : id; };
+    const ids = new Set([...SCSTAT.keys(), ...SCBAN]); const out = [...ids].map(id => [id, SCSTAT.get(id) || { p: 0, s: 0, k: 0 }]).filter(e => e[1].p >= 3 || SCBAN.has(e[0])).map(([id, o]) => { const r = SCRATE.get(id) || { u: 0, d: 0 }; return { id, name: nm(id), p: o.p, s: o.s, avg: o.s ? Math.round(o.k / o.s * 10) / 10 : null, up: r.u, dn: r.d, ban: SCBAN.has(id) }; });
+    out.sort((a, b) => (a.s / a.p) - (b.s / b.p) || b.p - a.p); sock.emit('sc:adm:statl', out.slice(0, 80));
+  });
+  sock.on('sc:adm:ban', async d => {
+    if (!sock.data.adm || !d || !d.id) return; const id = String(d.id).slice(0, 80);
+    try { if (d.on) { SCBAN.add(id); await rcmd('HSET', 'sc:ban', id, '1'); } else { SCBAN.delete(id); await rcmd('HDEL', 'sc:ban', id); } } catch (e) {}
+    scAdmMsg(true, d.on ? 'ซ่อนฉากนี้จากเกมแล้ว' : 'เอาฉากกลับเข้าเกมแล้ว');
+  });
+  // ---- ฉากประจำวัน: ทั้งเว็บทายฉากเดียวกัน วันละครั้ง (เวลาไทย) ----
+  const sdDate = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
+  const sdPick = async date => {
+    if (SCDAILY.date === date && SCDAILY.a) return SCDAILY.a;
+    if (!SCPOOL.length) await scLoadPool().catch(() => {});
+    let a = null, id = null; try { id = await rcmd('GET', 'sc:dpick:' + date); } catch (e) {}
+    if (id) a = SCPOOL.find(x => String(x.id) === String(id));
+    if (!a) {
+      const pool = SCPOOL.filter(x => !x.bad && !SCBAN.has(String(x.id)) && (x.cur || x.rank < 150)).sort((p, q) => String(p.id) < String(q.id) ? -1 : 1);
+      if (!pool.length) return null; let h = 0; for (const ch of date) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+      a = pool[h % pool.length]; try { await rcmd('SET', 'sc:dpick:' + date, String(a.id)); } catch (e) {}
+    }
+    SCDAILY = { date, a }; return a;
+  };
+  const sdView = async (date, a, me) => {
+    let board = []; try { const all = await rcmd('HGETALL', 'sc:daily:' + date), arr = Array.isArray(all) ? all : []; for (let k = 0; k + 1 < arr.length; k += 2) { try { const o = JSON.parse(arr[k + 1]); if (o.done) board.push({ pid: arr[k], name: o.name, score: o.score, k: o.k }); } catch (e) {} } } catch (e) {}
+    board.sort((x, y) => y.score - x.score || x.k - y.k); const rank = board.findIndex(x => x.pid === me.pid) + 1;
+    let h = 0; for (const ch of date) h = (h * 33 + ch.charCodeAt(0)) >>> 0;
+    return { date, yt: scEnc(a.yt), seed: (h % 997) / 997, start: a.t != null ? a.t : undefined, k: me.k, w: me.w, done: !!me.done, score: me.score || 0, name: me.done ? a.name : undefined, ytr: me.done ? a.yt : undefined, rank, total: board.length, board: board.slice(0, 10).map(x => ({ name: x.name, score: x.score, k: x.k, me: x.pid === me.pid })), rw: me.rw };
+  };
+  const sdLoadMe = async (date, pid, name) => { let o = null; try { const raw = await rcmd('HGET', 'sc:daily:' + date, pid); if (raw) o = JSON.parse(raw); } catch (e) {} return o || { name, k: 0, w: 0, done: false, score: 0 }; };
+  const sdSave = async (date, pid, o) => { try { await rcmd('HSET', 'sc:daily:' + date, pid, JSON.stringify(o)); } catch (e) {} };
+  sock.on('sd:get', async d => {
+    try {
+      const pid = String((d && d.pid) || '').slice(0, 40); if (!pid) return; const date = sdDate(), a = await sdPick(date);
+      if (!a) return sock.emit('sd:err', 'ยังไม่มีฉากประจำวัน ลองใหม่อีกครั้ง'); const me = await sdLoadMe(date, pid, String((d && d.name) || 'ผู้เล่น').slice(0, 16)); me.pid = pid;
+      sock.emit('sd:state', await sdView(date, a, me));
+    } catch (e) { sock.emit('sd:err', 'โหลดไม่สำเร็จ'); }
+  });
+  sock.on('sd:more', async d => {
+    try {
+      const pid = String((d && d.pid) || '').slice(0, 40); if (!pid) return; const date = sdDate(), a = await sdPick(date); if (!a) return;
+      const me = await sdLoadMe(date, pid, String((d && d.name) || 'ผู้เล่น').slice(0, 16)); me.pid = pid; if (me.done || me.k >= 4) return sock.emit('sd:state', await sdView(date, a, me));
+      me.k++; await sdSave(date, pid, me); sock.emit('sd:state', await sdView(date, a, me));
+    } catch (e) {}
+  });
+  sock.on('sd:guess', async d => {
+    try {
+      const pid = String((d && d.pid) || '').slice(0, 40); if (!pid) return; const date = sdDate(), a = await sdPick(date); if (!a) return;
+      const name = String((d && d.name) || 'ผู้เล่น').slice(0, 16), me = await sdLoadMe(date, pid, name); me.pid = pid; me.name = name;
+      const g = String((d && d.g) || '').slice(0, 100); if (me.done || !scNorm(g)) return sock.emit('sd:state', await sdView(date, a, me));
+      if (scMatch(a, g)) {
+        me.done = true; me.score = Math.max(10, SC_PTS[me.k] - 10 * me.w); me.ts = Date.now();
+        const c = 10 + Math.round(me.score / 10), tag = 'sd:' + date, key = sock.data.acct; me.rw = { c, x: c, acct: !!key, tag };
+        if (key) acctRun(key, async () => { try { const raw = await rcmd('GET', key); if (!raw) return; const rec = JSON.parse(raw), pr = rec.prof; pr.paid = pr.paid || []; if (pr.paid.includes(tag)) return; pr.paid.push(tag); if (pr.paid.length > 60) pr.paid.shift(); pr.coins = (pr.coins || 0) + c; pr.xp = (pr.xp || 0) + c; rec.v++; await rcmd('SET', key, JSON.stringify(rec)); sock.emit('sc:reward', { c, x: c, prof: rec.prof, v: rec.v }); } catch (e) {} });
+      } else { me.w++; sock.emit('sd:wrong'); if (me.w >= 3) { me.done = true; me.score = 0; me.ts = Date.now(); } }
+      await sdSave(date, pid, me); sock.emit('sd:state', await sdView(date, a, me));
+    } catch (e) {}
   });
   sock.on('sc:adm:del', async d => {
     if (!sock.data.adm || !d) return; const id = String(d.id || '');
