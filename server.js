@@ -628,7 +628,7 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '4.11.3';
+const APP_VERSION = '4.12.0';
 const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
 const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
 let CFIDS = new Set(), CFM = 0, CFT = {};
@@ -1865,26 +1865,62 @@ io.on('connection', sock => {
 // ไม่เก็บ/ไม่ส่งไฟล์วิดีโอเอง: ดึงรหัส trailer ของ YouTube จาก AniList แล้วให้ตัวเล่น YouTube ที่ฝังในหน้าเว็บเล่นช่วงสั้นๆ
 const SCR = {};
 const SC_PTS = [100, 70, 50, 35, 20];           // คะแนนถ้าตอบถูกตอนดู 1,2,3,4,5 วินาที
-const SC_IDLE_MS = 180000, SC_REVEAL_MS = 8000, SC_COUNTS = [5, 10, 15, 20];
+const SC_IDLE_MS = 180000, SC_REVEAL_MS = 8000, SC_COUNTS = [5, 10, 15, 20], SC_POOLS = ['all', 'hot', 'new'], SC_LENS = [3, 5], SC_HINT_COST = 15, SC_FAST_MS = 3000, SC_FAST_BONUS = 10;
+const SC_FMT = { TV: 'ทีวีซีรีส์', TV_SHORT: 'ทีวีตอนสั้น', MOVIE: 'ภาพยนตร์', OVA: 'OVA', ONA: 'ONA', SPECIAL: 'ตอนพิเศษ', MUSIC: 'มิวสิก' };
+const SCCUSTOM = new Map();
 let SCPOOL = [], SCPOOL_T = 0, SCPOOL_P = null;
 const scNorm = s => String(s || '').normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
 const scLev = (a, b) => { const m = a.length, n = b.length; let p = Array.from({ length: n + 1 }, (_, j) => j); for (let i = 1; i <= m; i++) { const c = [i]; for (let j = 1; j <= n; j++) c[j] = Math.min(p[j] + 1, c[j - 1] + 1, p[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); p = c; } return p[n]; };
+// ตัดชื่อซีซั่น/ภาค ออก เพื่อให้ตอบ "Attack on Titan" ถูกกับทุกซีซั่นของเรื่องนั้น
+const scStrip = t => String(t || '').replace(/\s*[:\-–]?\s*\b(the\s+)?(final|\d+(st|nd|rd|th)|second|third|fourth|fifth)\s+season\b.*$/i, '').replace(/\s*[:\-–]?\s*\bseason\s*\d+\b.*$/i, '').replace(/\s*[:\-–]?\s*\bpart\s*\d+\b.*$/i, '').trim();
+function scTitleList() {
+  const m = new Map();
+  SCPOOL.filter(a => !a.bad).forEach(a => {
+    const bn = scStrip(a.name) || a.name, k = scNorm(bn); if (!k) return;
+    const keys = a.ti.slice(0, 3).map(t => scNorm(scStrip(t))).filter(Boolean);
+    if (m.has(k)) { keys.forEach(x => { if (!m.get(k)[1].includes(x)) m.get(k)[1] += '|' + x; }); } else m.set(k, [bn, [k, ...keys].join('|')]);
+  });
+  return [...m.values()].sort((x, y) => x[0].localeCompare(y[0]));
+}
+const scTitlesAll = r => { const L = scTitleList(); r.players.forEach(p => p.sid && p.online && io.to(p.sid).emit('sc:titles', L)); };
 function scVars(a) {
   const v = new Set();
   a.ti.forEach(t => { const n = scNorm(t); if (n.length >= 2) v.add(n); t.split(/\s*[:\-–]\s+/).forEach((x, i) => { if (i === 0) { const nn = scNorm(x); if (nn.length >= 4) v.add(nn); } }); });
+  a.b = new Set(a.ti.map(t => scNorm(scStrip(t))).filter(x => x.length >= 2));
   return v;
 }
 function scMatch(a, g) {
   const n = scNorm(g); if (n.length < 2) return false;
-  a.v = a.v || scVars(a); if (a.v.has(n)) return true;
-  for (const x of a.v) if (x.length >= 7 && Math.abs(x.length - n.length) <= 2 && scLev(x, n) <= (x.length >= 14 ? 2 : 1)) return true;
+  if (!a.v) a.v = scVars(a);
+  const b = scNorm(scStrip(g));
+  if (a.v.has(n) || a.b.has(n) || (b.length >= 2 && (a.b.has(b) || a.v.has(b)))) return true;
+  for (const x of new Set([...a.v, ...a.b])) if (x.length >= 7 && Math.abs(x.length - n.length) <= 2 && scLev(x, n) <= (x.length >= 14 ? 2 : 1)) return true;
   return false;
 }
 // ฉากดัง/มีมที่เลือกเอง: ใส่ใน scenes.json [{"yt":"รหัสวิดีโอ 11 ตัว","t":วินาทีที่เริ่ม,"title":"ชื่อเรื่อง","alt":["ชื่ออื่น"]}]
+function scHints(h) {
+  const o = [];
+  if (h && h.year) o.push('ฉายปี ' + h.year + (h.fmt && SC_FMT[h.fmt] ? ' · ' + SC_FMT[h.fmt] : ''));
+  if (h && h.genres && h.genres.length) o.push('แนว: ' + h.genres.slice(0, 3).join(', '));
+  if (h && h.studio) o.push('สตูดิโอ: ' + h.studio);
+  return o;
+}
+function scMkCustom(x, pre) {
+  if (!x || !/^[\w-]{11}$/.test(x.yt || '') || !x.title || !(+x.t >= 0)) return null;
+  const title = String(x.title).trim().slice(0, 60), alt = (Array.isArray(x.alt) ? x.alt : []).map(a => String(a).trim().slice(0, 80)).filter(Boolean).slice(0, 6);
+  const year = +x.year >= 1960 && +x.year <= 2100 ? +x.year : 0, genres = (Array.isArray(x.genres) ? x.genres : []).map(g => String(g).trim().slice(0, 24)).filter(Boolean).slice(0, 3), studio = x.studio ? String(x.studio).trim().slice(0, 40) : '';
+  return { id: (pre || 'u_') + x.yt + '_' + Math.floor(+x.t), yt: x.yt, name: title, ti: [title, ...alt], t: Math.floor(+x.t), rank: -1, year, cur: true, custom: pre !== 'c_', raw: { yt: x.yt, t: Math.floor(+x.t), title, alt, year, genres, studio }, hints: scHints({ year, genres, studio }) };
+}
+async function scLoadCustom() {
+  try {
+    const all = await rcmd('HGETALL', 'sc:custom'), arr = Array.isArray(all) ? all : [];
+    for (let k = 0; k + 1 < arr.length; k += 2) { try { const c = scMkCustom(JSON.parse(arr[k + 1]), 'u_'); if (c) SCCUSTOM.set(c.id, c); } catch (e) {} }
+  } catch (e) {}
+}
 function scCurated() {
   try {
     const arr = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, 'scenes.json'), 'utf8'));
-    return (Array.isArray(arr) ? arr : []).filter(x => x && /^[\w-]{11}$/.test(x.yt || '') && x.title && +x.t >= 0).map(x => ({ id: 'c_' + x.yt + '_' + (+x.t), yt: x.yt, name: String(x.title).slice(0, 60), ti: [String(x.title).slice(0, 80), ...((x.alt || []).map(a => String(a).slice(0, 80)))], t: +x.t, rank: -1, year: 0, cur: true }));
+    return (Array.isArray(arr) ? arr : []).map(x => scMkCustom(x, 'c_')).filter(Boolean);
   } catch (e) { return []; }
 }
 // น้ำหนักตอนสุ่ม: ฉากที่เลือกเอง > เรื่องฮิต (อันดับความนิยมสูง) > เรื่องทั่วไป ; เรื่องใหม่ (2013+) เด่นขึ้น เรื่องเก่ามากลดลง ยกเว้นเรื่องดังมาก
@@ -1906,45 +1942,49 @@ function scLoadPool() {
     const out = [], seen = new Set();
     for (let p = 1; p <= 6; p++) {
       try {
-        const d = await alq('query($p:Int){Page(page:$p,perPage:50){media(type:ANIME,sort:POPULARITY_DESC,isAdult:false){id title{romaji english native} synonyms trailer{id site} startDate{year}}}}', { p });
+        const d = await alq('query($p:Int){Page(page:$p,perPage:50){media(type:ANIME,sort:POPULARITY_DESC,isAdult:false){id title{romaji english native} synonyms trailer{id site} startDate{year} format genres studios(isMain:true){nodes{name}}}}}', { p });
         let ix = -1;
         for (const m of (d.Page && d.Page.media) || []) {
           ix++;
           if (!m || !m.trailer || m.trailer.site !== 'youtube' || !/^[\w-]{11}$/.test(m.trailer.id || '') || seen.has(m.id)) continue;
           const ti = [m.title && m.title.english, m.title && m.title.romaji, m.title && m.title.native, ...(m.synonyms || [])].map(x => String(x || '').trim().slice(0, 80)).filter(Boolean);
           if (!ti.length) continue; seen.add(m.id);
-          out.push({ id: m.id, yt: m.trailer.id, name: ti[0].slice(0, 60), ti, rank: (p - 1) * 50 + ix, year: m.startDate && m.startDate.year || 0 });
+          const yr = m.startDate && m.startDate.year || 0, st = m.studios && m.studios.nodes && m.studios.nodes[0] && m.studios.nodes[0].name || '';
+          out.push({ id: m.id, yt: m.trailer.id, name: ti[0].slice(0, 60), ti, rank: (p - 1) * 50 + ix, year: yr, hints: scHints({ year: yr, fmt: m.format, genres: m.genres || [], studio: st }) });
         }
       } catch (e) { if (p === 1) break; }
     }
-    for (const c of scCurated()) if (!seen.has(c.id)) out.push(c);
+    await scLoadCustom();
+    for (const c of [...scCurated(), ...SCCUSTOM.values()]) if (!seen.has(c.id)) { seen.add(c.id); out.push(c); }
     if (out.length) { SCPOOL = out; SCPOOL_T = Date.now(); }
     return SCPOOL;
   })().finally(() => { SCPOOL_P = null; });
   return SCPOOL_P;
 }
 const scLive = r => r.players.filter(p => p.online);
+const scPts = c => Math.max(10, SC_PTS[c.k || 0] - SC_HINT_COST * (c.hints || 0));
+const scPoolFor = r => SCPOOL.filter(a => !a.bad && (r.set.pool === 'hot' ? (a.cur || a.rank < 100) : r.set.pool === 'new' ? (a.cur || a.year >= 2012) : true));
 function scView(r, p) {
   const c = r.cur, now = Date.now();
   const v = {
     code: r.code, phase: r.phase, you: p.pid, rid: r.rid || 0, owner: r.owner === p.pid, ownerPid: r.owner, set: r.set, n: r.n || 0, i: r.i, pool: SCPOOL.length,
     players: r.players.map(x => ({ pid: x.pid, name: x.name, score: x.score, ok: x.ok, online: x.online, fr: x.fr || 'none', nf: x.nf || 'none', cf: x.cf || '', af: x.af || '', tt: x.tt || '', un: unOf(x.sid), lv: x.lv || 1, ah: x.ah || 0,
-      voted: r.phase === 'play' ? !!(c && c.votes.has(x.pid)) : undefined, ready: r.phase === 'load' ? !!(c && c.ready.has(x.pid)) : undefined, wrong: r.phase === 'play' && c ? x.wk === c.k : undefined, got: r.phase === 'reveal' && c ? (c.winner === x.pid) : undefined }))
+      rw: r.phase === 'end' ? x.rw : undefined, voted: r.phase === 'play' ? !!(c && c.votes.has(x.pid)) : undefined, ready: r.phase === 'load' ? !!(c && c.ready.has(x.pid)) : undefined, wrong: r.phase === 'play' && c ? x.wk === c.k : undefined, got: r.phase === 'reveal' && c ? (c.winner === x.pid) : undefined }))
   };
   if (c && (r.phase === 'load' || r.phase === 'play')) {
-    v.cur = { yt: c.a.yt, seed: c.seed, start: c.a.t != null ? c.a.t : undefined, k: c.k || 0, len: (c.k || 0) + 1, pts: SC_PTS[c.k || 0], playIn: r.phase === 'play' ? Math.max(0, c.t0 - now) : 0, left: r.phase === 'play' ? Math.max(0, c.dl - now) : 0, votes: c.votes.size, on: scLive(r).length, voted: c.votes.has(p.pid), wrong: p.wk === c.k, maxLen: SC_PTS.length };
+    v.cur = { yt: c.a.yt, seed: c.seed, start: c.a.t != null ? c.a.t : undefined, k: c.k || 0, len: (c.k || 0) + 1, pts: scPts(c), hints: c.a.hints.slice(0, c.hints), hmax: c.a.hints.length, hvotes: c.hv.size, hvoted: c.hv.has(p.pid), flags: c.fl.size, flagged: c.fl.has(p.pid), maxLen: r.set.maxLen || 5, playIn: r.phase === 'play' ? Math.max(0, c.t0 - now) : 0, left: r.phase === 'play' ? Math.max(0, c.dl - now) : 0, votes: c.votes.size, on: scLive(r).length, voted: c.votes.has(p.pid), wrong: p.wk === c.k, };
   }
-  if (c && r.phase === 'reveal') v.rev = { name: c.a.name, yt: c.a.yt, win: c.winner || '', pts: c.pts || 0, k: c.k, nextIn: Math.max(0, r.nextAt - now) };
+  if (c && r.phase === 'reveal') v.rev = { name: c.a.name, yt: c.a.yt, win: c.winner || '', pts: c.pts || 0, bonus: c.bonus || 0, hints: c.hints, k: c.k, nextIn: Math.max(0, r.nextAt - now) };
   return v;
 }
 const scSend = r => r.players.forEach(p => p.sid && p.online && io.to(p.sid).emit('sc:state', scView(r, p)));
 const scClear = r => { clearTimeout(r.timer); clearTimeout(r.auto); clearTimeout(r.ltimer); };
 function scLoad(r) {
   scClear(r);
-  const pool = SCPOOL.filter(a => !a.bad), fresh = pool.filter(a => !r.used.has(a.id)), from = fresh.length ? fresh : pool;
+  const pool = scPoolFor(r), fresh = pool.filter(a => !r.used.has(a.id)), from = fresh.length ? fresh : pool;
   if (!from.length) { r.phase = 'lobby'; r.cur = null; scSend(r); r.players.forEach(p => p.sid && io.to(p.sid).emit('sc:err', 'ไม่มีตัวอย่างอนิเมะให้เล่นแล้ว')); return; }
   const a = scPick(from); r.used.add(a.id);
-  r.cur = { a, seed: Math.random(), k: 0, votes: new Set(), ready: new Set(), t0: 0, dl: 0, winner: '', pts: 0 };
+  r.cur = { a, seed: Math.random(), k: 0, votes: new Set(), hv: new Set(), fl: new Set(), hints: 0, ready: new Set(), t0: 0, dl: 0, winner: '', pts: 0, bonus: 0 };
   r.players.forEach(p => { p.wk = -1; });
   r.phase = 'load'; scSend(r);
   r.ltimer = setTimeout(() => scPlay(r), r.i === 0 && !r.warm ? 25000 : 11000);
@@ -1960,20 +2000,44 @@ function scAttempt(r, k) {
 }
 function scEscalate(r, k) {
   if (r.phase !== 'play' || !r.cur || r.cur.k !== k) return;
-  if (k + 1 >= SC_PTS.length) return scReveal(r, '');
+  if (k + 1 >= (r.set.maxLen || 5)) return scReveal(r, '');
   scAttempt(r, k + 1);
 }
-function scReveal(r, winPid) {
+function scReveal(r, winPid, fast) {
   if (r.phase !== 'play') return;
   scClear(r); const c = r.cur; c.winner = winPid || '';
-  if (winPid) { const w = r.players.find(p => p.pid === winPid); c.pts = SC_PTS[c.k]; if (w) { w.score += c.pts; w.ok++; } }
+  if (winPid) { const w = r.players.find(p => p.pid === winPid); c.bonus = fast ? SC_FAST_BONUS : 0; c.pts = scPts(c) + c.bonus; if (w) { w.score += c.pts; w.ok++; } }
   r.phase = 'reveal'; r.nextAt = Date.now() + SC_REVEAL_MS; scSend(r);
   r.auto = setTimeout(() => scNext(r), SC_REVEAL_MS);
+}
+// รางวัลหลังจบเกม: บัญชีที่ล็อกอินให้เซิร์ฟเวอร์เติมเหรียญ/XP เอง (กันโกง) ; ผู้เล่นที่ไม่ได้ล็อกอินให้เครื่องเก็บเอง ; เล่นคนเดียว = ซ้อมมือ ไม่ได้รางวัล
+function scPayout(r) {
+  if (r.paidRid === r.rid) return; r.paidRid = r.rid;
+  const rk = [...r.players].sort((a, b) => b.score - a.score);
+  r.players.forEach(p => { p.rw = null; });
+  if (r.players.length < 2) return;
+  r.players.forEach(p => {
+    if (!p.score && !p.ok) return;
+    const c = Math.min(150, Math.round(p.score / 10)) + (rk[0] === p && p.score > 0 ? 20 : 0) + 5, x = c, so = p.sid && io.sockets.sockets.get(p.sid), key = so && so.data && so.data.acct, tag = 'sc:' + r.code + ':' + r.rid;
+    p.rw = { c, x, acct: !!key, tag };
+    if (!key) return;
+    acctRun(key, async () => {
+      try {
+        const raw = await rcmd('GET', key); if (!raw) return;
+        const rec = JSON.parse(raw), pr = rec.prof; pr.paid = pr.paid || [];
+        if (pr.paid.includes(tag)) return;
+        pr.paid.push(tag); if (pr.paid.length > 60) pr.paid.shift();
+        pr.coins = (pr.coins || 0) + c; pr.xp = (pr.xp || 0) + x; rec.v++;
+        await rcmd('SET', key, JSON.stringify(rec));
+        if (p.sid) io.to(p.sid).emit('sc:reward', { c, x, prof: rec.prof, v: rec.v });
+      } catch (e) { console.log('sc:reward', e.message); }
+    });
+  });
 }
 function scNext(r) {
   if (r.phase !== 'reveal') return;
   scClear(r);
-  if (r.i + 1 >= r.n) { r.phase = 'end'; scSend(r); return; }
+  if (r.i + 1 >= r.n) { r.phase = 'end'; scPayout(r); scSend(r); return; }
   r.i++; scLoad(r);
 }
 function scCheckReady(r) { if (r.phase !== 'load') return; const on = scLive(r); if (on.length && on.every(p => r.cur.ready.has(p.pid))) scPlay(r); }
@@ -1981,12 +2045,21 @@ function scCheckVotes(r) {
   if (r.phase !== 'play' || Date.now() < r.cur.t0 + (r.cur.k + 1) * 1000) return;
   const on = scLive(r); if (on.length && r.cur.votes.size * 2 > on.length) scEscalate(r, r.cur.k);
 }
+function scCheckHint(r) {
+  if (r.phase !== 'play') return; const c = r.cur;
+  const on = scLive(r); if (on.length && c.hv.size * 2 > on.length && c.hints < c.a.hints.length) { c.hints++; c.hv.clear(); scSend(r); }
+}
+function scCheckFlag(r) {
+  if (r.phase !== 'play') return; const c = r.cur, on = scLive(r);
+  if (on.length && c.fl.size * 2 > on.length) { c.a.fl = (c.a.fl || 0) + 1; if (c.a.fl >= 3) c.a.bad = true; r.used.add(c.a.id); scLoad(r); }
+}
 function scDrop(r, p) {
   if (r.owner === p.pid) { const n = r.players.find(x => x.online && x.pid !== p.pid); if (n) r.owner = n.pid; }
   if (!r.players.some(x => x.online)) r.emptyAt = Date.now();
-  if (r.cur) r.cur.votes.delete(p.pid);
-  scSend(r); scCheckReady(r); scCheckVotes(r);
+  if (r.cur) { r.cur.votes.delete(p.pid); r.cur.hv.delete(p.pid); r.cur.fl.delete(p.pid); }
+  scSend(r); scCheckReady(r); scCheckVotes(r); scCheckHint(r); scCheckFlag(r);
 }
+scLoadCustom();
 setInterval(() => { Object.keys(SCR).forEach(k => { const r = SCR[k]; if (!r.players.some(p => p.online) && Date.now() - (r.emptyAt || 0) > 20 * 60 * 1000) { scClear(r); delete SCR[k]; } }); }, 60 * 1000);
 
 io.on('connection', sock => {
@@ -1994,14 +2067,14 @@ io.on('connection', sock => {
   const sme = r => r && r.players.find(p => p.sid === sock.id);
   const serr = m => sock.emit('sc:err', m);
   const newP = (pid, name, sid) => ({ pid, name: String(name || '').trim().slice(0, 16) || 'Player', sid, online: true, score: 0, ok: 0, wk: -1 });
-  const titles = () => sock.emit('sc:titles', SCPOOL.map(a => a.name));
+  const titles = () => sock.emit('sc:titles', scTitleList());
   sock.on('sc:create', ({ name, pid, prof }) => {
     if (!pid) return;
     const old = sfind(); if (old) { const o = sme(old); o.online = false; o.sid = null; scDrop(old, o); }
     let code; do { code = Math.random().toString(36).slice(2, 7).toUpperCase(); } while (SCR[code] || QROOMS[code]);
-    const r = SCR[code] = { code, owner: pid, phase: 'lobby', players: [newP(pid, name, sock.id)], set: { rounds: 10 }, used: new Set(), cur: null, i: 0, n: 0 };
+    const r = SCR[code] = { code, owner: pid, phase: 'lobby', players: [newP(pid, name, sock.id)], set: { rounds: 10, pool: 'all', maxLen: 5 }, used: new Set(), cur: null, i: 0, n: 0 };
     if (prof) applyProf(r.players[0], prof);
-    scSend(r); scLoadPool().then(() => { scSend(r); titles(); }).catch(() => {});
+    scSend(r); scLoadPool().then(() => { scSend(r); scTitlesAll(r); }).catch(() => {});
   });
   sock.on('sc:join', ({ code, name, pid, prof }) => {
     const r = SCR[String(code || '').trim().toUpperCase()];
@@ -2011,24 +2084,26 @@ io.on('connection', sock => {
     if (p) { p.sid = sock.id; p.online = true; if (name) p.name = String(name).trim().slice(0, 16) || p.name; }
     else { if (r.players.length >= 12) return serr('ห้องเต็มแล้ว (สูงสุด 12 คน)'); p = newP(pid, name, sock.id); r.players.push(p); }
     if (prof) applyProf(p, prof);
-    r.emptyAt = 0; scSend(r); titles();
+    r.emptyAt = 0; scSend(r); titles(); scLoadPool().then(() => titles()).catch(() => {});
   });
+  sock.on('sc:gettitles', () => { if (sfind()) titles(); });
   sock.on('sc:prof', d => { const r = sfind(), p = sme(r); if (!r || !p) return; applyProf(p, d); scSend(r); });
   sock.on('sc:getav', pids => { const r = sfind(); if (r) sendAv(sock, r.players, pids); });
-  sock.on('sc:set', d => { const r = sfind(), p = sme(r); if (!r || !p || r.owner !== p.pid || r.phase !== 'lobby') return; r.set = { rounds: SC_COUNTS.includes(+(d && d.rounds)) ? +d.rounds : 10 }; scSend(r); });
+  sock.on('sc:set', d => { const r = sfind(), p = sme(r); if (!r || !p || r.owner !== p.pid || r.phase !== 'lobby') return; r.set = { rounds: SC_COUNTS.includes(+(d && d.rounds)) ? +d.rounds : 10, pool: SC_POOLS.includes(d && d.pool) ? d.pool : 'all', maxLen: SC_LENS.includes(+(d && d.maxLen)) ? +d.maxLen : 5 }; scSend(r); });
   sock.on('sc:start', async () => {
     const r = sfind(), p = sme(r); if (!r || !p || r.owner !== p.pid || r.phase !== 'lobby') return;
     r.phase = 'starting';
-    const pool = (await scLoadPool().catch(() => [])).filter(a => !a.bad);
+    await scLoadPool().catch(() => []);
+    const pool = scPoolFor(r);
     if (r.phase !== 'starting') return;
     if (pool.length < 3) { r.phase = 'lobby'; scSend(r); return serr('ดึงตัวอย่างอนิเมะจาก AniList ไม่ได้ในตอนนี้ ลองใหม่อีกครั้งในอีกสักครู่'); }
     r.n = Math.min(r.set.rounds, pool.length); r.rid = (r.rid || 0) + 1; r.i = 0; r.warm = false; r.used = new Set();
-    r.players.forEach(x => { x.score = 0; x.ok = 0; x.wk = -1; });
-    scLoad(r); titles();
+    r.players.forEach(x => { x.score = 0; x.ok = 0; x.wk = -1; x.badN = 0; x.rw = null; });
+    scLoad(r); scTitlesAll(r);
   });
   sock.on('sc:ready', () => { const r = sfind(), p = sme(r); if (!r || !p || r.phase !== 'load') return; r.cur.ready.add(p.pid); scSend(r); scCheckReady(r); });
   sock.on('sc:bad', id => {   // ตัวเล่นเปิดวิดีโอนี้ไม่ได้ (ถูกปิดการฝัง/ถูกลบ) -> ตัดออกจากคลังแล้วสุ่มเรื่องใหม่
-    const r = sfind(), p = sme(r); if (!r || !p || !r.cur || (r.phase !== 'load' && r.phase !== 'play') || r.cur.a.yt !== id) return;
+    const r = sfind(), p = sme(r); if (!r || !p || !r.cur || (r.phase !== 'load' && r.phase !== 'play') || r.cur.a.yt !== id || (p.badN = (p.badN || 0) + 1) > 3) return;
     r.cur.a.bad = true; r.used.add(r.cur.a.id); scLoad(r);
   });
   sock.on('sc:guess', g => {
@@ -2036,7 +2111,7 @@ io.on('connection', sock => {
     const c = r.cur; if (Date.now() < c.t0) return;
     g = String(g || '').slice(0, 100); if (!scNorm(g)) return;
     if (p.wk === c.k) return serr('คุณตอบผิดไปแล้วในรอบนี้ รอดูเพิ่มอีกนิดก่อนนะ');
-    if (scMatch(c.a, g)) return scReveal(r, p.pid);
+    if (scMatch(c.a, g)) return scReveal(r, p.pid, Date.now() <= c.t0 + (c.k + 1) * 1000 + SC_FAST_MS);
     p.wk = c.k; sock.emit('sc:wrong'); scSend(r);
   });
   sock.on('sc:skip', () => {
@@ -2044,6 +2119,50 @@ io.on('connection', sock => {
     const c = r.cur; if (Date.now() < c.t0 + (c.k + 1) * 1000) return;
     if (c.votes.has(p.pid)) c.votes.delete(p.pid); else c.votes.add(p.pid);
     scSend(r); scCheckVotes(r);
+  });
+  sock.on('sc:hint', () => {
+    const r = sfind(), p = sme(r); if (!r || !p || r.phase !== 'play') return;
+    const c = r.cur; if (Date.now() < c.t0 || c.hints >= c.a.hints.length) return;
+    if (c.hv.has(p.pid)) c.hv.delete(p.pid); else c.hv.add(p.pid);
+    scSend(r); scCheckHint(r);
+  });
+  sock.on('sc:flag', () => {
+    const r = sfind(), p = sme(r); if (!r || !p || r.phase !== 'play') return;
+    const c = r.cur; if (Date.now() < c.t0) return;
+    if (c.fl.has(p.pid)) c.fl.delete(p.pid); else c.fl.add(p.pid);
+    scSend(r); scCheckFlag(r);
+  });
+  // ----- แอดมิน: เพิ่ม/ลบฉากดังที่เลือกเอง (เก็บบน Redis) -----
+  const scParseYt = u => { u = String(u || '').trim(); let m = u.match(/(?:[?&]v=|youtu\.be\/|embed\/|shorts\/|live\/)([\w-]{11})/); if (m) return m[1]; return /^[\w-]{11}$/.test(u) ? u : ''; };
+  const scParseT = (t, u) => {
+    t = String(t == null ? '' : t).trim();
+    if (!t) { const m = String(u || '').match(/[?&#](?:t|start)=([\dhms]+)/i); t = m ? m[1] : ''; }
+    if (/^\d+$/.test(t)) return +t;
+    let m = t.match(/^(?:(\d+):)?(\d{1,2}):(\d{1,2})$/); if (m) return (+m[1] || 0) * 3600 + +m[2] * 60 + +m[3];
+    m = t.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/i); if (m && (m[1] || m[2] || m[3])) return (+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + (+m[3] || 0);
+    return -1;
+  };
+  const scAdmList = () => sock.emit('sc:adm:scenes', [...SCCUSTOM.values()].map(c => c.raw && Object.assign({ id: c.id }, c.raw)).filter(Boolean));
+  const scAdmMsg = (ok, msg) => sock.emit('sc:adm:msg', { ok, msg });
+  sock.on('sc:adm:list', async () => { if (!sock.data.adm) return; await scLoadCustom(); scAdmList(); });
+  sock.on('sc:adm:add', async d => {
+    if (!sock.data.adm || !d) return;
+    const yt = scParseYt(d.url), t = scParseT(d.t, d.url), title = String(d.title || '').trim();
+    if (!yt) return scAdmMsg(false, 'ลิงก์ YouTube ไม่ถูกต้อง (ต้องมีรหัสวิดีโอ 11 ตัว)');
+    if (!(t >= 0)) return scAdmMsg(false, 'เวลาเริ่มไม่ถูกต้อง ใช้ได้เช่น 90 หรือ 1:30');
+    if (!title) return scAdmMsg(false, 'ใส่ชื่อเรื่องที่เป็นคำตอบด้วย');
+    if (SCCUSTOM.size >= 300) return scAdmMsg(false, 'เพิ่มได้สูงสุด 300 ฉาก');
+    const c = scMkCustom({ yt, t, title, alt: String(d.alt || '').split(/[,\n|]/).map(x => x.trim()).filter(Boolean), year: d.year, genres: String(d.genres || '').split(/[,\n|]/).map(x => x.trim()).filter(Boolean), studio: d.studio }, 'u_');
+    if (!c) return scAdmMsg(false, 'ข้อมูลไม่ครบ');
+    try { await rcmd('HSET', 'sc:custom', c.id, JSON.stringify(c.raw)); } catch (e) { return scAdmMsg(false, 'บันทึกไม่สำเร็จ (Redis)'); }
+    SCCUSTOM.set(c.id, c); const i = SCPOOL.findIndex(a => a.id === c.id); if (i >= 0) SCPOOL[i] = c; else SCPOOL.push(c);
+    scAdmMsg(true, 'เพิ่มฉาก "' + c.name + '" (เริ่มที่ ' + c.t + ' วินาที) แล้ว'); scAdmList();
+  });
+  sock.on('sc:adm:del', async d => {
+    if (!sock.data.adm || !d) return; const id = String(d.id || '');
+    if (!SCCUSTOM.has(id)) return;
+    try { await rcmd('HDEL', 'sc:custom', id); } catch (e) { return scAdmMsg(false, 'ลบไม่สำเร็จ (Redis)'); }
+    SCCUSTOM.delete(id); SCPOOL = SCPOOL.filter(a => a.id !== id); scAdmMsg(true, 'ลบฉากแล้ว'); scAdmList();
   });
   sock.on('sc:next', () => { const r = sfind(), p = sme(r); if (r && p && r.owner === p.pid) scNext(r); });
   sock.on('sc:again', () => {
