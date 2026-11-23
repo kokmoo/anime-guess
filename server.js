@@ -628,7 +628,7 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '4.12.0';
+const APP_VERSION = '4.12.1';
 const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
 const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
 let CFIDS = new Set(), CFM = 0, CFT = {};
@@ -1906,10 +1906,11 @@ function scHints(h) {
   return o;
 }
 function scMkCustom(x, pre) {
-  if (!x || !/^[\w-]{11}$/.test(x.yt || '') || !x.title || !(+x.t >= 0)) return null;
-  const title = String(x.title).trim().slice(0, 60), alt = (Array.isArray(x.alt) ? x.alt : []).map(a => String(a).trim().slice(0, 80)).filter(Boolean).slice(0, 6);
+  if (!x || !/^[\w-]{11}$/.test(x.yt || '') || !x.title) return null;
+  const rnd = x.t == null || x.t === ''; if (!rnd && !(+x.t >= 0)) return null;
+  const title = String(x.title).trim().slice(0, 60), alt = (Array.isArray(x.alt) ? x.alt : []).map(a => String(a).trim().slice(0, 80)).filter(Boolean).slice(0, 10);
   const year = +x.year >= 1960 && +x.year <= 2100 ? +x.year : 0, genres = (Array.isArray(x.genres) ? x.genres : []).map(g => String(g).trim().slice(0, 24)).filter(Boolean).slice(0, 3), studio = x.studio ? String(x.studio).trim().slice(0, 40) : '';
-  return { id: (pre || 'u_') + x.yt + '_' + Math.floor(+x.t), yt: x.yt, name: title, ti: [title, ...alt], t: Math.floor(+x.t), rank: -1, year, cur: true, custom: pre !== 'c_', raw: { yt: x.yt, t: Math.floor(+x.t), title, alt, year, genres, studio }, hints: scHints({ year, genres, studio }) };
+  return { id: (pre || 'u_') + x.yt + '_' + (rnd ? 'r' : Math.floor(+x.t)), yt: x.yt, name: title, ti: [title, ...alt], t: rnd ? undefined : Math.floor(+x.t), rank: -1, year, cur: true, custom: pre !== 'c_', raw: { yt: x.yt, t: rnd ? null : Math.floor(+x.t), title, alt, year, genres, studio }, hints: scHints({ year, genres, studio }) };
 }
 async function scLoadCustom() {
   try {
@@ -1950,7 +1951,7 @@ function scLoadPool() {
           const ti = [m.title && m.title.english, m.title && m.title.romaji, m.title && m.title.native, ...(m.synonyms || [])].map(x => String(x || '').trim().slice(0, 80)).filter(Boolean);
           if (!ti.length) continue; seen.add(m.id);
           const yr = m.startDate && m.startDate.year || 0, st = m.studios && m.studios.nodes && m.studios.nodes[0] && m.studios.nodes[0].name || '';
-          out.push({ id: m.id, yt: m.trailer.id, name: ti[0].slice(0, 60), ti, rank: (p - 1) * 50 + ix, year: yr, hints: scHints({ year: yr, fmt: m.format, genres: m.genres || [], studio: st }) });
+          out.push({ id: m.id, yt: m.trailer.id, name: ti[0].slice(0, 60), ti, rank: (p - 1) * 50 + ix, year: yr, hints: scHints({ year: yr, fmt: m.format, genres: m.genres || [], studio: st }), meta: { year: yr, genres: (m.genres || []).slice(0, 3), studio: st } });
         }
       } catch (e) { if (p === 1) break; }
     }
@@ -2086,7 +2087,7 @@ io.on('connection', sock => {
     if (prof) applyProf(p, prof);
     r.emptyAt = 0; scSend(r); titles(); scLoadPool().then(() => titles()).catch(() => {});
   });
-  sock.on('sc:gettitles', () => { if (sfind()) titles(); });
+  sock.on('sc:gettitles', () => { if (sfind()) titles(); else scLoadPool().then(() => titles()).catch(() => {}); });
   sock.on('sc:prof', d => { const r = sfind(), p = sme(r); if (!r || !p) return; applyProf(p, d); scSend(r); });
   sock.on('sc:getav', pids => { const r = sfind(); if (r) sendAv(sock, r.players, pids); });
   sock.on('sc:set', d => { const r = sfind(), p = sme(r); if (!r || !p || r.owner !== p.pid || r.phase !== 'lobby') return; r.set = { rounds: SC_COUNTS.includes(+(d && d.rounds)) ? +d.rounds : 10, pool: SC_POOLS.includes(d && d.pool) ? d.pool : 'all', maxLen: SC_LENS.includes(+(d && d.maxLen)) ? +d.maxLen : 5 }; scSend(r); });
@@ -2145,18 +2146,30 @@ io.on('connection', sock => {
   const scAdmList = () => sock.emit('sc:adm:scenes', [...SCCUSTOM.values()].map(c => c.raw && Object.assign({ id: c.id }, c.raw)).filter(Boolean));
   const scAdmMsg = (ok, msg) => sock.emit('sc:adm:msg', { ok, msg });
   sock.on('sc:adm:list', async () => { if (!sock.data.adm) return; await scLoadCustom(); scAdmList(); });
-  sock.on('sc:adm:add', async d => {
-    if (!sock.data.adm || !d) return;
-    const yt = scParseYt(d.url), t = scParseT(d.t, d.url), title = String(d.title || '').trim();
-    if (!yt) return scAdmMsg(false, 'ลิงก์ YouTube ไม่ถูกต้อง (ต้องมีรหัสวิดีโอ 11 ตัว)');
-    if (!(t >= 0)) return scAdmMsg(false, 'เวลาเริ่มไม่ถูกต้อง ใช้ได้เช่น 90 หรือ 1:30');
-    if (!title) return scAdmMsg(false, 'ใส่ชื่อเรื่องที่เป็นคำตอบด้วย');
-    if (SCCUSTOM.size >= 300) return scAdmMsg(false, 'เพิ่มได้สูงสุด 300 ฉาก');
-    const c = scMkCustom({ yt, t, title, alt: String(d.alt || '').split(/[,\n|]/).map(x => x.trim()).filter(Boolean), year: d.year, genres: String(d.genres || '').split(/[,\n|]/).map(x => x.trim()).filter(Boolean), studio: d.studio }, 'u_');
-    if (!c) return scAdmMsg(false, 'ข้อมูลไม่ครบ');
-    try { await rcmd('HSET', 'sc:custom', c.id, JSON.stringify(c.raw)); } catch (e) { return scAdmMsg(false, 'บันทึกไม่สำเร็จ (Redis)'); }
-    SCCUSTOM.set(c.id, c); const i = SCPOOL.findIndex(a => a.id === c.id); if (i >= 0) SCPOOL[i] = c; else SCPOOL.push(c);
-    scAdmMsg(true, 'เพิ่มฉาก "' + c.name + '" (เริ่มที่ ' + c.t + ' วินาที) แล้ว'); scAdmList();
+  const scAddOne = async d => {
+    if (!d) return { ok: false, msg: 'ข้อมูลว่าง' };
+    const yt = scParseYt(d.url), hasT = !(d.t == null || String(d.t).trim() === '') || /[?&#](?:t|start)=/i.test(String(d.url || '')), t = hasT ? scParseT(d.t, d.url) : null, title = String(d.title || '').trim();
+    if (!yt) return { ok: false, msg: 'ลิงก์ YouTube ไม่ถูกต้อง' + (d.url ? ' : ' + String(d.url).slice(0, 40) : '') };
+    if (hasT && !(t >= 0)) return { ok: false, msg: 'เวลาเริ่มไม่ถูกต้อง ใช้เช่น 90 หรือ 1:30' };
+    if (!title) return { ok: false, msg: 'ใส่ชื่อเรื่องที่เป็นคำตอบด้วย' };
+    if (SCCUSTOM.size >= 300) return { ok: false, msg: 'เพิ่มได้สูงสุด 300 ฉาก' };
+    const split = x => String(x || '').split(/[,\n|]/).map(y => y.trim()).filter(Boolean);
+    let alt = split(d.alt), year = d.year, genres = split(d.genres), studio = d.studio, auto = false;
+    // ชื่อตรงกับเรื่องใน AniList -> เติมชื่ออื่น/ปี/แนว/สตูดิโอให้เอง
+    const nt = scNorm(title), m = SCPOOL.find(a => !a.cur && a.meta && a.ti.some(x => scNorm(x) === nt));
+    if (m) { auto = true; alt = [...new Set([...alt, ...m.ti.filter(x => scNorm(x) !== nt)])]; if (!year) year = m.meta.year; if (!genres.length) genres = m.meta.genres; if (!studio) studio = m.meta.studio; }
+    const c = scMkCustom({ yt, t, title, alt, year, genres, studio }, 'u_');
+    if (!c) return { ok: false, msg: 'ข้อมูลไม่ครบ' };
+    try { await rcmd('HSET', 'sc:custom', c.id, JSON.stringify(c.raw)); } catch (e) { return { ok: false, msg: 'บันทึกไม่สำเร็จ (Redis)' }; }
+    SCCUSTOM.set(c.id, c); const k = SCPOOL.findIndex(a => a.id === c.id); if (k >= 0) SCPOOL[k] = c; else SCPOOL.push(c);
+    return { ok: true, msg: 'เพิ่ม "' + c.name + '" (' + (c.t != null ? 'เริ่ม ' + c.t + ' วิ' : 'สุ่มช่วงในคลิป') + ')' + (auto ? ' · เติมข้อมูลจาก AniList ให้แล้ว' : ''), name: c.name };
+  };
+  sock.on('sc:adm:add', async d => { if (!sock.data.adm) return; const r = await scAddOne(d); scAdmMsg(r.ok, r.msg); if (r.ok) scAdmList(); });
+  sock.on('sc:adm:bulk', async d => {
+    if (!sock.data.adm || !d || !Array.isArray(d.items)) return;
+    let n = 0; const bad = [];
+    for (const it of d.items.slice(0, 60)) { const r = await scAddOne(it); if (r.ok) n++; else bad.push((it && String(it.title || it.url || '').slice(0, 24)) + ': ' + r.msg); }
+    scAdmMsg(n > 0 && !bad.length, 'เพิ่ม ' + n + ' ฉาก' + (bad.length ? ' · ผิดพลาด ' + bad.length + ' (' + bad.slice(0, 2).join(' / ') + ')' : '')); scAdmList();
   });
   sock.on('sc:adm:del', async d => {
     if (!sock.data.adm || !d) return; const id = String(d.id || '');

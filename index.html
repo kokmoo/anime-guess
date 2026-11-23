@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- ag-build:20261074 -->
+<!-- ag-build:20261075 -->
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ANIME GUESS</title>
@@ -404,7 +404,7 @@ const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิด
 const I=(n,c)=>`<svg class="ic${c?' '+c:''}"><use href="#i-${n}"/></svg>`;
 const s=io(),$=id=>document.getElementById(id);
 const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
-const VER=5,APPV='4.12.0',BUILD='20261074';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,SM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,libSc=0,libSc2=0,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
+const VER=5,APPV='4.12.1',BUILD='20261075';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,SM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,libSc=0,libSc2=0,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
 const pre=new URLSearchParams(location.search).get('room')||'';
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
@@ -1192,16 +1192,36 @@ s.on('sc:reward',d=>{if(!ACC)return;ACC.v=d.v;accBusy=false;accDirty=false;accAp
 // ---- แอดมิน: จัดการฉากดังที่เลือกเอง ----
 let SMA=[];
 function smAdm(){mode='sma';s.emit('sc:adm:list');render()}
-function smaList(){const e=$('smalist');if(!e)return;e.innerHTML=SMA.length?SMA.map(x=>`<div class="pl"><span class="gr"><b>${esc(x.title)}</b><br><small>เริ่ม ${x.t} วิ · ${esc(x.yt)}${x.alt&&x.alt.length?' · อื่นๆ: '+esc(x.alt.join(', ')):''}${x.year?' · '+x.year:''}</small></span><button class="g" style="width:auto;padding:6px 12px" data-id="${esc(x.id)}" onclick="smDel(this.dataset.id)">ลบ</button></div>`).join(''):'<small>ยังไม่มีฉากที่เพิ่มเอง</small>'}
+function smaList(){const e=$('smalist');if(!e)return;e.innerHTML=SMA.length?SMA.map(x=>`<div class="pl"><span class="gr"><b>${esc(x.title)}</b><br><small>${x.t==null?'เริ่มแบบสุ่ม':'เริ่ม '+x.t+' วิ'} · ${esc(x.yt)}${x.alt&&x.alt.length?' · อื่นๆ: '+esc(x.alt.slice(0,3).join(', ')):''}${x.year?' · '+x.year:''}</small></span><button class="g" style="width:auto;padding:6px 10px" data-yt="${esc(x.yt)}" data-t="${x.t==null?'':x.t}" onclick="smaPrev(this.dataset.yt,this.dataset.t)">▶</button><button class="g" style="width:auto;padding:6px 12px" data-id="${esc(x.id)}" onclick="smDel(this.dataset.id)">ลบ</button></div>`).join(''):'<small>ยังไม่มีฉากที่เพิ่มเอง</small>'}
+function smaYt(u){const m=String(u||'').match(/(?:[?&]v=|youtu\.be\/|embed\/|shorts\/|live\/)([\w-]{11})/);return m?m[1]:/^[\w-]{11}$/.test(String(u||'').trim())?String(u).trim():''}
+function smaT(u){const m=String(u||'').match(/[?&#](?:t|start)=(\d+)(?:m(\d+))?/i);if(!m)return '';return m[2]!=null?String(+m[1]*60+ +m[2]):m[1]}
+function smaLink(){const u=$('smau').value,id=smaYt(u),p=$('smaprev');if(!p)return;if(!id){p.innerHTML=u.trim()?'<small style="color:#c0392b">ยังไม่ใช่ลิงก์ YouTube ที่ถูกต้อง</small>':'';return}
+ p.innerHTML=`<img src="https://i.ytimg.com/vi/${id}/mqdefault.jpg" alt="" style="width:100%;max-width:220px;border-radius:10px;border:3px solid #14142b;display:block" onerror="this.style.display='none'">`;const t=smaT(u);if(t&&!$('smat').value)$('smat').value=t}
+async function smaPaste(){try{const t=await navigator.clipboard.readText();if(!t)return say('คลิปบอร์ดว่าง');$('smau').value=t.trim();smaLink()}catch(e){say('เบราว์เซอร์ไม่ให้อ่านคลิปบอร์ด กดค้างที่ช่องแล้ววางเอง')}}
+function smaSug(){const e=$('smatt'),d=$('smasug');if(!e||!d)return;const q=smN(e.value);if(!q){d.innerHTML='';return}
+ const a=[];for(const t of SMT){let b=-1;for(const k of String(t[1]).split('|')){const i=k.indexOf(q);if(i>=0&&(b<0||i<b))b=i}if(b>=0)a.push([b,t[0]])}a.sort((x,y)=>x[0]-y[0]||x[1].length-y[1].length);
+ d.innerHTML=a.slice(0,5).map(x=>`<div class="sg" data-t="${esc(x[1])}">${esc(x[1])}</div>`).join('')||(SMT.length?'<small>ไม่พบในรายการ พิมพ์ชื่อเองได้ (จะไม่เติมข้อมูลอัตโนมัติ)</small>':'<small>กำลังโหลดรายชื่อ…</small>')}
+document.addEventListener('pointerdown',e=>{const g=e.target.closest&&e.target.closest('#smasug .sg');if(g){e.preventDefault();$('smatt').value=g.dataset.t;$('smasug').innerHTML=''}});
+let smaTm=0;
+function smaPrev(yt,t){if(!yt)return;clearTimeout(smaTm);ytEnsure(()=>{const w=$('ytwrap');if(!w)return;YTMODE='idle';setCover(null);w.classList.add('on');try{YTP.unMute();YTP.setVolume(Math.round(vS*100));YTP.loadVideoById({videoId:yt,startSeconds:t===''||t==null?30:+t})}catch(e){}smaTm=setTimeout(smaStop,7000)});flash('▶ ทดลองดู 7 วินาที (ภาพที่ผู้เล่นจะเห็น)')}
+function smaStop(){clearTimeout(smaTm);try{YTP&&YTP.pauseVideo()}catch(e){}const w=$('ytwrap');if(w&&!SM)w.classList.remove('on')}
+function smaTry(){const id=smaYt($('smau').value);if(!id)return say('วางลิงก์ YouTube ก่อน');smaPrev(id,$('smat').value.trim()===''?'':String(scT($('smat').value)))}
+function scT(v){v=String(v).trim();let m=v.match(/^(\d+):(\d{1,2})$/);if(m)return +m[1]*60+ +m[2];m=v.match(/^(\d+)m(?:(\d+)s?)?$/i);if(m)return +m[1]*60+(+m[2]||0);return parseInt(v)||0}
 function smAdd(){s.emit('sc:adm:add',{url:$('smau').value,t:$('smat').value,title:$('smatt').value,alt:$('smaal').value,year:$('smay').value,genres:$('smag').value,studio:$('smas').value})}
+function smBulk(){const items=($('smabulk').value||'').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const k=l.search(/[|\t]/);return k<0?{url:l,title:''}:{url:l.slice(0,k).trim(),title:l.slice(k+1).trim()}});if(!items.length)return say('ใส่อย่างน้อย 1 บรรทัด');if(items.length>60)return say('ครั้งละไม่เกิน 60 ฉาก');s.emit('sc:adm:bulk',{items})}
 async function smDel(id){if(!await ask('ลบฉากนี้?','ลบ','r'))return;s.emit('sc:adm:del',{id})}
 s.on('sc:adm:scenes',a=>{SMA=Array.isArray(a)?a:[];smaList()});
-s.on('sc:adm:msg',d=>{flash((d.ok?'✅ ':'⚠ ')+d.msg);if(d.ok)['smau','smat','smatt','smaal','smay','smag','smas'].forEach(i=>{const e=$(i);if(e)e.value=''})});
-function drawSMA(A){A.className='';document.body.classList.remove('w');
- A.innerHTML=`<h2>🛠 จัดการฉากดัง/ฉากมีม</h2><div class="box"><small style="line-height:1.6">วางลิงก์ YouTube ของคลิปฉากนั้น ใส่เวลาที่ฉากเริ่ม (เช่น 1:30 หรือ 90 หรือใส่ ?t=90 ในลิงก์) และชื่อเรื่องที่เป็นคำตอบ ฉากเหล่านี้จะถูกสุ่มบ่อยกว่าตัวอย่างปกติ และเริ่มที่เวลาที่กำหนดเป๊ะ</small>
- <input id="smau" placeholder="ลิงก์ YouTube เช่น https://youtu.be/xxxxxxxxxxx?t=90"><input id="smat" placeholder="เริ่มที่ (1:30 หรือ 90)"><input id="smatt" maxlength="60" placeholder="ชื่อเรื่อง (คำตอบ) เช่น Attack on Titan">
- <input id="smaal" placeholder="ชื่ออื่นที่ตอบได้ (คั่นด้วย ,) เช่น Shingeki no Kyojin, ผ่าโลกไททัน"><input id="smay" inputmode="numeric" placeholder="ปีที่ฉาย (ไม่บังคับ ใช้เป็นคำใบ้)"><input id="smag" placeholder="แนว (ไม่บังคับ คั่นด้วย ,)"><input id="smas" placeholder="สตูดิโอ (ไม่บังคับ)">
- <button class="b hot" onclick="smAdd()">➕ เพิ่มฉาก</button></div><div class="box"><b>ฉากที่เพิ่มไว้</b><div id="smalist"></div></div><button class="g" onclick="smHome()">← กลับ</button>`;smaList()}
+s.on('sc:adm:msg',d=>{flash((d.ok?'✅ ':'⚠ ')+d.msg);if(d.ok){['smau','smat','smatt','smaal','smay','smag','smas','smabulk'].forEach(i=>{const e=$(i);if(e)e.value=''});const p=$('smaprev'),g=$('smasug');if(p)p.innerHTML='';if(g)g.innerHTML='';smaStop()}});
+function drawSMA(A){A.className='';document.body.classList.remove('w');smaStop();if(!SMT.length)s.emit('sc:gettitles');
+ A.innerHTML=`<h2>🛠 เพิ่มฉากดัง/ฉากมีม</h2><div class="box"><b>① วางลิงก์ YouTube</b>
+ <div style="display:flex;gap:6px"><input id="smau" style="flex:1;margin:0" oninput="smaLink()" placeholder="https://youtu.be/…?t=90"><button class="g" style="width:auto;padding:8px 12px" onclick="smaPaste()">📋 วาง</button></div><div id="smaprev" style="margin:6px 0"></div>
+ <b>② ชื่อเรื่อง (คำตอบ)</b><input id="smatt" maxlength="60" autocomplete="off" oninput="smaSug()" placeholder="พิมพ์แล้วเลือกจากรายการ"><div id="smasug" class="sug"></div>
+ <small style="display:block;line-height:1.5;margin:2px 0 8px">ถ้าเลือกชื่อจากรายการ ระบบเติมชื่ออื่น ปี แนว สตูดิโอให้เอง</small>
+ <b>③ เริ่มที่ (เว้นว่าง = สุ่มช่วงในคลิป)</b><input id="smat" placeholder="1:30 หรือ 90 (ดึงจาก ?t= ในลิงก์ให้อัตโนมัติ)">
+ <details style="margin:6px 0"><summary><small>ตั้งค่าเพิ่มเติม (ไม่บังคับ)</small></summary><input id="smaal" placeholder="ชื่ออื่นที่ตอบได้ คั่นด้วย ,"><input id="smay" inputmode="numeric" placeholder="ปีที่ฉาย"><input id="smag" placeholder="แนว คั่นด้วย ,"><input id="smas" placeholder="สตูดิโอ"></details>
+ <div style="display:flex;gap:6px"><button class="g" style="flex:1" onclick="smaTry()">▶ ทดลองดู</button><button class="b hot" style="flex:2" onclick="smAdd()">➕ เพิ่มฉาก</button></div></div>
+ <div class="box"><details><summary><b>📥 เพิ่มหลายฉากพร้อมกัน</b></summary><small style="display:block;line-height:1.5;margin:6px 0">1 บรรทัด = 1 ฉาก รูปแบบ <b>ลิงก์ | ชื่อเรื่อง</b> (ใส่เวลาในลิงก์ได้ เช่น ?t=90 ไม่ใส่ = สุ่ม) สูงสุด 60 ฉาก</small><textarea id="smabulk" rows="6" style="width:100%;box-sizing:border-box" placeholder="https://youtu.be/xxxxxxxxxxx?t=90 | Attack on Titan&#10;https://youtu.be/yyyyyyyyyyy | Naruto"></textarea><button class="b hot" onclick="smBulk()">📥 เพิ่มทั้งหมด</button></details></div>
+ <div class="box"><b>ฉากที่เพิ่มไว้</b><div id="smalist"></div></div><button class="g" onclick="smHome()">← กลับ</button>`;smaList()}
 if(psroom)smHome();
 
 // ================= โปรไฟล์ / เหรียญ / ร้านค้า / มีอะไรใหม่ =================
@@ -1262,7 +1282,7 @@ function openProf(tab){pTab=tab||pTab;const lv=lvOf(PF.xp),a=40*(lv-1)*(lv-1),b=
    return `<div class="it ${on?'on':''}">${pv}<div>${lb}</div>${on?'<b>✓ ใช้งานอยู่</b>':ow?`<button class="b" onclick="equip('${k}','${id}')">ใช้</button>`:`<button class="${PF.coins>=pr?'b':'g'}" onclick="buy('${k}','${id}',${pr},'${lb}')">🪙 ${pr}</button>`}</div>`}).join('');
   body=`<b>🖼️ กรอบโปรไฟล์</b><div class="shop">${it('fr',FR)}</div><b>✨ เอฟเฟกต์ชื่อ</b><div class="shop">${it('nf',NF)}</div>`}
  $('sc').innerHTML=head+body+`<button class="b" onclick="closeSet()">ปิด</button>`;$('set').style.display='flex';cntUp($('cv'),PF.coins)}
-const NEWS=['🎬 ทายฉากอัปเดตใหญ่: คำใบ้ (ปี/แนว/สตูดิโอ) · โบนัสตอบเร็ว · ตั้งห้องเลือกเรื่องฮิต/ใหม่ · ปุ่มแจ้งฉากเสีย · เข้าห้องกลางเกมได้ · รางวัลเหรียญคิดโดยเซิร์ฟเวอร์ · แอดมินเพิ่มฉากดังเองได้']; 
+const NEWS=['🛠 เพิ่มฉากง่ายขึ้น: วางลิงก์ปุ่มเดียว · มีภาพตัวอย่าง · ดึงเวลาจากลิงก์ · ทดลองดูฉากก่อนบันทึก · พิมพ์ชื่อแล้วเลือก ระบบเติมชื่ออื่น/ปี/แนวให้เอง · เพิ่มหลายฉากพร้อมกัน']; 
 function openNews(){closeSet();dlg(`<b style="font-size:20px">📜 มีอะไรใหม่ · v${APPV}</b><ul style="text-align:left;line-height:1.6;padding-left:18px">${NEWS.map(n=>`<li>${n}</li>`).join('')}</ul>`,[['เริ่มเลย','b']])}
 // ================= v2.5: สุ่มกรอบการ์ด (Gacha) =================
 // ปรับค่าได้ที่นี่: ราคา อัตราสุ่ม (รวมต้อง = 100) ระบบการันตี และเหรียญคืนเมื่อได้ซ้ำ
