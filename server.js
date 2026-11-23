@@ -628,7 +628,7 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '4.12.1';
+const APP_VERSION = '4.12.2';
 const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
 const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
 let CFIDS = new Set(), CFM = 0, CFT = {};
@@ -1865,7 +1865,7 @@ io.on('connection', sock => {
 // ไม่เก็บ/ไม่ส่งไฟล์วิดีโอเอง: ดึงรหัส trailer ของ YouTube จาก AniList แล้วให้ตัวเล่น YouTube ที่ฝังในหน้าเว็บเล่นช่วงสั้นๆ
 const SCR = {};
 const SC_PTS = [100, 70, 50, 35, 20];           // คะแนนถ้าตอบถูกตอนดู 1,2,3,4,5 วินาที
-const SC_IDLE_MS = 180000, SC_REVEAL_MS = 8000, SC_COUNTS = [5, 10, 15, 20], SC_POOLS = ['all', 'hot', 'new'], SC_LENS = [3, 5], SC_HINT_COST = 15, SC_FAST_MS = 3000, SC_FAST_BONUS = 10;
+const SC_IDLE_MS = 180000, SC_REVEAL_MS = 30000, SC_COUNTS = [5, 10, 15, 20], SC_POOLS = ['all', 'hot', 'new'], SC_LENS = [3, 5], SC_HINT_COST = 15, SC_FAST_MS = 3000, SC_FAST_BONUS = 10;
 const SC_FMT = { TV: 'ทีวีซีรีส์', TV_SHORT: 'ทีวีตอนสั้น', MOVIE: 'ภาพยนตร์', OVA: 'OVA', ONA: 'ONA', SPECIAL: 'ตอนพิเศษ', MUSIC: 'มิวสิก' };
 const SCCUSTOM = new Map();
 let SCPOOL = [], SCPOOL_T = 0, SCPOOL_P = null;
@@ -1973,9 +1973,9 @@ function scView(r, p) {
       rw: r.phase === 'end' ? x.rw : undefined, voted: r.phase === 'play' ? !!(c && c.votes.has(x.pid)) : undefined, ready: r.phase === 'load' ? !!(c && c.ready.has(x.pid)) : undefined, wrong: r.phase === 'play' && c ? x.wk === c.k : undefined, got: r.phase === 'reveal' && c ? (c.winner === x.pid) : undefined }))
   };
   if (c && (r.phase === 'load' || r.phase === 'play')) {
-    v.cur = { yt: c.a.yt, seed: c.seed, start: c.a.t != null ? c.a.t : undefined, k: c.k || 0, len: (c.k || 0) + 1, pts: scPts(c), hints: c.a.hints.slice(0, c.hints), hmax: c.a.hints.length, hvotes: c.hv.size, hvoted: c.hv.has(p.pid), flags: c.fl.size, flagged: c.fl.has(p.pid), maxLen: r.set.maxLen || 5, playIn: r.phase === 'play' ? Math.max(0, c.t0 - now) : 0, left: r.phase === 'play' ? Math.max(0, c.dl - now) : 0, votes: c.votes.size, on: scLive(r).length, voted: c.votes.has(p.pid), wrong: p.wk === c.k, };
+    v.cur = { yt: c.a.yt, seed: c.seed, start: c.a.t != null ? c.a.t : undefined, k: c.k || 0, len: (c.k || 0) + 1, pts: scPts(c), hints: c.a.hints.slice(0, c.hints), hmax: c.a.hints.length, hvotes: c.hv.size, hvoted: c.hv.has(p.pid), gvotes: c.gv.size, gvoted: c.gv.has(p.pid), flags: c.fl.size, flagged: c.fl.has(p.pid), maxLen: r.set.maxLen || 5, playIn: r.phase === 'play' ? Math.max(0, c.t0 - now) : 0, left: r.phase === 'play' ? Math.max(0, c.dl - now) : 0, votes: c.votes.size, on: scLive(r).length, voted: c.votes.has(p.pid), wrong: p.wk === c.k, };
   }
-  if (c && r.phase === 'reveal') v.rev = { name: c.a.name, yt: c.a.yt, win: c.winner || '', pts: c.pts || 0, bonus: c.bonus || 0, hints: c.hints, k: c.k, nextIn: Math.max(0, r.nextAt - now) };
+  if (c && r.phase === 'reveal') v.rev = { start: c.a.t != null ? c.a.t : undefined, seed: c.seed, nvotes: c.nv.size, nvoted: c.nv.has(p.pid), giveup: c.gu ? 1 : 0, name: c.a.name, yt: c.a.yt, win: c.winner || '', pts: c.pts || 0, bonus: c.bonus || 0, hints: c.hints, k: c.k, nextIn: Math.max(0, r.nextAt - now) };
   return v;
 }
 const scSend = r => r.players.forEach(p => p.sid && p.online && io.to(p.sid).emit('sc:state', scView(r, p)));
@@ -1985,7 +1985,7 @@ function scLoad(r) {
   const pool = scPoolFor(r), fresh = pool.filter(a => !r.used.has(a.id)), from = fresh.length ? fresh : pool;
   if (!from.length) { r.phase = 'lobby'; r.cur = null; scSend(r); r.players.forEach(p => p.sid && io.to(p.sid).emit('sc:err', 'ไม่มีตัวอย่างอนิเมะให้เล่นแล้ว')); return; }
   const a = scPick(from); r.used.add(a.id);
-  r.cur = { a, seed: Math.random(), k: 0, votes: new Set(), hv: new Set(), fl: new Set(), hints: 0, ready: new Set(), t0: 0, dl: 0, winner: '', pts: 0, bonus: 0 };
+  r.cur = { a, seed: Math.random(), k: 0, votes: new Set(), hv: new Set(), fl: new Set(), gv: new Set(), nv: new Set(), hints: 0, ready: new Set(), t0: 0, dl: 0, winner: '', pts: 0, bonus: 0 };
   r.players.forEach(p => { p.wk = -1; });
   r.phase = 'load'; scSend(r);
   r.ltimer = setTimeout(() => scPlay(r), r.i === 0 && !r.warm ? 25000 : 11000);
@@ -2006,7 +2006,7 @@ function scEscalate(r, k) {
 }
 function scReveal(r, winPid, fast) {
   if (r.phase !== 'play') return;
-  scClear(r); const c = r.cur; c.winner = winPid || '';
+  scClear(r); const c = r.cur; c.winner = winPid || ''; c.gu = !winPid && c.gv.size * 2 > scLive(r).length;
   if (winPid) { const w = r.players.find(p => p.pid === winPid); c.bonus = fast ? SC_FAST_BONUS : 0; c.pts = scPts(c) + c.bonus; if (w) { w.score += c.pts; w.ok++; } }
   r.phase = 'reveal'; r.nextAt = Date.now() + SC_REVEAL_MS; scSend(r);
   r.auto = setTimeout(() => scNext(r), SC_REVEAL_MS);
@@ -2050,6 +2050,14 @@ function scCheckHint(r) {
   if (r.phase !== 'play') return; const c = r.cur;
   const on = scLive(r); if (on.length && c.hv.size * 2 > on.length && c.hints < c.a.hints.length) { c.hints++; c.hv.clear(); scSend(r); }
 }
+function scCheckGive(r) {
+  if (r.phase !== 'play') return; const c = r.cur, on = scLive(r);
+  if (on.length && c.gv.size * 2 > on.length) scReveal(r, '');
+}
+function scCheckNext(r) {
+  if (r.phase !== 'reveal') return; const c = r.cur, on = scLive(r);
+  if (on.length && c.nv.size * 2 > on.length) scNext(r);
+}
 function scCheckFlag(r) {
   if (r.phase !== 'play') return; const c = r.cur, on = scLive(r);
   if (on.length && c.fl.size * 2 > on.length) { c.a.fl = (c.a.fl || 0) + 1; if (c.a.fl >= 3) c.a.bad = true; r.used.add(c.a.id); scLoad(r); }
@@ -2057,8 +2065,8 @@ function scCheckFlag(r) {
 function scDrop(r, p) {
   if (r.owner === p.pid) { const n = r.players.find(x => x.online && x.pid !== p.pid); if (n) r.owner = n.pid; }
   if (!r.players.some(x => x.online)) r.emptyAt = Date.now();
-  if (r.cur) { r.cur.votes.delete(p.pid); r.cur.hv.delete(p.pid); r.cur.fl.delete(p.pid); }
-  scSend(r); scCheckReady(r); scCheckVotes(r); scCheckHint(r); scCheckFlag(r);
+  if (r.cur) { r.cur.votes.delete(p.pid); r.cur.hv.delete(p.pid); r.cur.fl.delete(p.pid); r.cur.gv.delete(p.pid); r.cur.nv.delete(p.pid); }
+  scSend(r); scCheckReady(r); scCheckVotes(r); scCheckHint(r); scCheckFlag(r); scCheckGive(r); scCheckNext(r);
 }
 scLoadCustom();
 setInterval(() => { Object.keys(SCR).forEach(k => { const r = SCR[k]; if (!r.players.some(p => p.online) && Date.now() - (r.emptyAt || 0) > 20 * 60 * 1000) { scClear(r); delete SCR[k]; } }); }, 60 * 1000);
@@ -2120,6 +2128,17 @@ io.on('connection', sock => {
     const c = r.cur; if (Date.now() < c.t0 + (c.k + 1) * 1000) return;
     if (c.votes.has(p.pid)) c.votes.delete(p.pid); else c.votes.add(p.pid);
     scSend(r); scCheckVotes(r);
+  });
+  sock.on('sc:giveup', () => {
+    const r = sfind(), p = sme(r); if (!r || !p || r.phase !== 'play') return;
+    const c = r.cur; if (Date.now() < c.t0 + (c.k + 1) * 1000) return;
+    if (c.gv.has(p.pid)) c.gv.delete(p.pid); else c.gv.add(p.pid);
+    scSend(r); scCheckGive(r);
+  });
+  sock.on('sc:nextv', () => {
+    const r = sfind(), p = sme(r); if (!r || !p || r.phase !== 'reveal') return;
+    const c = r.cur; if (c.nv.has(p.pid)) c.nv.delete(p.pid); else c.nv.add(p.pid);
+    scSend(r); scCheckNext(r);
   });
   sock.on('sc:hint', () => {
     const r = sfind(), p = sme(r); if (!r || !p || r.phase !== 'play') return;

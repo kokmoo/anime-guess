@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- ag-build:20261075 -->
+<!-- ag-build:20261076 -->
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ANIME GUESS</title>
@@ -404,7 +404,7 @@ const CARDS={world:['🗺️','ใบ้โลก'],letter:['🔎','เปิด
 const I=(n,c)=>`<svg class="ic${c?' '+c:''}"><use href="#i-${n}"/></svg>`;
 const s=io(),$=id=>document.getElementById(id);
 const pid=sessionStorage.pid||(sessionStorage.pid=Math.random().toString(36).slice(2));
-const VER=5,APPV='4.12.1',BUILD='20261075';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,SM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,libSc=0,libSc2=0,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
+const VER=5,APPV='4.12.2',BUILD='20261076';let CF=[],CFM={},ACC=null,AUTHON=false,accBusy=false,accDirty=false,accTimer=0;let SRVV='',HERO=null,BGOK={sea:false,forest:false};let PF=pfLoad(),pTab='me';let chatMsgs=[],unread=0,chatOpen=false;let QM=null,SM=null,st=null,animes=[],chars=[],libQ='',ANM={},libG='',libA='',libN=60,libSc=0,libSc2=0,name=localStorage.name||'',mode='home',t0=0,lastKey='',lastSec=-1,sound=localStorage.snd!=='0',music=localStorage.bgm!=='0',vS=localStorage.vs!=null?+localStorage.vs:.8,vM=localStorage.vm!=null?+localStorage.vm:.5;
 const pre=new URLSearchParams(location.search).get('room')||'';
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const t=Math.ceil(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
@@ -1122,6 +1122,8 @@ function smClip(start,len,wait){smStop();smBusy=true;setCover('wait');
   smPoll=setInterval(()=>{let t=0;try{t=YTP.getCurrentTime()}catch(e){}if(!smShown&&t>=start-.05){smShown=true;setCover('')}if(smShown&&t>=start+len)smEnd()},40);
   smTm.push(setTimeout(smEnd,(len+6)*1000))},wait))}
 function smReplay(){if(!SM||SM.phase!=='play'||!SM.cur||!YTP||!YTMK||!YTDUR||smBusy)return;smClip(smStartOf(SM.cur),SM.cur.len,0)}
+function smFull(r){smStop();const wasP=YTMODE;if(!YTP||!YTMK||!YTDUR){setCover('rev',r);return}
+ const st=smStartOf({start:r.start,len:r.k+1,seed:r.seed});setCover('');YTMODE='play';try{YTP.seekTo(st,true);YTP.unMute();YTP.setVolume(Math.round(vS*100));YTP.playVideo()}catch(e){setCover('rev',r)}}
 function smEnd(){smBusy=false;clearInterval(smPoll);try{YTP&&YTP.pauseVideo()}catch(e){}YTMODE='idle';if(SM&&SM.phase==='play')setCover('q')}
 function smStartTap(){SMOK=true;SMERR='';smPrep();render()}
 const smN=x=>String(x||'').normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,'');
@@ -1136,16 +1138,16 @@ async function smLeave(){if(!await ask('ออกจากห้องทาย�
 function smSet(){s.emit('sc:set',{rounds:+$('smr').value,pool:$('smp').value,maxLen:+$('sml').value})}
 function smRun(){clearInterval(smTick);if(!SM||SM.phase==='lobby'||SM.phase==='end')return;
  smTick=setInterval(()=>{if(!SM){clearInterval(smTick);return}const gone=Date.now()-SM._t;
-  if(SM.phase==='play'){const c=SM.cur,over=gone>=c.playIn+c.len*1000,b=$('smskip'),r=$('smrp');if(b)b.disabled=!over;if(r)r.disabled=!(over&&!smBusy&&YTDUR>0)}
+  if(SM.phase==='play'){const c=SM.cur,over=gone>=c.playIn+c.len*1000,b=$('smskip'),r=$('smrp');if(b)b.disabled=!over;const g=$('smgu');if(g)g.disabled=!over;if(r)r.disabled=!(over&&!smBusy&&YTDUR>0)}
   else if(SM.phase==='reveal'){const e=$('smn');if(e)e.textContent=Math.ceil(Math.max(0,SM.rev.nextIn-gone)/1000)}},250)}
 s.on('sc:state',x=>{const was=SM&&SM.phase;if(!SM||SM.code!==x.code)s.emit('sc:prof',profOut());SM=x;SM._t=Date.now();needAv(x.players);sessionStorage.sroom=x.code;mode='sm';
  const w=$('ytwrap');if(w)w.classList.toggle('on',x.phase==='load'||x.phase==='play'||x.phase==='reveal');
- if(x.phase==='lobby'||x.phase==='end'||x.phase==='starting'){smStop();smKey='';smLoadKey=''}
+ if(x.phase==='lobby'||x.phase==='end'||x.phase==='starting'){smStop();try{YTP&&YTP.pauseVideo()}catch(e){}YTMODE='idle';smKey='';smLoadKey=''}
  render();smRun();smSug();
  if(!SMT.length&&x.phase!=='lobby'&&Date.now()-smTReq>4000){smTReq=Date.now();s.emit('sc:gettitles')}
  if(x.phase==='load')smPrep();
  if(x.phase==='play'){ytWrap().classList.add('on');smSchedule()}
- if(x.phase==='reveal'){smStop();try{YTP&&YTP.pauseVideo()}catch(e){}ytWrap().classList.add('on');setCover('rev',x.rev);if(was!=='reveal'){x.rev.win===x.you?SFX.ding():SFX.buzz()}}
+ if(x.phase==='reveal'){ytWrap().classList.add('on');if(was!=='reveal'){smFull(x.rev);x.rev.win===x.you?SFX.ding():SFX.buzz()}}
  if(x.phase==='end'&&was!=='end'){awardSc(x);confetti();const rk=[...x.players].sort((a,b)=>b.score-a.score);rk[0]&&rk[0].pid===x.you?SFX.win():SFX.gameover()}});
 s.on('sc:err',m=>{if(!SM)sessionStorage.removeItem('sroom');say(m)});
 s.on('sc:wrong',()=>{SFX.buzz();flash('❌ ยังไม่ใช่ ลองดูเพิ่มอีกนิด')});
@@ -1178,13 +1180,15 @@ function drawSM(A){A.className='';document.body.classList.remove('w');
   <input id="smg" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="พิมพ์ชื่อเรื่อง แล้วเลือกจากรายการ" oninput="smSug()" onkeydown="if(event.key==='Enter')smGuess()"><div id="smsug" class="sug"></div>
   <button class="b hot" onclick="smGuess()">✅ ส่งคำตอบ</button>${c.wrong?'<small>❌ คุณตอบผิดไปแล้วในรอบนี้ รอดูเพิ่มก่อน</small>':''}
   <button class="g" id="smrp" ${over&&!smBusy&&YTDUR>0?'':'disabled'} onclick="smReplay()">🔁 ดูซ้ำ (${c.len} วิ · ไม่จำกัด ไม่เสียคะแนน)</button>
-  <button class="g" id="smskip" ${over?'':'disabled'} onclick="smSkip()">${c.voted?'↩ ยกเลิกโหวต':(c.len>=c.maxLen?'🏳 ยอมแพ้ ดูเฉลย':'⏭ ขอดูเพิ่ม (+1 วิ)')} · โหวต ${c.votes}/${need}</button>
+  ${c.len>=c.maxLen?'':`<button class="g" id="smskip" ${over?'':'disabled'} onclick="smSkip()">${c.voted?'↩ ยกเลิกโหวต':'⏭ ขอดูเพิ่ม (+1 วิ)'} · โหวต ${c.votes}/${need}</button>`}
+  <button class="g" id="smgu" ${over?'':'disabled'} onclick="s.emit('sc:giveup')">${c.gvoted?'↩ ยกเลิกขอเฉลย':'🏳 เฉลยเลย (ไม่มีใครรู้)'} · โหวต ${c.gvotes}/${need}</button>
   ${c.hints.length<c.hmax?`<button class="g" id="smhint" ${gone>=c.playIn?'':'disabled'} onclick="s.emit('sc:hint')">${c.hvoted?'↩ ยกเลิกขอคำใบ้':'💡 ขอคำใบ้ (−15 คะแนน)'} · โหวต ${c.hvotes}/${need}</button>`:''}
    <small>ไม่มีเวลานับถอยหลัง ต้องโหวตให้ถึง ${need} จาก ${c.on} คน จึงจะดูเพิ่ม · ดูได้สูงสุด ${c.maxLen} วินาที</small>
    <button class="g" style="padding:7px;font-size:14px" onclick="s.emit('sc:flag')">${c.flagged?'↩ ยกเลิกแจ้ง':'⚠ ฉากเสีย (ดำ/มีแต่โลโก้) · ข้ามฉากนี้'} ${c.flags}/${need}</button></div>${board(false)}${leaveBtn}`;return}
  if(SM.phase==='reveal'){const r=SM.rev,w=SM.players.find(p=>p.pid===r.win);
-  A.innerHTML=`${sp}<div class="box" style="text-align:center"><b class="${w?'win':'lose'}" style="font-size:20px">${w?`✅ ${esc(w.name)} ตอบถูก! +${r.pts}${r.bonus?' (⚡เร็ว +'+r.bonus+')':''}`:'😢 ไม่มีใครตอบได้'}</b><p style="font-size:22px;font-weight:700;margin:8px 0">${esc(r.name)}</p>${r.hints?`<small>ใช้คำใบ้ ${r.hints} ข้อ</small>`:''}
-   ${SM.owner?`<button class="b" onclick="s.emit('sc:next')">${SM.i+1<SM.n?'ฉากต่อไป ▶':'ดูผลรวม 🏁'}</button>`:''}<small>ไปต่ออัตโนมัติใน <span id="smn">${Math.ceil(r.nextIn/1000)}</span> วินาที</small></div>${board(true)}${leaveBtn}`;return}
+  A.innerHTML=`${sp}<div class="box" style="text-align:center"><b class="${w?'win':'lose'}" style="font-size:20px">${w?`✅ ${esc(w.name)} ตอบถูก! +${r.pts}${r.bonus?' (⚡เร็ว +'+r.bonus+')':''}`:(r.giveup?'🏳 โหวตเฉลย':'😢 ไม่มีใครตอบได้')}</b><p style="font-size:22px;font-weight:700;margin:8px 0">${esc(r.name)}</p>${r.hints?`<small>ใช้คำใบ้ ${r.hints} ข้อ</small>`:''}
+   <small>▶ กำลังเล่นฉากเต็มด้านบน ดูให้จุใจก่อนไปต่อได้</small>
+   ${SM.owner?`<button class="b" onclick="s.emit('sc:next')">${SM.i+1<SM.n?'ฉากต่อไป ▶':'ดูผลรวม 🏁'}</button>`:`<button class="b" onclick="s.emit('sc:nextv')">${r.nvoted?'↩ ยกเลิก':'ฉากต่อไป ▶'} · โหวต ${r.nvotes}/${Math.floor(SM.players.filter(p=>p.online).length/2)+1}</button>`}<small>ไปต่ออัตโนมัติใน <span id="smn">${Math.ceil(r.nextIn/1000)}</span> วินาที</small></div>${board(true)}${leaveBtn}`;return}
  A.innerHTML=`<h2>🏁 จบเกม</h2><div class="box" style="text-align:center"><div class="big" style="font-size:64px">🏆</div><b style="font-size:24px">${esc(rank[0].name)} ชนะ!</b><p>${rank[0].score} คะแนน · ตอบถูก ${rank[0].ok}/${SM.n} ฉาก</p>${(()=>{const m=SM.players.find(p=>p.pid===SM.you);return m&&m.rw?`<p><b class="win">🪙 +${m.rw.c} เหรียญ · ⭐ +${m.rw.x} XP</b></p>`:`<small>${SM.players.length<2?'เล่นคนเดียวเป็นโหมดซ้อมมือ ไม่ได้เหรียญ/XP':''}</small>`})()}</div>
  ${board(false)}${SM.owner?'<button class="b" onclick="s.emit(\'sc:again\')">🔄 เล่นอีกรอบ (กลับไปล็อบบี้)</button>':'<p style="text-align:center">รอเจ้าของห้องเริ่มรอบใหม่…</p>'}${leaveBtn}`}
 function awardSc(x){const m=x.players.find(p=>p.pid===x.you);if(!m||!m.rw||m.rw.acct)return;gain(m.rw.c,m.rw.x,m.rw.tag,'จบเกมทายฉาก');checkTitles()}
@@ -1282,7 +1286,7 @@ function openProf(tab){pTab=tab||pTab;const lv=lvOf(PF.xp),a=40*(lv-1)*(lv-1),b=
    return `<div class="it ${on?'on':''}">${pv}<div>${lb}</div>${on?'<b>✓ ใช้งานอยู่</b>':ow?`<button class="b" onclick="equip('${k}','${id}')">ใช้</button>`:`<button class="${PF.coins>=pr?'b':'g'}" onclick="buy('${k}','${id}',${pr},'${lb}')">🪙 ${pr}</button>`}</div>`}).join('');
   body=`<b>🖼️ กรอบโปรไฟล์</b><div class="shop">${it('fr',FR)}</div><b>✨ เอฟเฟกต์ชื่อ</b><div class="shop">${it('nf',NF)}</div>`}
  $('sc').innerHTML=head+body+`<button class="b" onclick="closeSet()">ปิด</button>`;$('set').style.display='flex';cntUp($('cv'),PF.coins)}
-const NEWS=['🛠 เพิ่มฉากง่ายขึ้น: วางลิงก์ปุ่มเดียว · มีภาพตัวอย่าง · ดึงเวลาจากลิงก์ · ทดลองดูฉากก่อนบันทึก · พิมพ์ชื่อแล้วเลือก ระบบเติมชื่ออื่น/ปี/แนวให้เอง · เพิ่มหลายฉากพร้อมกัน']; 
+const NEWS=['🎬 ทายฉาก: ตอบถูก/เฉลยแล้วเล่นฉากเต็มให้ดู (30 วิ) · ปุ่ม 🏳 เฉลยเลย เมื่อไม่มีใครรู้ (โหวตเกินครึ่ง) · คนอื่นโหวตข้ามไปฉากต่อไปได้ไม่ต้องรอเจ้าของห้อง']; 
 function openNews(){closeSet();dlg(`<b style="font-size:20px">📜 มีอะไรใหม่ · v${APPV}</b><ul style="text-align:left;line-height:1.6;padding-left:18px">${NEWS.map(n=>`<li>${n}</li>`).join('')}</ul>`,[['เริ่มเลย','b']])}
 // ================= v2.5: สุ่มกรอบการ์ด (Gacha) =================
 // ปรับค่าได้ที่นี่: ราคา อัตราสุ่ม (รวมต้อง = 100) ระบบการันตี และเหรียญคืนเมื่อได้ซ้ำ
