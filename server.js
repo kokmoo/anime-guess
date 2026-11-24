@@ -11,6 +11,7 @@ const CXIMG = new Map(); // รูปตัวละครที่ผู้เ�
 const hasImg = slug => CXIMG.has(slug) || IMGDIRS.some(d => fs.existsSync(path.join(d, slug + '.jpg')));
 app.get('/img/:f', (req, res, next) => { const m = /^([a-z0-9-]+)\.jpg$/.exec(req.params.f), b = m && CXIMG.get(m[1]); if (!b) return next(); res.set('Cache-Control', 'public, max-age=86400').type('jpeg').send(b); });
 // บีบอัด gzip ให้ไฟล์ข้อความ (เก็บผลไว้ในหน่วยความจำ) + แคชรูป/เสียง
+app.get('/healthz', (q, r) => r.type('text/plain').set('Cache-Control', 'no-store').send('ok')); // ให้บริการปลุกเว็บเรียกได้ (เบา ไม่แตะฐานข้อมูล)
 const zlib = require('zlib'), GZC = new Map();
 const staticOpt = { setHeaders: (res, p) => { res.setHeader('Cache-Control', /\.(webp|jpg|jpeg|png|mp3|woff2?)$/i.test(p) ? 'public, max-age=86400, stale-while-revalidate=604800' : 'no-cache'); } };
 app.use((req, res, next) => {
@@ -628,7 +629,7 @@ const hint = (t, c) => ({
 const norm = s => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const accepts = c => new Set([norm(c[0]), ...c[1].split('|').map(norm), ...norm(c[0]).split(' ').filter(w => w.length >= 4 && w !== 'titan')]);
 const rooms = {};
-const APP_VERSION = '4.12.5';
+const APP_VERSION = '4.13.0';
 const FRAMES = new Set(['none','gold','sakura','ice','emerald','neon','fire','royal','rainbow','galaxy']);
 const NFX = new Set(['none','gold','ice','neon','fire','sparkle','rainbow']);
 let CFIDS = new Set(), CFM = 0, CFT = {};
@@ -999,6 +1000,7 @@ setInterval(() => {              // คนหลุด: รอกลับเข
 }, 1000);
 
 io.on('connection', sock => {
+  stInc('conn');
   sock.emit('meta', { v: 5, ver: APP_VERSION, auth: AUTH_ON, animes: ANIMES, chars: metaChars() }); sock.emit('anime:meta', anAll());
   const find = () => Object.values(rooms).find(r => r.players.some(p => p.sid === sock.id));
   const me = r => r && r.players.find(p => p.sid === sock.id);
@@ -1926,6 +1928,8 @@ function scCurated() {
   } catch (e) { return []; }
 }
 // น้ำหนักตอนสุ่ม: ฉากที่เลือกเอง > เรื่องฮิต (อันดับความนิยมสูง) > เรื่องทั่วไป ; เรื่องใหม่ (2013+) เด่นขึ้น เรื่องเก่ามากลดลง ยกเว้นเรื่องดังมาก
+const dayKey = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
+const stInc = f => { try { rcmd('HINCRBY', 'st:' + dayKey(), f, 1).catch(() => {}); } catch (e) {} };
 const SCBAN = new Set(), SCSTAT = new Map();
 let SCDAILY = { date: '', a: null };
 const scEnc = id => Buffer.from(String(id).split('').reverse().join('')).toString('base64'); // กันแอบดูรหัสวิดีโอจากข้อมูลตรงๆ (ไม่ใช่การเข้ารหัสจริงจัง)
@@ -1936,6 +1940,8 @@ async function scLoadRates() {
   try { const all = await rcmd('HGETALL', 'sc:rate'), arr = Array.isArray(all) ? all : []; for (let k = 0; k + 1 < arr.length; k += 2) { try { const o = JSON.parse(arr[k + 1]); SCRATE.set(arr[k], { u: +o.u || 0, d: +o.d || 0 }); } catch (e) {} } } catch (e) {}
 }
 const scRateW = a => { const r = SCRATE.get(String(a.id)); return r ? Math.max(0.3, Math.min(2, (r.u + 1.5) / (r.d + 1.5))) : 1; };
+const YT_KEY = process.env.YOUTUBE_API_KEY || '', YT_API = process.env.YT_API_URL || 'https://www.googleapis.com/youtube/v3', YSC = new Map();
+const scGuessFrom = text => { const nt = scNorm(text), seen = new Map(); if (!nt) return []; for (const a of SCPOOL) for (const x of (a.ti || [])) { const nx = scNorm(x); if (nx.length >= 4 && nt.includes(nx)) { if (!seen.has(a.name) || seen.get(a.name) < nx.length) seen.set(a.name, nx.length); } } return [...seen.entries()].sort((p, q) => q[1] - p[1]).slice(0, 3).map(p => p[0]); };
 const YT_OEMBED = process.env.YT_OEMBED || 'https://www.youtube.com/oembed';
 // อ่านชื่อคลิปจาก YouTube (oEmbed ไม่ต้องใช้คีย์) แล้วเดาว่าเป็นเรื่องไหนจากรายชื่อที่มี
 async function scProbe(yt) {
@@ -2042,7 +2048,7 @@ function scReveal(r, winPid, fast) {
 }
 // รางวัลหลังจบเกม: บัญชีที่ล็อกอินให้เซิร์ฟเวอร์เติมเหรียญ/XP เอง (กันโกง) ; ผู้เล่นที่ไม่ได้ล็อกอินให้เครื่องเก็บเอง ; เล่นคนเดียว = ซ้อมมือ ไม่ได้รางวัล
 function scPayout(r) {
-  if (r.paidRid === r.rid) return; r.paidRid = r.rid;
+  if (r.paidRid === r.rid) return; r.paidRid = r.rid; stInc('scgames');
   const rk = [...r.players].sort((a, b) => b.score - a.score);
   r.players.forEach(p => { p.rw = null; });
   if (r.players.length < 2) return;
@@ -2107,6 +2113,7 @@ io.on('connection', sock => {
   const newP = (pid, name, sid) => ({ pid, name: String(name || '').trim().slice(0, 16) || 'Player', sid, online: true, score: 0, ok: 0, wk: -1 });
   const titles = () => sock.emit('sc:titles', scTitleList());
   sock.on('sc:create', ({ name, pid, prof }) => {
+    stInc('scrooms');
     if (!pid) return;
     const old = sfind(); if (old) { const o = sme(old); o.online = false; o.sid = null; scDrop(old, o); }
     let code; do { code = Math.random().toString(36).slice(2, 7).toUpperCase(); } while (SCR[code] || QROOMS[code]);
@@ -2220,6 +2227,32 @@ io.on('connection', sock => {
     for (const it of d.items.slice(0, 60)) { const r = await scAddOne(it); if (r.ok) n++; else bad.push((it && String(it.title || it.url || '').slice(0, 24)) + ': ' + r.msg); }
     scAdmMsg(n > 0 && !bad.length, 'เพิ่ม ' + n + ' ฉาก' + (bad.length ? ' · ผิดพลาด ' + bad.length + ' (' + bad.slice(0, 2).join(' / ') + ')' : '')); scAdmList();
   });
+  // 🔎 ค้นฉากจาก YouTube ในหน้าแอดมิน (ต้องมี YOUTUBE_API_KEY) กรองเฉพาะคลิปที่ฝังเล่นได้
+  sock.on('sc:adm:ysearch', async d => {
+    if (!sock.data.adm || !d) return; const q = String(d.q || '').trim().slice(0, 100); if (!q) return;
+    if (!YT_KEY) return sock.emit('sc:adm:ysr', { err: 'nokey' });
+    const now = Date.now(); if (now - (sock.data.ysT || 0) < 1200) return sock.emit('sc:adm:ysr', { err: 'slow' }); sock.data.ysT = now;
+    const ck = q.toLowerCase(), hit = YSC.get(ck); if (hit && now - hit.t < 600000) return sock.emit('sc:adm:ysr', hit.v);
+    try {
+      if (!SCPOOL.length) await scLoadPool().catch(() => {});
+      const r = await fetch(YT_API + '/search?part=snippet&type=video&videoEmbeddable=true&videoSyndicated=true&maxResults=10&q=' + encodeURIComponent(q) + '&key=' + encodeURIComponent(YT_KEY), { signal: AbortSignal.timeout(8000) });
+      if (!r.ok) return sock.emit('sc:adm:ysr', { err: r.status === 403 ? 'quota' : 'fail' });
+      const j = await r.json(), items = (j.items || []).filter(x => x.id && x.id.videoId).map(x => ({ yt: x.id.videoId, title: String((x.snippet || {}).title || '').slice(0, 120), ch: String((x.snippet || {}).channelTitle || '').slice(0, 40) }));
+      const v = { q, guess: scGuessFrom(q), items }; YSC.set(ck, { t: now, v }); if (YSC.size > 100) YSC.delete(YSC.keys().next().value); sock.emit('sc:adm:ysr', v);
+    } catch (e) { sock.emit('sc:adm:ysr', { err: 'fail' }); }
+  });
+  // 📃 ดึงทั้งเพลย์ลิสต์: ชื่อเรื่องเดาจากชื่อคลิป
+  sock.on('sc:adm:yplist', async d => {
+    if (!sock.data.adm || !d) return; const m = String(d.url || '').match(/[?&]list=([\w-]{10,60})/); if (!m) return sock.emit('sc:adm:ysr', { err: 'badlist' });
+    if (!YT_KEY) return sock.emit('sc:adm:ysr', { err: 'nokey' });
+    try {
+      if (!SCPOOL.length) await scLoadPool().catch(() => {});
+      const r = await fetch(YT_API + '/playlistItems?part=snippet&maxResults=50&playlistId=' + encodeURIComponent(m[1]) + '&key=' + encodeURIComponent(YT_KEY), { signal: AbortSignal.timeout(8000) });
+      if (!r.ok) return sock.emit('sc:adm:ysr', { err: r.status === 403 ? 'quota' : 'fail' });
+      const j = await r.json(), items = (j.items || []).map(x => ({ yt: ((x.snippet || {}).resourceId || {}).videoId, title: String((x.snippet || {}).title || '').slice(0, 120) })).filter(x => x.yt && /^[\w-]{11}$/.test(x.yt)).map(x => Object.assign(x, { g: scGuessFrom(x.title)[0] || '' }));
+      sock.emit('sc:adm:ysr', { q: 'เพลย์ลิสต์', guess: [], items, plist: true });
+    } catch (e) { sock.emit('sc:adm:ysr', { err: 'fail' }); }
+  });
   sock.on('sc:adm:probe', async d => {
     if (!sock.data.adm || !d) return; const yt = scParseYt(d.url); if (!yt) return;
     if (!SCPOOL.length) await scLoadPool().catch(() => {});
@@ -2270,6 +2303,17 @@ io.on('connection', sock => {
     const ids = new Set([...SCSTAT.keys(), ...SCBAN]); const out = [...ids].map(id => [id, SCSTAT.get(id) || { p: 0, s: 0, k: 0 }]).filter(e => e[1].p >= 3 || SCBAN.has(e[0])).map(([id, o]) => { const r = SCRATE.get(id) || { u: 0, d: 0 }; return { id, name: nm(id), p: o.p, s: o.s, avg: o.s ? Math.round(o.k / o.s * 10) / 10 : null, up: r.u, dn: r.d, ban: SCBAN.has(id) }; });
     out.sort((a, b) => (a.s / a.p) - (b.s / b.p) || b.p - a.p); sock.emit('sc:adm:statl', out.slice(0, 80));
   });
+  sock.on('sc:adm:day', async () => {
+    if (!sock.data.adm) return; const out = [];
+    for (let i = 0; i < 7; i++) { const d = new Date(Date.now() + 7 * 3600e3 - i * 86400000).toISOString().slice(0, 10); let h = {}; try { const all = await rcmd('HGETALL', 'st:' + d), arr = Array.isArray(all) ? all : []; for (let k = 0; k + 1 < arr.length; k += 2) h[arr[k]] = +arr[k + 1]; } catch (e) {} out.push(Object.assign({ date: d }, h)); }
+    sock.emit('sc:adm:dayl', out);
+  });
+  // ตรวจว่าคลิปที่แอดมินเพิ่มไว้ยังเล่นในเว็บได้ไหม (404 = ถูกลบ, 401/403 = ปิดการฝัง)
+  sock.on('sc:adm:check', async () => {
+    if (!sock.data.adm) return; await scLoadCustom(); const list = [...SCCUSTOM.values()], bad = []; let i = 0;
+    const chk = async () => { while (i < list.length) { const c = list[i++]; try { const r = await fetch(YT_OEMBED + '?format=json&url=' + encodeURIComponent('https://www.youtube.com/watch?v=' + c.yt), { signal: AbortSignal.timeout(6000) }); if (r.status === 404) bad.push({ id: c.id, title: c.name, why: 'คลิปถูกลบ/ไม่มีแล้ว' }); else if (r.status === 401 || r.status === 403) bad.push({ id: c.id, title: c.name, why: 'ปิดการฝังคลิป' }); } catch (e) {} } };
+    await Promise.all([chk(), chk(), chk(), chk()]); sock.emit('sc:adm:checkr', { n: list.length, bad });
+  });
   sock.on('sc:adm:ban', async d => {
     if (!sock.data.adm || !d || !d.id) return; const id = String(d.id).slice(0, 80);
     try { if (d.on) { SCBAN.add(id); await rcmd('HSET', 'sc:ban', id, '1'); } else { SCBAN.delete(id); await rcmd('HDEL', 'sc:ban', id); } } catch (e) {}
@@ -2289,11 +2333,18 @@ io.on('connection', sock => {
     }
     SCDAILY = { date, a }; return a;
   };
+  const sdYest = date => new Date(Date.parse(date) - 86400000).toISOString().slice(0, 10);
+  const sdStreak = async (date, pid, bump) => {
+    let o = null; try { const raw = await rcmd('HGET', 'sc:streak', pid); if (raw) o = JSON.parse(raw); } catch (e) {}
+    if (!bump) return o && (o.last === date || o.last === sdYest(date)) ? o.n : 0;
+    const n = o && o.last === sdYest(date) ? o.n + 1 : o && o.last === date ? o.n : 1;
+    try { await rcmd('HSET', 'sc:streak', pid, JSON.stringify({ last: date, n })); } catch (e) {} return n;
+  };
   const sdView = async (date, a, me) => {
     let board = []; try { const all = await rcmd('HGETALL', 'sc:daily:' + date), arr = Array.isArray(all) ? all : []; for (let k = 0; k + 1 < arr.length; k += 2) { try { const o = JSON.parse(arr[k + 1]); if (o.done) board.push({ pid: arr[k], name: o.name, score: o.score, k: o.k }); } catch (e) {} } } catch (e) {}
     board.sort((x, y) => y.score - x.score || x.k - y.k); const rank = board.findIndex(x => x.pid === me.pid) + 1;
     let h = 0; for (const ch of date) h = (h * 33 + ch.charCodeAt(0)) >>> 0;
-    return { date, yt: scEnc(a.yt), seed: (h % 997) / 997, start: a.t != null ? a.t : undefined, k: me.k, w: me.w, done: !!me.done, score: me.score || 0, name: me.done ? a.name : undefined, ytr: me.done ? a.yt : undefined, rank, total: board.length, board: board.slice(0, 10).map(x => ({ name: x.name, score: x.score, k: x.k, me: x.pid === me.pid })), rw: me.rw };
+    return { date, yt: scEnc(a.yt), seed: (h % 997) / 997, start: a.t != null ? a.t : undefined, k: me.k, w: me.w, done: !!me.done, score: me.score || 0, name: me.done ? a.name : undefined, ytr: me.done ? a.yt : undefined, rank, total: board.length, board: board.slice(0, 10).map(x => ({ name: x.name, score: x.score, k: x.k, me: x.pid === me.pid })), rw: me.rw, streak: me.sn || await sdStreak(date, me.pid, false) };
   };
   const sdLoadMe = async (date, pid, name) => { let o = null; try { const raw = await rcmd('HGET', 'sc:daily:' + date, pid); if (raw) o = JSON.parse(raw); } catch (e) {} return o || { name, k: 0, w: 0, done: false, score: 0 }; };
   const sdSave = async (date, pid, o) => { try { await rcmd('HSET', 'sc:daily:' + date, pid, JSON.stringify(o)); } catch (e) {} };
@@ -2318,9 +2369,9 @@ io.on('connection', sock => {
       const g = String((d && d.g) || '').slice(0, 100); if (me.done || !scNorm(g)) return sock.emit('sd:state', await sdView(date, a, me));
       if (scMatch(a, g)) {
         me.done = true; me.score = Math.max(10, SC_PTS[me.k] - 10 * me.w); me.ts = Date.now();
-        const c = 10 + Math.round(me.score / 10), tag = 'sd:' + date, key = sock.data.acct; me.rw = { c, x: c, acct: !!key, tag };
+        stInc('daily'); me.sn = await sdStreak(date, pid, true); const c = 10 + Math.round(me.score / 10) + (me.sn % 7 === 0 ? 30 : 0), tag = 'sd:' + date, key = sock.data.acct; me.rw = { c, x: c, acct: !!key, tag };
         if (key) acctRun(key, async () => { try { const raw = await rcmd('GET', key); if (!raw) return; const rec = JSON.parse(raw), pr = rec.prof; pr.paid = pr.paid || []; if (pr.paid.includes(tag)) return; pr.paid.push(tag); if (pr.paid.length > 60) pr.paid.shift(); pr.coins = (pr.coins || 0) + c; pr.xp = (pr.xp || 0) + c; rec.v++; await rcmd('SET', key, JSON.stringify(rec)); sock.emit('sc:reward', { c, x: c, prof: rec.prof, v: rec.v }); } catch (e) {} });
-      } else { me.w++; sock.emit('sd:wrong'); if (me.w >= 3) { me.done = true; me.score = 0; me.ts = Date.now(); } }
+      } else { me.w++; sock.emit('sd:wrong'); if (me.w >= 3) { me.done = true; me.score = 0; me.ts = Date.now(); stInc('daily'); me.sn = await sdStreak(date, pid, true); } }
       await sdSave(date, pid, me); sock.emit('sd:state', await sdView(date, a, me));
     } catch (e) {}
   });
